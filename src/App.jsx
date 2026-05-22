@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 
+const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
+
 const MC = ["#2d6a4f","#1d4e89","#7b2d8b","#b5451b"];
 
 const HUNT_TYPES = [
