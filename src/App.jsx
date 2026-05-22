@@ -2,6 +2,38 @@ import { useState, useEffect } from "react";
 
 const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
+const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
+
+function sbGet(table,params){
+  const url=new URL(SB_URL+"/rest/v1/"+table);
+  if(params)Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  return fetch(url,{headers:SB_H}).then(r=>r.json());
+}
+async function sbSignUp(email,password,name){
+  const r=await fetch(SB_URL+"/auth/v1/signup",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password,data:{full_name:name}})});
+  return r.json();
+}
+async function sbSignIn(email,password){
+  const r=await fetch(SB_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+  return r.json();
+}
+function parseDeal(row){
+  return {
+    id:row.id,brand:row.brand,product:row.product,portal:row.portal,
+    cat:row.cat,orig:row.orig_price,sale:row.sale_price,
+    coupon:row.coupon,fake:row.fake_sale,fakeNote:row.fake_note,
+    url:row.url,blurb:row.blurb,tags:[],
+    sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
+    history:[row.orig_price,row.orig_price,row.orig_price,row.orig_price,row.orig_price,row.sale_price],
+  };
+}
+function parseCoupon(row){
+  return {
+    id:row.id,brand:row.brand,code:row.code,discount:row.discount,
+    portal:row.portal,url:row.url,verified:row.verified,
+    expires:row.expires_at?new Date(row.expires_at).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"Soon",
+  };
+}
 
 const MC = ["#2d6a4f","#1d4e89","#7b2d8b","#b5451b"];
 
@@ -1170,10 +1202,23 @@ export default function App() {
   const [showPrefs,setShowPrefs]=useState(false);
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
+  const [deals,setDeals]=useState(DEALS_STATIC||DEALS);
+  const [dbCoupons,setDbCoupons]=useState(COUPONS_STATIC||COUPONS);
+  const [dealsLoading,setDealsLoading]=useState(true);
+
+  useEffect(()=>{
+    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100"})
+      .then(rows=>{if(rows&&rows.length)setDeals(rows.map(parseDeal));})
+      .catch(()=>{})
+      .finally(()=>setDealsLoading(false));
+    sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
+      .then(rows=>{if(rows&&rows.length)setDbCoupons(rows.map(parseCoupon));})
+      .catch(()=>{});
+  },[]);
   const T=theme==="light"?LIGHT:DARK;
   const P=PORTALS[portal];
   const isGuest=!user;
-  const deals=DEALS;
+  const deals2=deals;
   const sortedDeals=[
     ...deals.filter(d=>d.portal===portal),
     ...deals.filter(d=>d.portal!==portal),
