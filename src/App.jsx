@@ -149,7 +149,7 @@ const LIGHT = {
   accent:"#2d5a3d",accentLight:"#ecf4ed",accentBorder:"#b5d4be",
   orange:"#b85a1a",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
   red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  topo:"#b8a880",topoOp:0.32,navActive:"#ecf4ed",
+  topo:"#8b6f47",topoOp:0.22,navActive:"#ecf4ed",
   shadow:"rgba(40,30,20,0.06)",shadowHov:"rgba(40,30,20,0.16)",toggle:"🌙",
 };
 const DARK = {
@@ -159,7 +159,7 @@ const DARK = {
   accent:"#5fba85",accentLight:"#0e2818",accentBorder:"#2a4d38",
   orange:"#e0a055",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
   red:"#e55c45",redLight:"#1f0a05",redBorder:"#6a2010",
-  topo:"#4a6830",topoOp:0.32,navActive:"#0e2818",
+  topo:"#c89a55",topoOp:0.18,navActive:"#0e2818",
   shadow:"rgba(0,0,0,0.5)",shadowHov:"rgba(0,0,0,0.75)",toggle:"☀️",
 };
 
@@ -184,16 +184,54 @@ const SIZE_OPTIONS = {
 };
 
 
-const TOPO_D = [
-  "M0,380 C120,340 280,400 440,360 C600,320 720,370 900,338 C1080,306 1160,340 1300,318",
-  "M0,320 C120,282 280,338 440,300 C600,262 720,310 900,280 C1080,250 1160,282 1300,260",
-  "M0,265 C120,229 280,282 440,246 C600,210 720,256 900,228 C1080,200 1160,230 1300,208",
-  "M0,215 C120,181 280,232 440,197 C600,162 720,206 900,180 C1080,154 1160,182 1300,162",
-  "M0,170 C120,138 280,186 440,153 C600,120 720,162 900,138 C1080,114 1160,138 1300,120",
-  "M0,130 C120,100 280,144 440,114 C600,84 720,124 900,102 C1080,80 1160,100 1300,84",
-  "M0,96 C120,68 280,108 440,80 C600,52 720,90 900,70 C1080,50 1160,68 1300,54",
-  "M0,430 C120,396 280,456 440,418 C600,380 720,428 900,396 C1080,364 1160,396 1300,374",
+// Procedural topographic contour map: peaks with nested elevation lines
+const TOPO_PEAKS = [
+  {cx:180,  cy:230, base:30, count:9,  growth:14, asym:0.82, seed:1.1},
+  {cx:540,  cy:160, base:25, count:7,  growth:12, asym:0.95, seed:2.3},
+  {cx:880,  cy:340, base:35, count:11, growth:16, asym:0.78, seed:3.5},
+  {cx:1180, cy:200, base:22, count:8,  growth:13, asym:0.88, seed:4.7},
+  {cx:340,  cy:480, base:20, count:6,  growth:11, asym:0.92, seed:5.9},
+  {cx:1080, cy:520, base:25, count:7,  growth:14, asym:0.85, seed:6.4},
+  {cx:680,  cy:520, base:18, count:5,  growth:13, asym:1.05, seed:7.2},
 ];
+
+function topoBlob(cx, cy, r, asym, seed) {
+  const N = 24;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const noise = 1 + 0.18 * Math.sin(seed + a * 3.1) + 0.08 * Math.cos(seed * 1.7 + a * 5.3);
+    pts.push([cx + Math.cos(a) * r * noise, cy + Math.sin(a) * r * asym * noise]);
+  }
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < N; i++) {
+    const p0 = pts[(i - 1 + N) % N];
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % N];
+    const p3 = pts[(i + 2) % N];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d + ' Z';
+}
+
+const TOPO_LINES = TOPO_PEAKS.flatMap((peak, pi) => {
+  const lines = [];
+  for (let i = 0; i < peak.count; i++) {
+    const r = peak.base + i * peak.growth;
+    const isIndex = i % 5 === 0;
+    lines.push({
+      d: topoBlob(peak.cx, peak.cy, r, peak.asym, peak.seed + i * 0.3),
+      weight: isIndex ? 1.3 : 0.55,
+      opacity: Math.max(0.35, 1 - i * 0.06),
+      key: `${pi}-${i}`,
+    });
+  }
+  return lines;
+});
 
 const API_URL = "https://claude-proxy.jamesreed.workers.dev/timberline";
 const AI_MODEL = "claude-haiku-4-5-20251001";
@@ -221,22 +259,28 @@ function TopoBG({T}) {
       style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}
       preserveAspectRatio="xMidYMid slice"
       viewBox="0 0 1300 600"
+      aria-hidden="true"
     >
       <defs>
-        <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={T.topo} stopOpacity={T.topoOp*0.6}/>
-          <stop offset="50%" stopColor={T.topo} stopOpacity={T.topoOp}/>
-          <stop offset="100%" stopColor={T.topo} stopOpacity={T.topoOp*0.3}/>
-        </linearGradient>
+        <radialGradient id="topoVignette" cx="50%" cy="45%" r="75%">
+          <stop offset="0%"  stopColor={T.topo} stopOpacity={T.topoOp*1.15}/>
+          <stop offset="60%" stopColor={T.topo} stopOpacity={T.topoOp*0.85}/>
+          <stop offset="100%" stopColor={T.topo} stopOpacity={T.topoOp*0.25}/>
+        </radialGradient>
+        <filter id="topoBlur" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="0.35"/>
+        </filter>
       </defs>
-      {TOPO_D.map((d,i)=>(
-        <path
-          key={i} d={d} fill="none"
-          stroke="url(#tg)"
-          strokeWidth={i%4===0?"1.4":"0.75"}
-          opacity={i%4===0?1:0.7}
-        />
-      ))}
+      <g stroke="url(#topoVignette)" fill="none" strokeLinejoin="round" strokeLinecap="round" filter="url(#topoBlur)">
+        {TOPO_LINES.map(l => (
+          <path
+            key={l.key}
+            d={l.d}
+            strokeWidth={l.weight}
+            opacity={l.opacity}
+          />
+        ))}
+      </g>
     </svg>
   );
 }
