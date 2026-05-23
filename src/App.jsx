@@ -118,7 +118,6 @@ const ALL_BRANDS = [
   "Danner","LaCrosse","Muck",
   "Kifaru","Mystery Ranch",
   "Garmin","onX","GoHunt",
-  "Cabelas","Bass Pro","BlackOvis","Scheels","Sportsmans Warehouse",
 ];
 
 const STORES = [
@@ -131,23 +130,6 @@ const STORES = [
     id:"gohunt",name:"GoHunt Gear",freeAt:99,ship:9,cat:"specialty",
     loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
   },
-  {
-    id:"blackovis",name:"BlackOvis",freeAt:99,ship:8,cat:"specialty",
-    loyalty:{name:"Rewards",desc:"3% back in store credit"},
-  },
-  {
-    id:"cabelas",name:"Cabelas",freeAt:50,ship:8,cat:"bigbox",
-    loyalty:{name:"CLUB Points",desc:"2% back in CLUB points"},
-  },
-  {
-    id:"basspro",name:"Bass Pro",freeAt:50,ship:8,cat:"bigbox",
-    loyalty:{name:"Rewards",desc:"2% back in rewards"},
-  },
-  {
-    id:"scheels",name:"Scheels",freeAt:50,ship:7,cat:"bigbox",
-    loyalty:{name:"Gold Card",desc:"1% back in Gold"},
-  },
-  {id:"sportsmans",name:"Sportsmans Warehouse",freeAt:50,ship:7,cat:"bigbox",loyalty:null},
 ];
 
 const PORTALS = {
@@ -155,7 +137,7 @@ const PORTALS = {
     name:"Timberline Deal Tracker",tagline:"Western - Elk - Backcountry",
     accent:"#2d6a4f",icon:"🏔",
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt"],
-    stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","gohunt","blackovis","cabelas","basspro","scheels","sportsmans"],
+    stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","gohunt"],
     searchHint:'Try "Sitka Kelvin Down" or "Vortex Razor HD 10x42"...',
     dealCats:["Insulation","Base Layer","Wind Layer","Pants","Bibs","Packs","Optics","Boots"],
     searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
@@ -163,8 +145,8 @@ const PORTALS = {
   treestand:{
     name:"Treestand Saver",tagline:"Whitetail - Eastern - Food Plot",
     accent:"#7a4f1d",icon:"🌳",
-    brands:["Realtree","Mossy Oak","Browning","Danner","LaCrosse","Muck","Stealth Cam","Reconyx","Tactacam","Hoyt","Mathews","Bear Archery","Cabelas","Bass Pro"],
-    stores:["cabelas","basspro","scheels","sportsmans","blackovis"],
+    brands:["Realtree","Mossy Oak","Browning","Danner","LaCrosse","Muck","Stealth Cam","Reconyx","Tactacam","Hoyt","Mathews","Bear Archery"],
+    stores:[],
     searchHint:'Try "Mathews Phase4" or "Stealth Cam Fusion X"...',
     dealCats:["Clothing","Boots","Trail Cams","Archery","Treestands","Food Plot","Optics","Knives"],
     searchContext:"whitetail deer hunting, eastern hunting, treestands, food plots, archery, trail cameras, bow hunting",
@@ -173,7 +155,7 @@ const PORTALS = {
     name:"Duck Blind Deals",tagline:"Waterfowl - Duck - Goose",
     accent:"#1d4e89",icon:"🦆",
     brands:["Drake","Avery","Banded","Browning","Mossy Oak","Realtree","LaCrosse","Muck","Garmin"],
-    stores:["cabelas","basspro","scheels","sportsmans"],
+    stores:[],
     searchHint:'Try "Drake MST Fleece" or "Banded RedZone waders"...',
     dealCats:["Waders","Clothing","Calls","Decoys","Blinds","Boats","Electronics","Boots"],
     searchContext:"waterfowl hunting, duck hunting, goose hunting, waders, decoys, calls, blinds, layout blinds",
