@@ -723,7 +723,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
   );
 }
 
-function PrefsModal({T,prefs,setPrefs,stores,setStores,onClose}) {
+function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
   const [sec,setSec]=useState("hunts");
   const toggle=(key,id)=>setPrefs(p=>{const a=p[key]||[];return {...p,[key]:a.includes(id)?a.filter(x=>x!==id):[...a,id]};});
   const toggleStore=id=>setStores(p=>p.includes(id)?p.filter(s=>s!==id):[...p,id]);
@@ -790,7 +790,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,onClose}) {
             <div>
               <p style={{fontSize:12,color:T.textMuted,marginBottom:16,lineHeight:1.6}}>Only show deals from brands you actually buy.</p>
               <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                {ALL_BRANDS.map(b=>{
+                {brandList.map(b=>{
                   const on=(prefs.brands||[]).includes(b);
                   return (
                     <button key={b} onClick={()=>toggle("brands",b)} style={{padding:"6px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1.5px solid ${on?T.accent:T.border}`,background:on?T.accentLight:"transparent",color:on?T.accent:T.textMuted}}>
@@ -1189,6 +1189,10 @@ export default function App() {
   const T=theme==="light"?LIGHT:DARK;
   const P=PORTAL;
   const isGuest=!user;
+  const liveBrands=useMemo(
+    ()=>[...new Set(deals.map(d=>d.brand))].sort(),
+    [deals]
+  );
 
   const taggedDeals=useMemo(
     ()=>deals.map(d=>({...d,tags:computeTags(d,family)})),
@@ -1415,7 +1419,7 @@ export default function App() {
                 });
               }
             }} onClose={()=>setShowAuth(false)}/>}
-      {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} onClose={()=>setShowPrefs(false)}/>}
+      {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} onClose={()=>setShowPrefs(false)}/>}
       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)}/>
     </div>
   );
