@@ -47,7 +47,7 @@ function parseDeal(row){
     coupon:row.coupon,fake:row.fake_sale,fakeNote:row.fake_note,
     url:row.url,blurb:row.blurb,tags:[],
     sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
-    history:[orig,orig,orig,orig,orig,sale],
+    history:[orig,sale],
   };
 }
 function parseCoupon(row){
@@ -468,7 +468,7 @@ function DealCard({d,family,memberFilter,onOpen,T,portal}) {
         )}
         <p style={{fontSize:12,color:T.textSub,margin:"0 0 12px",lineHeight:1.65}}>{d.blurb}</p>
         <div style={{marginBottom:12}}>
-          <div style={{fontSize:9,color:T.textMuted,letterSpacing:"0.1em",marginBottom:5,fontFamily:"monospace"}}>PRICE - 6 MONTHS</div>
+          <div style={{fontSize:9,color:T.textMuted,letterSpacing:"0.1em",marginBottom:5,fontFamily:"monospace"}}>PRICE HISTORY</div>
           <Spark history={d.history} fake={d.fake} T={T}/>
         </div>
         <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
@@ -543,10 +543,10 @@ function DealModal({deal,family,T,onClose}) {
             {!deal.fake&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Save ${save} ({disc}% off)</span>}
           </div>
           <div style={{marginBottom:24}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"monospace"}}>PRICE HISTORY - 6 MONTHS</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"monospace"}}>PRICE HISTORY</div>
             <Spark history={deal.history} fake={deal.fake} T={T}/>
             <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textMuted,marginTop:4,fontFamily:"monospace"}}>
-              <span>6 MONTHS AGO</span><span>TODAY</span>
+              <span>FIRST TRACKED</span><span>TODAY</span>
             </div>
           </div>
           <VideoPanel deal={deal} T={T}/>
@@ -1139,8 +1139,10 @@ export default function App() {
   const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
-    if(user && user.id && user.token && family.length){
-      saveFamily(family, user.id, user.token).catch(()=>{});
+    if(user && user.id && family.length){
+      supabase.auth.getSession().then(({data:{session}})=>{
+        if(session) saveFamily(family, user.id, session.access_token).catch(()=>{});
+      });
     }
   },[family]);
 
@@ -1405,20 +1407,22 @@ export default function App() {
               setUser(u);
               setShowAuth(false);
               if(u.id && u.token){
-                loadFamily(u.id, u.token).then(rows=>{
-                  if(rows && rows.length){
-                    setFamily(rows.map(r=>({
-                      name:r.name,gender:r.gender,jacket:r.jacket,shirt:r.shirt,
-                      base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,
-                      socks:r.socks,beanie:r.beanie,
-                    })));
-                  } else {
-                    const firstName=u.name;
-                    const first={name:firstName,jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L",gender:"mens"};
-                    setFamily([first]);
-                    saveFamily([first], u.id, u.token);
-                  }
-                }).catch(()=>{});
+                supabase.auth.getSession().then(({data:{session}})=>{
+                  const tok = session?.access_token || u.token;
+                  loadFamily(u.id, tok).then(rows=>{
+                    if(rows && rows.length){
+                      setFamily(rows.map(r=>({
+                        name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,
+                        base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,
+                        socks:r.socks,beanie:r.beanie,
+                      })));
+                    } else {
+                      const first={name:u.name,jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L",gender:"mens"};
+                      setFamily([first]);
+                      saveFamily([first], u.id, tok);
+                    }
+                  }).catch(()=>{});
+                });
               }
             }} onClose={()=>setShowAuth(false)}/>}
       {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} onClose={()=>setShowPrefs(false)}/>}
