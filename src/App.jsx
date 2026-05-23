@@ -448,7 +448,7 @@ function SizePicker({field, value, onChange, T, col}) {
 function DealCard({d,family,memberFilter,onOpen,T}) {
   const [hov,setHov]=useState(false);
   const disc=Math.round((1-d.sale/d.orig)*100);
-  const save=d.orig-d.sale;
+  const save=Math.round((d.orig-d.sale)*100)/100;
   const tags=memberFilter==="All"?d.tags:d.tags.filter(t=>t===memberFilter);
   if(memberFilter!=="All"&&tags.length===0)return null;
   return (
@@ -533,7 +533,7 @@ function DealCard({d,family,memberFilter,onOpen,T}) {
 function DealModal({deal,family,T,onClose}) {
   if(!deal)return null;
   const disc=Math.round((1-deal.sale/deal.orig)*100);
-  const save=deal.orig-deal.sale;
+  const save=Math.round((deal.orig-deal.sale)*100)/100;
   return (
     <div
       style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(6px)"}}
