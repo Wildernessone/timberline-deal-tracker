@@ -1173,7 +1173,17 @@ export default function App() {
       }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{
-      if(event==="SIGNED_OUT"){setUser(null);setFamily([]);}
+      if(event==="SIGNED_OUT"){
+        setUser(null);setFamily([]);
+      } else if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED"||event==="INITIAL_SESSION")&&session){
+        const u=session.user;
+        const firstName=(u.user_metadata?.full_name||u.email.split("@")[0]).split(" ")[0];
+        const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
+        setUser(userObj);
+        loadFamily(u.id,session.access_token).then(rows=>{
+          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,socks:r.socks,beanie:r.beanie})));
+        }).catch(()=>{});
+      }
     });
     return ()=>subscription.unsubscribe();
   },[]);
