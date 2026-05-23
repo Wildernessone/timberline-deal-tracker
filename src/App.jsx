@@ -70,6 +70,8 @@ function fieldsForCat(cat){
 function computeTags(deal, family){
   const fields=fieldsForCat(deal.cat);
   if(!fields) return family.map(m=>m.name);
+  const noSizeData = !deal.sizes.mens.length && !deal.sizes.womens.length && !deal.sizes.youth.length;
+  if(noSizeData) return family.map(m=>m.name);
   return family.filter(m=>{
     const ds=deal.sizes[m.gender]||[];
     if(!ds.length) return false;
