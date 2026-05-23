@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
@@ -54,6 +54,30 @@ function parseDeal(row){
     sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
     history:[orig,sale],
   };
+}
+const CAT_TO_FIELDS = {
+  insulation:["jacket"], jacket:["jacket"], windlayer:["jacket"],
+  clothing:["jacket","shirt"], shirt:["shirt"],
+  baselayer:["base"], base:["base"],
+  pants:["pants"], bibs:["pants"], waders:["pants"],
+  boots:["boots"],
+  gloves:["gloves"],
+  socks:["socks"],
+  beanie:["beanie"], hat:["beanie"],
+};
+function fieldsForCat(cat){
+  const c=(cat||"").toLowerCase().replace(/[^a-z]/g,"");
+  for(const k in CAT_TO_FIELDS){if(c===k||c.includes(k))return CAT_TO_FIELDS[k];}
+  return null;
+}
+function computeTags(deal, family){
+  const fields=fieldsForCat(deal.cat);
+  if(!fields) return family.map(m=>m.name);
+  return family.filter(m=>{
+    const ds=deal.sizes[m.gender]||[];
+    if(!ds.length) return false;
+    return fields.some(f=>m[f]&&ds.includes(m[f]));
+  }).map(m=>m.name);
 }
 function parseCoupon(row){
   return {
@@ -1209,9 +1233,13 @@ export default function App() {
   const P=PORTALS[portal];
   const isGuest=!user;
 
+  const taggedDeals=useMemo(
+    ()=>deals.map(d=>({...d,tags:computeTags(d,family)})),
+    [deals,family]
+  );
   const sortedDeals=[
-    ...deals.filter(d=>d.portal===portal),
-    ...deals.filter(d=>d.portal!==portal),
+    ...taggedDeals.filter(d=>d.portal===portal),
+    ...taggedDeals.filter(d=>d.portal!==portal),
   ];
   const filtered=sortedDeals.filter(d=>{
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;
@@ -1374,7 +1402,7 @@ export default function App() {
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:18}}>
                   {family.map((m,idx)=>{
                     const col=MC[idx%MC.length];
-                    const mDeals=deals.filter(d=>d.tags.includes(m.name));
+                    const mDeals=taggedDeals.filter(d=>d.tags.includes(m.name));
                     const SIZE_FIELDS=[["🧥","JACKET",m.jacket],["👕","SHIRT",m.shirt],["👕","BASE",m.base],["👖","PANTS",m.pants],["🥾","BOOTS",m.boots],["🧤","GLOVES",m.gloves],["🧦","SOCKS",m.socks],["🧢","BEANIE",m.beanie]];
                     return (
                       <div key={idx} style={{background:T.bgCard,backdropFilter:"blur(12px)",border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden",boxShadow:`0 2px 12px ${T.shadow}`,position:"relative",zIndex:1}}>
