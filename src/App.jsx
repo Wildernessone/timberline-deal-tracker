@@ -8,7 +8,7 @@ const timberlineStorage = {
   setItem: (key, value) => { try { localStorage.setItem(key, value); } catch(e) {} },
   removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
 };
-const supabase = createClient(SB_URL, SB_KEY, {
+const supabase = window._sb = createClient(SB_URL, SB_KEY, {
   auth: {
     persistSession: true,
     storageKey: "timberline-auth",
