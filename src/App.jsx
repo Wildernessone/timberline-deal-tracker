@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
-const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Range-Unit":"items","Range":"0-9999"};
+const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
 
 function sbGet(table,params){
   const url=new URL(SB_URL+"/rest/v1/"+table);
@@ -1118,10 +1118,19 @@ export default function App() {
   const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
-    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"1000"})
-      .then(rows=>{if(rows&&rows.length)setDeals(rows.map(parseDeal));})
-      .catch(()=>{})
-      .finally(()=>setDealsLoading(false));
+    setDealsLoading(true);
+    // Load first 100 fast, then load rest in background
+    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
+      .then(rows=>{
+        if(rows&&rows.length) setDeals(rows.map(parseDeal));
+        setDealsLoading(false);
+        // Load remaining pages in background
+        return sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"900",offset:"100"});
+      })
+      .then(rows=>{
+        if(rows&&rows.length) setDeals(prev=>[...prev,...rows.map(parseDeal)]);
+      })
+      .catch(()=>setDealsLoading(false));
     sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
       .then(rows=>{if(rows&&rows.length)setDbCoupons(rows.map(parseCoupon));})
       .catch(()=>{});
