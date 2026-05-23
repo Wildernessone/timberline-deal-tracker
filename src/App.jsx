@@ -34,21 +34,21 @@ async function loadFamily(userId, token) {
 }
 
 async function saveFamily(members, userId, token) {
-  // Delete existing and re-insert
-  await fetch(SB_URL+"/rest/v1/family_members?user_id=eq."+userId, {
-    method:"DELETE",
-    headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
-  });
   if (!members.length) return;
   const rows = members.map((m,i) => ({
     user_id:userId, name:m.name, gender:m.gender||"mens",
-    jacket:m.jacket, shirt:m.shirt, base:m.base, pants:m.pants,
-    boots:m.boots, gloves:m.gloves, socks:m.socks, beanie:m.beanie,
+    jacket:m.jacket||"L", shirt:m.shirt||"L", base:m.base||"L", pants:m.pants||"34x32",
+    boots:m.boots||"10", gloves:m.gloves||"L", socks:m.socks||"L", beanie:m.beanie||"L",
     sort_order:i,
   }));
   await fetch(SB_URL+"/rest/v1/family_members", {
     method:"POST",
-    headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=minimal"},
+    headers:{
+      apikey:SB_KEY,
+      Authorization:"Bearer "+token,
+      "Content-Type":"application/json",
+      Prefer:"return=minimal,resolution=merge-duplicates"
+    },
     body:JSON.stringify(rows)
   });
 }
