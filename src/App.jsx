@@ -143,24 +143,24 @@ const PORTAL = {
 };
 
 const LIGHT = {
-  bg:"#f5f2ea",bgCard:"rgba(255,255,255,0.85)",bgSolid:"#ffffff",
-  bgHeader:"rgba(250,248,242,0.94)",border:"#e2dbd0",borderHov:"#b7e4c7",
-  text:"#1a1a14",textSub:"#6b6b5a",textMuted:"#a8a898",
-  accent:"#2d6a4f",accentLight:"#edf7f1",accentBorder:"#b7e4c7",
-  orange:"#d4813a",orangeLight:"#fff8ee",orangeBorder:"#f5c88a",
-  red:"#c0392b",redLight:"#fdf0ee",redBorder:"#f5c6c0",
-  topo:"#c4b48e",topoOp:0.55,navActive:"#edf7f1",
-  shadow:"rgba(0,0,0,0.07)",shadowHov:"rgba(0,0,0,0.13)",toggle:"🌙",
+  bg:"#faf7f0",bgCard:"rgba(255,255,255,0.92)",bgSolid:"#ffffff",
+  bgHeader:"rgba(250,247,240,0.96)",border:"#e8e0d2",borderHov:"#c9a96a",
+  text:"#1f1b16",textSub:"#5c5448",textMuted:"#9c9080",
+  accent:"#2d5a3d",accentLight:"#ecf4ed",accentBorder:"#b5d4be",
+  orange:"#b85a1a",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
+  red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
+  topo:"#b8a880",topoOp:0.32,navActive:"#ecf4ed",
+  shadow:"rgba(40,30,20,0.06)",shadowHov:"rgba(40,30,20,0.16)",toggle:"🌙",
 };
 const DARK = {
-  bg:"#0f1409",bgCard:"rgba(20,26,10,0.9)",bgSolid:"#141a0a",
-  bgHeader:"rgba(10,14,5,0.95)",border:"#2a3518",borderHov:"#3d6644",
-  text:"#e8e4d0",textSub:"#8a9870",textMuted:"#4a5a38",
-  accent:"#52b788",accentLight:"#0d2018",accentBorder:"#2a5a38",
-  orange:"#e8a44a",orangeLight:"#1a1000",orangeBorder:"#6a4a10",
-  red:"#e05a3a",redLight:"#1a0800",redBorder:"#6a2010",
-  topo:"#4a6830",topoOp:0.45,navActive:"#0d2018",
-  shadow:"rgba(0,0,0,0.4)",shadowHov:"rgba(0,0,0,0.6)",toggle:"☀️",
+  bg:"#0e1410",bgCard:"rgba(20,28,22,0.92)",bgSolid:"#131a14",
+  bgHeader:"rgba(10,16,12,0.96)",border:"#2a3528",borderHov:"#6e9c7a",
+  text:"#e8e4d8",textSub:"#a8a898",textMuted:"#666660",
+  accent:"#5fba85",accentLight:"#0e2818",accentBorder:"#2a4d38",
+  orange:"#e0a055",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
+  red:"#e55c45",redLight:"#1f0a05",redBorder:"#6a2010",
+  topo:"#4a6830",topoOp:0.32,navActive:"#0e2818",
+  shadow:"rgba(0,0,0,0.5)",shadowHov:"rgba(0,0,0,0.75)",toggle:"☀️",
 };
 
 const INIT_FAMILY = [];
@@ -299,7 +299,7 @@ function VideoPanel({deal,T}) {
   ];
   return (
     <div style={{marginBottom:24}}>
-      <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:10,fontFamily:"monospace"}}>
+      <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:10,fontFamily:"'JetBrains Mono',monospace"}}>
         FIELD INTEL
       </div>
       <div style={{display:"flex",gap:8,marginBottom:12}}>
@@ -419,73 +419,75 @@ function DealCard({d,family,memberFilter,onOpen,T}) {
       onMouseEnter={()=>setHov(true)}
       onMouseLeave={()=>setHov(false)}
       style={{
-        background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,
+        background:T.bgCard,backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",borderRadius:16,
         cursor:"pointer",overflow:"hidden",position:"relative",zIndex:1,
-        transition:"all 0.2s",transform:hov?"translateY(-2px)":"none",
+        transition:"transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s, border-color 0.25s",
+        transform:hov?"translateY(-3px)":"none",
         border:`1px solid ${d.fake?T.redBorder:hov?T.borderHov:T.border}`,
-        boxShadow:hov?`0 16px 48px ${T.shadowHov}`:`0 2px 12px ${T.shadow}`,
+        boxShadow:hov?`0 20px 56px ${T.shadowHov}`:`0 2px 8px ${T.shadow}`,
       }}
     >
-      <div style={{height:3,background:d.fake?"linear-gradient(90deg,#e74c3c,#c0392b)":"linear-gradient(90deg,#2d6a4f,#52b788)"}}/>
-      <div style={{padding:"18px 20px 0"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.12em",fontFamily:"monospace"}}>{d.brand.toUpperCase()}</span>
-            <span style={{color:T.border}}>|</span>
-            <span style={{fontSize:10,color:T.textMuted,letterSpacing:"0.08em",fontFamily:"monospace"}}>{d.cat.toUpperCase()}</span>
+      <div style={{padding:"22px 22px 0"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{d.brand.toUpperCase()}</span>
+            <span style={{width:3,height:3,borderRadius:"50%",background:T.borderHov}}/>
+            <span style={{fontSize:10,color:T.textMuted,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>{d.cat.toUpperCase()}</span>
           </div>
           {d.fake?(
-            <span style={{background:T.redLight,color:T.red,border:`1px solid ${T.redBorder}`,borderRadius:6,fontSize:10,fontWeight:700,padding:"3px 8px"}}>FAKE SALE</span>
+            <span style={{background:T.redLight,color:T.red,border:`1px solid ${T.redBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>FAKE SALE</span>
           ):(
-            <span style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:6,fontSize:10,fontWeight:700,padding:"3px 8px"}}>-{disc}% OFF</span>
+            <span style={{background:T.orange,color:"white",borderRadius:6,fontSize:11,fontWeight:800,padding:"4px 10px",letterSpacing:"0.04em"}}>−{disc}%</span>
           )}
         </div>
-        <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:19,color:T.text,lineHeight:1.25,marginBottom:10}}>{d.product}</div>
-        <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:10}}>
-          <span style={{fontWeight:800,fontSize:26,color:d.fake?T.red:T.text}}>${d.sale}</span>
+        <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:21,color:T.text,lineHeight:1.2,marginBottom:14,letterSpacing:"-0.01em"}}>{d.product}</div>
+        <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:14}}>
+          <span style={{fontWeight:800,fontSize:30,color:d.fake?T.red:T.text,letterSpacing:"-0.02em"}}>${d.sale}</span>
           <span style={{fontSize:15,color:T.textMuted,textDecoration:"line-through"}}>${d.orig}</span>
-          <span style={{fontSize:12,fontWeight:600,color:d.fake?T.red:T.accent}}>Save ${save}</span>
+          <span style={{fontSize:12,fontWeight:700,color:d.fake?T.red:T.accent,marginLeft:"auto"}}>Save ${save}</span>
         </div>
         {d.fake&&(
-          <div style={{background:T.redLight,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"8px 12px",marginBottom:10}}>
-            <span style={{color:T.red,fontSize:12}}>{d.fakeNote}</span>
+          <div style={{background:T.redLight,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"10px 12px",marginBottom:14}}>
+            <span style={{color:T.red,fontSize:12,lineHeight:1.5}}>{d.fakeNote}</span>
           </div>
         )}
-        <p style={{fontSize:12,color:T.textSub,margin:"0 0 12px",lineHeight:1.65}}>{d.blurb}</p>
-        <div style={{marginBottom:12}}>
-          <div style={{fontSize:9,color:T.textMuted,letterSpacing:"0.1em",marginBottom:5,fontFamily:"monospace"}}>PRICE HISTORY</div>
+        <p style={{fontSize:13,color:T.textSub,margin:"0 0 16px",lineHeight:1.6}}>{d.blurb}</p>
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:9,color:T.textMuted,letterSpacing:"0.18em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>PRICE HISTORY</div>
           <Spark history={d.history} fake={d.fake} T={T}/>
         </div>
-        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>
-          {tags.map(tag=>{
-            const idx=family.findIndex(f=>f.name===tag);
-            const col=MC[idx%MC.length];
-            return (
-              <span key={tag} style={{background:col+"18",color:col,border:`1px solid ${col}33`,borderRadius:999,padding:"2px 10px",fontSize:11,fontWeight:600}}>
-                {tag}
-              </span>
-            );
-          })}
-        </div>
+        {tags.length>0&&(
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+            {tags.map(tag=>{
+              const idx=family.findIndex(f=>f.name===tag);
+              const col=MC[idx%MC.length];
+              return (
+                <span key={tag} style={{background:col+"15",color:col,border:`1px solid ${col}33`,borderRadius:999,padding:"3px 11px",fontSize:11,fontWeight:600}}>
+                  {tag}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
-      <div style={{margin:"14px 0 0",padding:"12px 20px",borderTop:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-          {[...d.sizes.mens,...d.sizes.womens,...d.sizes.youth].slice(0,4).map(sz=>(
-            <span key={sz} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:5,padding:"2px 7px",fontSize:10,color:T.textSub,fontWeight:600}}>{sz}</span>
+      <div style={{marginTop:6,padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",flex:1}}>
+          {[...d.sizes.mens,...d.sizes.womens,...d.sizes.youth].slice(0,5).map(sz=>(
+            <span key={sz} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:6,padding:"3px 9px",fontSize:10,color:T.textSub,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{sz}</span>
           ))}
         </div>
         <a
           href={d.url} target="_blank" rel="noopener noreferrer"
           onClick={e=>e.stopPropagation()}
-          style={{color:"white",borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:700,textDecoration:"none",background:d.fake?T.red:T.accent}}
+          style={{color:"white",borderRadius:9,padding:"9px 18px",fontSize:12,fontWeight:700,textDecoration:"none",background:d.fake?T.red:T.text,letterSpacing:"0.02em",whiteSpace:"nowrap",transition:"opacity 0.15s"}}
         >
-          {d.fake?"View anyway":"Shop Now"}
+          {d.fake?"View anyway →":"Shop →"}
         </a>
       </div>
       {d.coupon&&(
-        <div style={{padding:"8px 20px 12px",borderTop:`1px dashed ${T.border}`,display:"flex",alignItems:"center",gap:8}}>
-          <span style={{fontSize:11,color:T.orange}}>Coupon:</span>
-          <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:5,padding:"2px 10px",fontSize:12,fontWeight:700,letterSpacing:"0.1em"}}>{d.coupon}</code>
+        <div style={{padding:"10px 22px 14px",borderTop:`1px dashed ${T.border}`,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:10,color:T.orange,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,letterSpacing:"0.12em"}}>COUPON</span>
+          <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:6,padding:"3px 11px",fontSize:12,fontWeight:700,letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{d.coupon}</code>
         </div>
       )}
     </div>
@@ -509,10 +511,10 @@ function DealModal({deal,family,T,onClose}) {
         <div style={{padding:"24px 28px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
             <div>
-              <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.12em",fontFamily:"monospace",marginBottom:6}}>
+              <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>
                 {deal.brand.toUpperCase()} | {deal.cat.toUpperCase()}
               </div>
-              <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:26,color:T.text,lineHeight:1.2}}>{deal.product}</div>
+              <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:26,color:T.text,lineHeight:1.2}}>{deal.product}</div>
             </div>
             <button onClick={onClose} style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub,flexShrink:0}}>x</button>
           </div>
@@ -528,15 +530,15 @@ function DealModal({deal,family,T,onClose}) {
             {!deal.fake&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Save ${save} ({disc}% off)</span>}
           </div>
           <div style={{marginBottom:24}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"monospace"}}>PRICE HISTORY</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>PRICE HISTORY</div>
             <Spark history={deal.history} fake={deal.fake} T={T}/>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textMuted,marginTop:4,fontFamily:"monospace"}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textMuted,marginTop:4,fontFamily:"'JetBrains Mono',monospace"}}>
               <span>FIRST TRACKED</span><span>TODAY</span>
             </div>
           </div>
           <VideoPanel deal={deal} T={T}/>
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"monospace"}}>SIZES IN STOCK</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>SIZES IN STOCK</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {[...deal.sizes.mens,...deal.sizes.womens,...deal.sizes.youth].map(sz=>(
                 <span key={sz} style={{background:T.border,borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,color:T.textSub}}>{sz}</span>
@@ -544,7 +546,7 @@ function DealModal({deal,family,T,onClose}) {
             </div>
           </div>
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"monospace"}}>FOR YOUR FAMILY</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>FOR YOUR FAMILY</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {deal.tags.map(tag=>{
                 const idx=family.findIndex(f=>f.name===tag);
@@ -555,7 +557,7 @@ function DealModal({deal,family,T,onClose}) {
           </div>
           {deal.coupon&&(
             <div style={{background:T.orangeLight,border:`1px dashed ${T.orangeBorder}`,borderRadius:10,padding:"12px 16px",marginBottom:20,display:"flex",alignItems:"center",gap:12}}>
-              <span style={{color:T.orange,fontSize:11,fontWeight:600,fontFamily:"monospace"}}>COUPON</span>
+              <span style={{color:T.orange,fontSize:11,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>COUPON</span>
               <code style={{color:T.orange,fontSize:20,fontWeight:800,letterSpacing:"0.15em"}}>{deal.coupon}</code>
             </div>
           )}
@@ -565,7 +567,7 @@ function DealModal({deal,family,T,onClose}) {
           >
             {deal.fake?"View on "+deal.brand+" (proceed with caution)":"Shop "+deal.brand+" -- $"+deal.sale}
           </a>
-          <p style={{textAlign:"center",color:T.textMuted,fontSize:10,marginTop:8,fontFamily:"monospace"}}>
+          <p style={{textAlign:"center",color:T.textMuted,fontSize:10,marginTop:8,fontFamily:"'JetBrains Mono',monospace"}}>
             Timberline earns a small commission -- never affects your price
           </p>
         </div>
@@ -602,7 +604,7 @@ function GearAdvisor({member,deals,T}) {
       ):(
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <span style={{fontSize:10,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.1em"}}>AI GEAR ADVISOR</span>
+            <span style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em"}}>AI GEAR ADVISOR</span>
             <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:12}}>hide</button>
           </div>
           {loading&&[1,2,3].map(i=><div key={i} style={{height:52,borderRadius:8,background:T.border,opacity:0.4,marginBottom:8}}/>)}
@@ -617,13 +619,13 @@ function GearAdvisor({member,deals,T}) {
                       <div style={{fontWeight:700,fontSize:13,color:T.text,marginBottom:2}}>{n.item}</div>
                       <div style={{fontSize:11,color:T.textSub,lineHeight:1.5}}>{n.reason}</div>
                     </div>
-                    <span style={{fontSize:9,fontWeight:700,color:pc,background:pc+"18",borderRadius:5,padding:"2px 7px",flexShrink:0,fontFamily:"monospace"}}>{(n.priority||"").toUpperCase()}</span>
+                    <span style={{fontSize:9,fontWeight:700,color:pc,background:pc+"18",borderRadius:5,padding:"2px 7px",flexShrink:0,fontFamily:"'JetBrains Mono',monospace"}}>{(n.priority||"").toUpperCase()}</span>
                   </div>
                 );
               })}
               {recs.dealMatch&&recs.dealMatch.found&&(
                 <div style={{background:T.accentLight,border:`1px solid ${T.accentBorder}`,borderRadius:10,padding:"12px 14px"}}>
-                  <div style={{fontSize:10,color:T.accent,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:6}}>DEAL MATCH RIGHT NOW</div>
+                  <div style={{fontSize:10,color:T.accent,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",marginBottom:6}}>DEAL MATCH RIGHT NOW</div>
                   <div style={{fontWeight:700,fontSize:14,color:T.text,marginBottom:3}}>{recs.dealMatch.product}</div>
                   <div style={{fontSize:12,color:T.textSub,marginBottom:8,lineHeight:1.5}}>{recs.dealMatch.whyGood}</div>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -685,7 +687,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
         <div style={{height:4,background:`linear-gradient(90deg,${T.accent},#52b788)`}}/>
         <div style={{padding:"28px 32px"}}>
           <div style={{textAlign:"center",marginBottom:24}}>
-            <div style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{P.icon} {P.name}</div>
+            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{P.icon} {P.name}</div>
             <div style={{fontSize:12,color:T.textMuted,marginTop:4}}>{mode==="login"?"Welcome back":"Create your free account"}</div>
           </div>
           <div style={{display:"flex",background:T.border,borderRadius:10,padding:3,marginBottom:24}}>
@@ -735,7 +737,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
       <div style={{background:T.bgSolid,borderRadius:20,maxWidth:680,width:"100%",maxHeight:"88vh",overflow:"hidden",display:"flex",flexDirection:"column",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`}} onClick={e=>e.stopPropagation()}>
         <div style={{padding:"20px 24px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
           <div>
-            <div style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>My Preferences</div>
+            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>My Preferences</div>
             <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>Your feed filters to match</div>
           </div>
           <button onClick={onClose} style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub}}>x</button>
@@ -806,7 +808,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
               <p style={{fontSize:12,color:T.textMuted,marginBottom:20,lineHeight:1.6}}>Uncheck stores you do not want to see.</p>
               {SGRPS.map(g=>(
                 <div key={g.key} style={{marginBottom:20}}>
-                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.1em",marginBottom:8}}>{g.label.toUpperCase()}</div>
+                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",marginBottom:8}}>{g.label.toUpperCase()}</div>
                   <div style={{display:"flex",flexDirection:"column",gap:6}}>
                     {bycat[g.key].map(s=>{
                       const on=stores.includes(s.id);
@@ -819,7 +821,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
                             <div style={{fontWeight:700,fontSize:13,color:on?T.text:T.textMuted}}>{s.name}</div>
                             <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>Free shipping over ${s.freeAt}{s.loyalty?" | "+s.loyalty.desc:""}</div>
                           </div>
-                          {!on&&<span style={{fontSize:11,color:T.red,fontWeight:600,fontFamily:"monospace"}}>HIDDEN</span>}
+                          {!on&&<span style={{fontSize:11,color:T.red,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>HIDDEN</span>}
                         </div>
                       );
                     })}
@@ -830,7 +832,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
           )}
         </div>
         <div style={{padding:"14px 24px",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0,background:T.bgCard}}>
-          <div style={{fontSize:11,color:T.textMuted,fontFamily:"monospace"}}>{(prefs.hunts||[]).length} hunt types | {stores.length} stores</div>
+          <div style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>{(prefs.hunts||[]).length} hunt types | {stores.length} stores</div>
           <button onClick={onClose} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"9px 24px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Save Preferences</button>
         </div>
       </div>
@@ -847,24 +849,24 @@ function StoreRow({store,rank,isBest,isVal,T}) {
     <div style={{background:T.bgCard,border:`1.5px solid ${borderCol}`,borderRadius:12,overflow:"hidden",backdropFilter:"blur(12px)"}}>
       {(isBest||isVal||store.honorableMention)&&(
         <div style={{background:badgeBg,padding:"4px 16px",display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"white",fontSize:11,fontWeight:700,fontFamily:"monospace"}}>{badgeLabel}</span>
+          <span style={{color:"white",fontSize:11,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{badgeLabel}</span>
           {(isVal||store.honorableMention)&&<span style={{color:"rgba(255,255,255,0.8)",fontSize:11}}>{isVal?store.loyaltyDesc:store.honorableMentionReason}</span>}
         </div>
       )}
       <div style={{padding:"14px 18px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,minWidth:140}}>
-            <span style={{fontFamily:"monospace",fontSize:11,fontWeight:700,color:rankCol,background:rankCol+"18",border:`1px solid ${rankCol}33`,borderRadius:4,padding:"2px 7px"}}>#{rank+1}</span>
+            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:rankCol,background:rankCol+"18",border:`1px solid ${rankCol}33`,borderRadius:4,padding:"2px 7px"}}>#{rank+1}</span>
             <span style={{fontWeight:700,fontSize:15,color:T.text}}>{store.storeName}</span>
           </div>
           <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",flex:1}}>
             <div style={{textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.textMuted,fontFamily:"monospace",marginBottom:2}}>ITEM</div>
+              <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>ITEM</div>
               <div style={{fontWeight:700,fontSize:16,color:T.text}}>${store.price}</div>
             </div>
             <span style={{color:T.border}}>+</span>
             <div style={{textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.textMuted,fontFamily:"monospace",marginBottom:2}}>SHIP</div>
+              <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>SHIP</div>
               <div style={{fontWeight:700,fontSize:16,color:store.qualifiesForFreeShipping?T.accent:T.text}}>
                 {store.qualifiesForFreeShipping?"FREE":"$"+store.shipping}
               </div>
@@ -873,19 +875,19 @@ function StoreRow({store,rank,isBest,isVal,T}) {
               <div style={{display:"flex",alignItems:"center",gap:4}}>
                 <span style={{color:T.border}}>-</span>
                 <div style={{textAlign:"center"}}>
-                  <div style={{fontSize:9,color:T.textMuted,fontFamily:"monospace",marginBottom:2}}>COUPON</div>
+                  <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>COUPON</div>
                   <div style={{fontWeight:700,fontSize:16,color:T.orange}}>-${store.couponDiscount}</div>
                 </div>
               </div>
             )}
             <span style={{color:T.border,fontSize:16}}>=</span>
             <div style={{textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.textMuted,fontFamily:"monospace",marginBottom:2}}>YOU PAY</div>
+              <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>YOU PAY</div>
               <div style={{fontWeight:900,fontSize:20,color:isBest?T.accent:T.text}}>${store.finalCost}</div>
             </div>
             {store.loyaltyValue>0&&(
               <div style={{textAlign:"center",opacity:0.85}}>
-                <div style={{fontSize:9,color:T.textMuted,fontFamily:"monospace",marginBottom:2}}>LOYALTY</div>
+                <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>LOYALTY</div>
                 <div style={{fontWeight:700,fontSize:14,color:T.orange}}>+${store.loyaltyValue}</div>
               </div>
             )}
@@ -993,7 +995,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
       </div>
       {wishlist.length>0&&!results&&(
         <div style={{marginBottom:28}}>
-          <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"monospace"}}>YOUR WISHLIST</div>
+          <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>YOUR WISHLIST</div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             {wishlist.map((w,i)=>(
               <button key={i} onClick={()=>setQuery(w.productName)} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:999,padding:"6px 16px",cursor:"pointer",color:T.textSub,fontSize:12,fontWeight:600}}>
@@ -1009,17 +1011,17 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
             <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px 24px",marginBottom:16,backdropFilter:"blur(12px)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                 <div>
-                  <div style={{fontSize:10,color:T.accent,fontWeight:700,letterSpacing:"0.12em",fontFamily:"monospace",marginBottom:6}}>
+                  <div style={{fontSize:10,color:T.accent,fontWeight:700,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>
                     {(results.brand||"").toUpperCase()} | {(results.category||"").toUpperCase()}
                   </div>
-                  <div style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:24,color:T.text,marginBottom:6}}>{results.productName}</div>
+                  <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text,marginBottom:6}}>{results.productName}</div>
                   <p style={{fontSize:13,color:T.textSub,lineHeight:1.6,margin:0}}>{results.description}</p>
                 </div>
                 <button onClick={()=>isWishlisted?setWishlist(w=>w.filter(x=>x.productName!==results.productName)):setWishlist(p=>[...p,{...results,addedAt:new Date().toISOString()}])} style={{border:`1px solid ${isWishlisted?T.accent:T.border}`,borderRadius:8,padding:"7px 14px",cursor:"pointer",fontSize:13,fontWeight:600,flexShrink:0,marginLeft:16,background:isWishlisted?T.accentLight:"transparent",color:isWishlisted?T.accent:T.textMuted}}>
                   {isWishlisted?"Wishlisted":"Wishlist"}
                 </button>
               </div>
-              {results.msrp>0&&<div style={{fontSize:11,color:T.textMuted,fontFamily:"monospace"}}>MSRP ${results.msrp} | {results.insight}</div>}
+              {results.msrp>0&&<div style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>MSRP ${results.msrp} | {results.insight}</div>}
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {(results.stores||[]).map((store,i)=>(
@@ -1028,13 +1030,13 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
             </div>
           </div>
           <div style={{position:"sticky",top:84}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"monospace"}}>FIELD INTEL</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>FIELD INTEL</div>
             {vloading&&<div style={{background:T.bgCard,borderRadius:12,height:200,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${T.border}`}}><span style={{color:T.textMuted,fontSize:12}}>Loading videos...</span></div>}
             {vids&&!vloading&&<PriceVidPanel vids={vids} vtab={vtab} setVtab={setVtab} T={T}/>}
           </div>
         </div>
       )}
-      {results&&results.error&&<div style={{color:T.textMuted,textAlign:"center",padding:40,fontFamily:"monospace",fontSize:12}}>Search failed. Try a more specific product name.</div>}
+      {results&&results.error&&<div style={{color:T.textMuted,textAlign:"center",padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>Search failed. Try a more specific product name.</div>}
     </div>
   );
 }
@@ -1061,7 +1063,7 @@ function AddMemberCard({setFamily, T}) {
   if (adding) {
     return (
       <div style={{background:T.bgCard,border:`1.5px solid ${T.accent}`,borderRadius:16,padding:"24px 20px",backdropFilter:"blur(12px)"}}>
-        <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:6}}>
+        <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:6}}>
           Add a family member
         </div>
         <div style={{fontSize:12,color:T.textMuted,lineHeight:1.6,marginBottom:16}}>
@@ -1209,18 +1211,31 @@ export default function App() {
   const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Family"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
-    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"system-ui,sans-serif",position:"relative",transition:"background 0.3s"}}>
-      <style>{`*{box-sizing:border-box;margin:0;padding:0;}::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:${T.border};border-radius:2px;}@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+        ::-webkit-scrollbar{width:6px;height:6px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:${T.border};border-radius:3px;}
+        ::-webkit-scrollbar-thumb:hover{background:${T.borderHov};}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        a{color:inherit;text-decoration:none;}
+        button{font-family:inherit;}
+        input,select,textarea{font-family:inherit;}
+      `}</style>
       <TopoBG T={T}/>
-      <div style={{background:T.bgHeader,backdropFilter:"blur(16px)",borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:100,boxShadow:`0 1px 24px ${T.shadow}`}}>
-        <div style={{maxWidth:1160,margin:"0 auto",padding:"0 28px",display:"flex",alignItems:"center",justifyContent:"space-between",height:64}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:19,color:T.text}}>Timberline</div>
-            <div style={{fontFamily:"monospace",fontWeight:500,fontSize:9,color:T.accent,letterSpacing:"0.22em",marginTop:2}}>DEAL TRACKER</div>
+      <div style={{background:T.bgHeader,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:100}}>
+        <div style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
+          <div style={{display:"flex",alignItems:"baseline",gap:12}}>
+            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text,letterSpacing:"-0.02em"}}>Timberline</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.accent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
           </div>
-          <nav style={{display:"flex",gap:2}}>
+          <nav style={{display:"flex",gap:4,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:4}}>
             {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"8px 18px",border:"none",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:600,transition:"all 0.15s",background:tab===t.id?T.navActive:"transparent",color:tab===t.id?T.accent:T.textMuted}}>
+              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"7px 16px",border:"none",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:600,transition:"all 0.18s",background:tab===t.id?T.bgSolid:"transparent",color:tab===t.id?T.text:T.textMuted,boxShadow:tab===t.id?`0 1px 3px ${T.shadow}`:"none"}}>
                 {t.label}
               </button>
             ))}
@@ -1229,7 +1244,7 @@ export default function App() {
             {user&&<button onClick={()=>setShowPrefs(true)} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,color:T.textMuted,fontWeight:600}}>Preferences</button>}
             <div style={{display:"flex",alignItems:"center",gap:6,background:T.accentLight,border:`1px solid ${T.accentBorder}`,borderRadius:999,padding:"5px 12px"}}>
               <div style={{width:6,height:6,background:T.accent,borderRadius:"50%"}}/>
-              <span style={{fontSize:11,color:T.accent,fontWeight:600,fontFamily:"monospace"}}>LIVE</span>
+              <span style={{fontSize:11,color:T.accent,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>LIVE</span>
             </div>
             <button onClick={()=>setTheme(t=>t==="light"?"dark":"light")} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:16}}>{T.toggle}</button>
             {user?(
@@ -1261,21 +1276,22 @@ export default function App() {
       )}
       {!isGuest&&(
         <div style={{background:T.accentLight,borderBottom:`1px solid ${T.accentBorder}`,padding:"6px 28px",display:"flex",alignItems:"center",gap:12,position:"relative",zIndex:1}}>
-          <span style={{fontSize:11,fontWeight:700,color:T.accent,fontFamily:"monospace",letterSpacing:"0.1em"}}>{P.icon} {P.name.toUpperCase()}</span>
+          <span style={{fontSize:11,fontWeight:700,color:T.accent,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em"}}>{P.icon} {P.name.toUpperCase()}</span>
           <span style={{color:T.accentBorder,fontSize:10}}>|</span>
-          <span style={{fontSize:11,color:T.accent,opacity:0.7,fontFamily:"monospace"}}>{P.tagline}</span>
+          <span style={{fontSize:11,color:T.accent,opacity:0.7,fontFamily:"'JetBrains Mono',monospace"}}>{P.tagline}</span>
         </div>
       )}
-      <div style={{maxWidth:1160,margin:"0 auto",padding:"32px 28px",position:"relative",zIndex:1}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"44px 32px 64px",position:"relative",zIndex:1}}>
         {tab==="deals"&&(
-          <div style={{animation:"fadeUp 0.25s ease"}}>
-            <div style={{marginBottom:28}}>
-              <h1 style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:36,color:T.text,marginBottom:4}}>Active Drops</h1>
-              <p style={{color:T.textMuted,fontSize:12,fontFamily:"monospace",letterSpacing:"0.04em"}}>{filtered.filter(d=>!d.fake).length} real deals | {filtered.filter(d=>d.fake).length} fake sales flagged</p>
+          <div style={{animation:"fadeUp 0.3s ease"}}>
+            <div style={{marginBottom:36}}>
+              <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>FIELD INTEL</div>
+              <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Drops</h1>
+              <p style={{color:T.textSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.text}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
             </div>
             <div style={{display:"flex",gap:20,marginBottom:28,flexWrap:"wrap",alignItems:"center"}}>
               <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                <span style={{fontSize:11,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.08em"}}>MEMBER</span>
+                <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
                 {memberNames.map((m,i)=>{
                   const col=i===0?T.accent:MC[(i-1)%MC.length];
                   const active=memberFilter===m;
@@ -1287,7 +1303,7 @@ export default function App() {
                 })}
               </div>
               <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                <span style={{fontSize:11,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.08em"}}>BRAND</span>
+                <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>BRAND</span>
                 {["All",...BRANDS_LIST].map(b=>(
                   <button key={b} onClick={()=>setBrandFilter(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
                     {b}
@@ -1297,7 +1313,7 @@ export default function App() {
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
               {filtered.length===0?(
-                <div style={{color:T.textMuted,padding:40,fontFamily:"monospace",fontSize:12}}>No deals match these filters.</div>
+                <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>No deals match these filters.</div>
               ):filtered.map(d=>(
                 <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T}/>
               ))}
@@ -1305,23 +1321,25 @@ export default function App() {
           </div>
         )}
         {tab==="search"&&(
-          <div style={{animation:"fadeUp 0.25s ease"}}>
-            <h1 style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:36,color:T.text,marginBottom:4}}>Price Search</h1>
-            <p style={{color:T.textMuted,fontSize:12,fontFamily:"monospace",letterSpacing:"0.04em",marginBottom:28}}>FIND THE CHEAPEST PLACE TO BUY ANY HUNTING GEAR</p>
+          <div style={{animation:"fadeUp 0.3s ease"}}>
+            <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>RECON</div>
+            <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
+            <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
             <PriceSearch T={T} P={P} stores={stores} wishlist={wishlist} setWishlist={setWishlist}/>
           </div>
         )}
         {tab==="coupons"&&(
-          <div style={{animation:"fadeUp 0.25s ease"}}>
-            <h1 style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:36,color:T.text,marginBottom:4}}>Active Codes</h1>
-            <p style={{color:T.textMuted,fontSize:12,fontFamily:"monospace",letterSpacing:"0.04em",marginBottom:28}}>VERIFIED TODAY | CLICK TO VISIT BRAND</p>
+          <div style={{animation:"fadeUp 0.3s ease"}}>
+            <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CACHED</div>
+            <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
+            <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Verified today. Click any card to visit the brand.</p>
             <div style={{display:"grid",gap:14}}>
               {portalCoupons.map((c,i)=>(
                 <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
                   <div style={{background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,cursor:"pointer",boxShadow:`0 2px 12px ${T.shadow}`,border:`1px solid ${c.verified?T.border:T.redBorder}`}}>
                     <div>
-                      <div style={{fontSize:11,fontWeight:700,color:T.accent,letterSpacing:"0.1em",fontFamily:"monospace",marginBottom:5}}>{c.brand.toUpperCase()}</div>
-                      <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:5}}>{c.discount}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:T.accent,letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:5}}>{c.brand.toUpperCase()}</div>
+                      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:5}}>{c.discount}</div>
                       <div style={{fontSize:12,color:T.textMuted}}>Expires {c.expires} | {c.verified?"Verified today":"Unverified"}</div>
                     </div>
                     <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:10,padding:"10px 22px",fontSize:22,fontWeight:800,letterSpacing:"0.15em"}}>{c.code}</code>
@@ -1336,7 +1354,7 @@ export default function App() {
             {!user?(
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"80px 24px",textAlign:"center"}}>
                 <div style={{fontSize:48,marginBottom:20}}>👨‍👩‍👧‍👦</div>
-                <h2 style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Family Profiles</h2>
+                <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Family Profiles</h2>
                 <p style={{fontSize:15,color:T.textSub,maxWidth:440,lineHeight:1.7,marginBottom:32}}>Add everyone in your family with their sizes. Deals get automatically tagged to whoever they fit.</p>
                 <div style={{display:"flex",gap:10}}>
                   <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"13px 32px",fontWeight:700,fontSize:15,cursor:"pointer"}}>Create Free Account</button>
@@ -1345,8 +1363,9 @@ export default function App() {
               </div>
             ):(
               <div>
-                <h1 style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:36,color:T.text,marginBottom:4}}>Family Profiles</h1>
-                <p style={{color:T.textMuted,fontSize:12,fontFamily:"monospace",letterSpacing:"0.04em",marginBottom:28}}>DEALS AUTO-TAGGED BY SIZE | AI ADVISOR PER MEMBER</p>
+                <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>SQUAD</div>
+                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Family Profiles</h1>
+                <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Deals auto-tagged by size · AI gear advisor per member</p>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:18}}>
                   {family.map((m,idx)=>{
                     const col=MC[idx%MC.length];
@@ -1357,14 +1376,14 @@ export default function App() {
                         <div style={{height:4,background:col}}/>
                         <div style={{padding:"18px 18px 16px"}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                            <div style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{m.name}</div>
+                            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{m.name}</div>
                             <button onClick={()=>setEditIdx(editIdx===idx?null:idx)} style={{background:T.border,border:"none",borderRadius:7,padding:"4px 12px",cursor:"pointer",fontSize:11,color:T.textSub,fontWeight:600}}>{editIdx===idx?"Done":"Edit"}</button>
                           </div>
                           {editIdx===idx?(
                             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
                               {["jacket","shirt","base","pants","boots"].map(field=>(
                                 <div key={field} style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.08em"}}>{field.toUpperCase()}</span>
+                                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>{field.toUpperCase()}</span>
                                   <SizePicker
                                     field={field}
                                     value={m[field]}
@@ -1380,15 +1399,15 @@ export default function App() {
                               {SIZE_FIELDS.map(([icon,label,val])=>(
                                 <div key={label} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:9,padding:"10px 8px",textAlign:"center"}}>
                                   <div style={{fontSize:18,marginBottom:4}}>{icon}</div>
-                                  <div style={{fontSize:9,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.08em",marginBottom:3}}>{label}</div>
+                                  <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em",marginBottom:3}}>{label}</div>
                                   <div style={{fontSize:16,fontWeight:800,color:T.text}}>{val}</div>
                                 </div>
                               ))}
                             </div>
                           )}
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:12,borderTop:`1px solid ${T.border}`}}>
-                            <span style={{fontSize:11,color:T.textMuted,fontFamily:"monospace"}}>ACTIVE DEALS</span>
-                            <span style={{fontFamily:"Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{mDeals.length}</span>
+                            <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>ACTIVE DEALS</span>
+                            <span style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{mDeals.length}</span>
                           </div>
                           <GearAdvisor member={m} deals={deals} T={T}/>
                         </div>
