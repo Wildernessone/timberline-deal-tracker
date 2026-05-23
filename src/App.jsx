@@ -1196,8 +1196,8 @@ export default function App() {
     return true;
   });
   const portalCoupons=[
-    ...COUPONS.filter(c=>c.portal===portal),
-    ...COUPONS.filter(c=>c.portal!==portal),
+    ...dbCoupons.filter(c=>c.portal===portal),
+    ...dbCoupons.filter(c=>c.portal!==portal),
   ];
   const BRANDS_LIST=P.brands.slice(0,6);
   const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Family"}]:[])];
