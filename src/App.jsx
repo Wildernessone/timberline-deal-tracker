@@ -17,6 +17,33 @@ async function sbSignIn(email,password){
   const r=await fetch(SB_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
   return r.json();
 }
+
+async function loadFamily(userId, token) {
+  const r = await fetch(SB_URL+"/rest/v1/family_members?user_id=eq."+userId+"&order=sort_order.asc", {
+    headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
+  });
+  return r.json();
+}
+
+async function saveFamily(members, userId, token) {
+  // Delete existing and re-insert
+  await fetch(SB_URL+"/rest/v1/family_members?user_id=eq."+userId, {
+    method:"DELETE",
+    headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
+  });
+  if (!members.length) return;
+  const rows = members.map((m,i) => ({
+    user_id:userId, name:m.name, gender:m.gender||"mens",
+    jacket:m.jacket, shirt:m.shirt, base:m.base, pants:m.pants,
+    boots:m.boots, gloves:m.gloves, socks:m.socks, beanie:m.beanie,
+    sort_order:i,
+  }));
+  await fetch(SB_URL+"/rest/v1/family_members", {
+    method:"POST",
+    headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=minimal"},
+    body:JSON.stringify(rows)
+  });
+}
 function parseDeal(row){
   const orig=Math.round(parseFloat(row.orig_price)*100)/100;
   const sale=Math.round(parseFloat(row.sale_price)*100)/100;
@@ -1118,6 +1145,12 @@ export default function App() {
   const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
+    if(user && user.id && user.token && family.length){
+      saveFamily(family, user.id, user.token).catch(()=>{});
+    }
+  },[family]);
+
+  useEffect(()=>{
     setDealsLoading(true);
     // Load first 100 fast, then load rest in background
     sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
@@ -1359,12 +1392,22 @@ export default function App() {
       {showAuth&&<AuthModal mode={authMode} setMode={setAuthMode} T={T} P={P} onSuccess={u=>{
               setUser(u);
               setShowAuth(false);
-              setFamily(prev=>{
-                const already=prev.find(f=>f.name===u.name);
-                if(already)return prev;
-                const first={name:u.name,jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L",gender:"mens"};
-                return [first,...prev];
-              });
+              if(u.id && u.token){
+                loadFamily(u.id, u.token).then(rows=>{
+                  if(rows && rows.length){
+                    setFamily(rows.map(r=>({
+                      name:r.name,gender:r.gender,jacket:r.jacket,shirt:r.shirt,
+                      base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,
+                      socks:r.socks,beanie:r.beanie,
+                    })));
+                  } else {
+                    const firstName=u.name;
+                    const first={name:firstName,jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L",gender:"mens"};
+                    setFamily([first]);
+                    saveFamily([first], u.id, u.token);
+                  }
+                }).catch(()=>{});
+              }
             }} onClose={()=>setShowAuth(false)}/>}
       {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} onClose={()=>setShowPrefs(false)}/>}
       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)}/>
