@@ -191,7 +191,7 @@ const TOPO_D = [
   "M0,430 C120,396 280,456 440,418 C600,380 720,428 900,396 C1080,364 1160,396 1300,374",
 ];
 
-const API_URL = "https://api.anthropic.com/v1/messages";
+const API_URL = "https://claude-proxy.jamesreed.workers.dev/timberline";
 const AI_MODEL = "claude-sonnet-4-20250514";
 
 function callAI(prompt, maxTok) {
