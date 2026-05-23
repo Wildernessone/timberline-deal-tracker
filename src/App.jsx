@@ -3,12 +3,19 @@ import { createClient } from "@supabase/supabase-js";
 
 const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
+const timberlineStorage = {
+  getItem: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
+  setItem: (key, value) => { try { localStorage.setItem(key, value); } catch(e) {} },
+  removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
+};
 const supabase = createClient(SB_URL, SB_KEY, {
   auth: {
     persistSession: true,
     storageKey: "timberline-auth",
+    storage: timberlineStorage,
     autoRefreshToken: true,
     detectSessionInUrl: false,
+    flowType: "implicit",
   }
 });
 const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
