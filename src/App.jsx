@@ -7,7 +7,6 @@ const supabase = createClient(SB_URL, SB_KEY, {
   auth: {
     persistSession: true,
     storageKey: "timberline-auth",
-    storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: false,
   }
