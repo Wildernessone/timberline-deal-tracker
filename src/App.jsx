@@ -688,10 +688,26 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
   const [loading,setLoading]=useState(false);
   const submit=async()=>{
     setLoading(true);setErr("");
-    await new Promise(r=>setTimeout(r,800));
     if(!email.includes("@")){setErr("Enter a valid email address.");setLoading(false);return;}
     if(pass.length<6){setErr("Password must be at least 6 characters.");setLoading(false);return;}
-    onSuccess({email,name:(name||email.split("@")[0]).split(" ")[0],avatar:email[0].toUpperCase()});
+    try {
+      if(mode==="signup"){
+        const firstName=(name||email.split("@")[0]).split(" ")[0];
+        const {data,error}=await supabase.auth.signUp({email,password:pass,options:{data:{full_name:firstName}}});
+        if(error){setErr(error.message);setLoading(false);return;}
+        const u=data.user;
+        onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id});
+      } else {
+        const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+        if(error){setErr(error.message);setLoading(false);return;}
+        const u=data.user;
+        const firstName=(u.user_metadata?.full_name||email.split("@")[0]).split(" ")[0];
+        onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id});
+      }
+    } catch(e){
+      setErr("Something went wrong. Try again.");
+    }
+    setLoading(false);
   };
   const inp={padding:"12px 16px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgCard,color:T.text,fontSize:14,outline:"none",fontFamily:"inherit",width:"100%"};
   return (
