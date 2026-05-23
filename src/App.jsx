@@ -132,34 +132,14 @@ const STORES = [
   },
 ];
 
-const PORTALS = {
-  timberline:{
-    name:"Timberline Deal Tracker",tagline:"Western - Elk - Backcountry",
-    accent:"#2d6a4f",icon:"🏔",
-    brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt"],
-    stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","gohunt"],
-    searchHint:'Try "Sitka Kelvin Down" or "Vortex Razor HD 10x42"...',
-    dealCats:["Insulation","Base Layer","Wind Layer","Pants","Bibs","Packs","Optics","Boots"],
-    searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
-  },
-  treestand:{
-    name:"Treestand Saver",tagline:"Whitetail - Eastern - Food Plot",
-    accent:"#7a4f1d",icon:"🌳",
-    brands:["Realtree","Mossy Oak","Browning","Danner","LaCrosse","Muck","Stealth Cam","Reconyx","Tactacam","Hoyt","Mathews","Bear Archery"],
-    stores:[],
-    searchHint:'Try "Mathews Phase4" or "Stealth Cam Fusion X"...',
-    dealCats:["Clothing","Boots","Trail Cams","Archery","Treestands","Food Plot","Optics","Knives"],
-    searchContext:"whitetail deer hunting, eastern hunting, treestands, food plots, archery, trail cameras, bow hunting",
-  },
-  blind:{
-    name:"Duck Blind Deals",tagline:"Waterfowl - Duck - Goose",
-    accent:"#1d4e89",icon:"🦆",
-    brands:["Drake","Avery","Banded","Browning","Mossy Oak","Realtree","LaCrosse","Muck","Garmin"],
-    stores:[],
-    searchHint:'Try "Drake MST Fleece" or "Banded RedZone waders"...',
-    dealCats:["Waders","Clothing","Calls","Decoys","Blinds","Boats","Electronics","Boots"],
-    searchContext:"waterfowl hunting, duck hunting, goose hunting, waders, decoys, calls, blinds, layout blinds",
-  },
+const PORTAL = {
+  name:"Timberline Deal Tracker",tagline:"Western - Elk - Backcountry",
+  accent:"#2d6a4f",icon:"🏔",
+  brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt"],
+  stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","gohunt"],
+  searchHint:'Try "Sitka Kelvin Down" or "Vortex Razor HD 10x42"...',
+  dealCats:["Insulation","Base Layer","Wind Layer","Pants","Bibs","Packs","Optics","Boots"],
+  searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
 };
 
 const LIGHT = {
@@ -1139,7 +1119,6 @@ function AddMemberCard({setFamily, T}) {
 
 export default function App() {
   const [theme,setTheme]=useState("light");
-  const [portal,setPortal]=useState("timberline");
   const [tab,setTab]=useState("deals");
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
@@ -1208,26 +1187,20 @@ export default function App() {
       .catch(()=>{});
   },[]);
   const T=theme==="light"?LIGHT:DARK;
-  const P=PORTALS[portal];
+  const P=PORTAL;
   const isGuest=!user;
 
   const taggedDeals=useMemo(
     ()=>deals.map(d=>({...d,tags:computeTags(d,family)})),
     [deals,family]
   );
-  const sortedDeals=[
-    ...taggedDeals.filter(d=>d.portal===portal),
-    ...taggedDeals.filter(d=>d.portal!==portal),
-  ];
+  const sortedDeals=taggedDeals;
   const filtered=sortedDeals.filter(d=>{
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;
     if(memberFilter!=="All"&&!d.tags.includes(memberFilter))return false;
     return true;
   });
-  const portalCoupons=[
-    ...dbCoupons.filter(c=>c.portal===portal),
-    ...dbCoupons.filter(c=>c.portal!==portal),
-  ];
+  const portalCoupons=dbCoupons;
   const BRANDS_LIST=P.brands.slice(0,6);
   const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Family"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
@@ -1249,13 +1222,6 @@ export default function App() {
             ))}
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{display:"flex",gap:2,background:T.border,borderRadius:8,padding:2}}>
-              {Object.entries(PORTALS).map(([key,p])=>(
-                <button key={key} onClick={()=>setPortal(key)} title={p.name} style={{padding:"5px 10px",border:"none",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600,transition:"all 0.15s",background:portal===key?T.bgSolid:"transparent",color:portal===key?p.accent:T.textMuted}}>
-                  {p.icon}
-                </button>
-              ))}
-            </div>
             {user&&<button onClick={()=>setShowPrefs(true)} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,color:T.textMuted,fontWeight:600}}>Preferences</button>}
             <div style={{display:"flex",alignItems:"center",gap:6,background:T.accentLight,border:`1px solid ${T.accentBorder}`,borderRadius:999,padding:"5px 12px"}}>
               <div style={{width:6,height:6,background:T.accent,borderRadius:"50%"}}/>
