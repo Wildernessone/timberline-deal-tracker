@@ -1205,7 +1205,7 @@ export default function App() {
     return true;
   });
   const portalCoupons=dbCoupons;
-  const BRANDS_LIST=P.brands.slice(0,6);
+  const BRANDS_LIST=liveBrands;
   const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Family"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
