@@ -1118,7 +1118,7 @@ export default function App() {
   const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
-    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100"})
+    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"1000"})
       .then(rows=>{if(rows&&rows.length)setDeals(rows.map(parseDeal));})
       .catch(()=>{})
       .finally(()=>setDealsLoading(false));
