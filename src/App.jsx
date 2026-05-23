@@ -1439,10 +1439,6 @@ export default function App() {
                         base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,
                         socks:r.socks,beanie:r.beanie,
                       })));
-                    } else {
-                      const first={name:u.name,jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L",gender:"mens"};
-                      setFamily([first]);
-                      saveFamily([first], u.id);
                     }
                   }).catch(()=>{});
                 });
