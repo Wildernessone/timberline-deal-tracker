@@ -18,13 +18,15 @@ async function sbSignIn(email,password){
   return r.json();
 }
 function parseDeal(row){
+  const orig=Math.round(parseFloat(row.orig_price)*100)/100;
+  const sale=Math.round(parseFloat(row.sale_price)*100)/100;
   return {
     id:row.id,brand:row.brand,product:row.product,portal:row.portal,
-    cat:row.cat,orig:row.orig_price,sale:row.sale_price,
+    cat:row.cat,orig:orig,sale:sale,
     coupon:row.coupon,fake:row.fake_sale,fakeNote:row.fake_note,
     url:row.url,blurb:row.blurb,tags:[],
     sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
-    history:[row.orig_price,row.orig_price,row.orig_price,row.orig_price,row.orig_price,row.sale_price],
+    history:[orig,orig,orig,orig,orig,sale],
   };
 }
 function parseCoupon(row){
