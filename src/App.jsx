@@ -1,21 +1,15 @@
 import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
+const supabase = createClient(SB_URL, SB_KEY);
 const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
 
 function sbGet(table,params){
   const url=new URL(SB_URL+"/rest/v1/"+table);
   if(params)Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
   return fetch(url,{headers:SB_H}).then(r=>r.json());
-}
-async function sbSignUp(email,password,name){
-  const r=await fetch(SB_URL+"/auth/v1/signup",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password,data:{full_name:name}})});
-  return r.json();
-}
-async function sbSignIn(email,password){
-  const r=await fetch(SB_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
-  return r.json();
 }
 
 async function loadFamily(userId, token) {
@@ -1151,6 +1145,24 @@ export default function App() {
   },[family]);
 
   useEffect(()=>{
+    supabase.auth.getSession().then(({data:{session}})=>{
+      if(session){
+        const u=session.user;
+        const firstName=(u.user_metadata?.full_name||u.email.split("@")[0]).split(" ")[0];
+        const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
+        setUser(userObj);
+        loadFamily(u.id,session.access_token).then(rows=>{
+          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,socks:r.socks,beanie:r.beanie})));
+        }).catch(()=>{});
+      }
+    });
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{
+      if(event==="SIGNED_OUT"){setUser(null);setFamily([]);}
+    });
+    return ()=>subscription.unsubscribe();
+  },[]);
+
+  useEffect(()=>{
     setDealsLoading(true);
     // Load first 100 fast, then load rest in background
     sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
@@ -1222,7 +1234,7 @@ export default function App() {
             {user?(
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:T.accent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"white"}}>{user.avatar}</div>
-                <button onClick={()=>setUser(null)} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,color:T.textMuted,fontWeight:600}}>Log out</button>
+                <button onClick={()=>{supabase.auth.signOut();setUser(null);setFamily([]);}} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,color:T.textMuted,fontWeight:600}}>Log out</button>
               </div>
             ):(
               <div style={{display:"flex",gap:6}}>
