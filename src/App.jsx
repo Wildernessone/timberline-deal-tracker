@@ -1202,8 +1202,8 @@ export default function App() {
   const [showPrefs,setShowPrefs]=useState(false);
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
-  const [deals,setDeals]=useState(DEALS_STATIC||DEALS);
-  const [dbCoupons,setDbCoupons]=useState(COUPONS_STATIC||COUPONS);
+  const [deals,setDeals]=useState(DEALS);
+  const [dbCoupons,setDbCoupons]=useState(COUPONS);
   const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
@@ -1218,7 +1218,7 @@ export default function App() {
   const T=theme==="light"?LIGHT:DARK;
   const P=PORTALS[portal];
   const isGuest=!user;
-  const deals2=deals;
+
   const sortedDeals=[
     ...deals.filter(d=>d.portal===portal),
     ...deals.filter(d=>d.portal!==portal),
