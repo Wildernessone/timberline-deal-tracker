@@ -1202,8 +1202,8 @@ export default function App() {
   const [showPrefs,setShowPrefs]=useState(false);
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
-  const [deals,setDeals]=useState(DEALS);
-  const [dbCoupons,setDbCoupons]=useState(COUPONS);
+  const [deals,setDeals]=useState([]);
+  const [dbCoupons,setDbCoupons]=useState([]);
   const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
