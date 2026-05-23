@@ -4,11 +4,11 @@ import { createClient } from "@supabase/supabase-js";
 const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
 const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
 const timberlineStorage = {
-  getItem: (key) => { try { return localStorage.getItem(key); } catch(e) { return null; } },
-  setItem: (key, value) => { try { localStorage.setItem(key, value); } catch(e) {} },
-  removeItem: (key) => { try { localStorage.removeItem(key); } catch(e) {} },
+  getItem: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
+  setItem: (key, value) => { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
+  removeItem: (key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } },
 };
-const supabase = window._sb = createClient(SB_URL, SB_KEY, {
+const supabase = createClient(SB_URL, SB_KEY, {
   auth: {
     persistSession: true,
     storageKey: "timberline-auth",
@@ -202,10 +202,6 @@ const SIZE_OPTIONS = {
 };
 
 
-const DEALS = [];
-
-const COUPONS = [];
-
 const TOPO_D = [
   "M0,380 C120,340 280,400 440,360 C600,320 720,370 900,338 C1080,306 1160,340 1300,318",
   "M0,320 C120,282 280,338 440,300 C600,262 720,310 900,280 C1080,250 1160,282 1300,260",
@@ -296,9 +292,11 @@ function VideoPanel({deal,T}) {
   const [loading,setLoading]=useState(false);
   const [tab,setTab]=useState("manufacturer");
   const dealId=deal?deal.id:null;
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(()=>{
     if(!deal)return;
-    setVids(null);setLoading(true);
+    setVids(null);
+    setLoading(true);
     const prompt=[
       "Hunting gear video curator.",
       "MINDFUL HUNTER PRIORITY: Jay Nichol covers Sitka/Kuiu/Stone Glacier/First Lite.",
@@ -307,7 +305,9 @@ function VideoPanel({deal,T}) {
       '{"manufacturer":{"title":"t","channel":"c","duration":"M:SS","views":"48K","youtubeId":"dQw4w9WgXcQ","snippet":"s"},"review":{"title":"t","channel":"c","duration":"M:SS","views":"287K","youtubeId":"jNQXAC9IVRw","snippet":"s","isMindfulHunter":true,"reviewerNote":"r"}}',
     ].join("\n");
     callAI(prompt,500).then(d=>setVids(d)).catch(()=>setVids(null)).finally(()=>setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[dealId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
   if(loading)return <div style={{height:80,background:T.border,borderRadius:10,marginBottom:24,opacity:0.4}}/>;
   if(!vids)return null;
   const active=tab==="manufacturer"?vids.manufacturer:vids.review;
@@ -378,7 +378,6 @@ function SizePicker({field, value, onChange, T, col}) {
   const opts = SIZE_OPTIONS[field] || [];
   const [open, setOpen] = useState(false);
   const cur = opts.includes(value) ? value : (opts[0] || value);
-  const curIdx = opts.indexOf(cur);
   return (
     <div style={{position:"relative"}}>
       <button
@@ -426,14 +425,13 @@ function SizePicker({field, value, onChange, T, col}) {
 }
 
 
-function DealCard({d,family,memberFilter,onOpen,T,portal}) {
+function DealCard({d,family,memberFilter,onOpen,T}) {
   const [hov,setHov]=useState(false);
   const disc=Math.round((1-d.sale/d.orig)*100);
   const save=d.orig-d.sale;
   const tags=memberFilter==="All"?d.tags:d.tags.filter(t=>t===memberFilter);
   if(memberFilter!=="All"&&tags.length===0)return null;
-    const isOtherPortal = d.portal && d.portal !== portal;
-    return (
+  return (
     <div
       onClick={()=>onOpen(d)}
       onMouseEnter={()=>setHov(true)}
@@ -595,8 +593,6 @@ function DealModal({deal,family,T,onClose}) {
 }
 
 function GearAdvisor({member,deals,T}) {
-  const nameList=["Dad","Mom","Jake","Emma"];
-  const col=MC[nameList.indexOf(member.name)%MC.length];
   const [recs,setRecs]=useState(null);
   const [loading,setLoading]=useState(false);
   const [open,setOpen]=useState(false);
@@ -695,7 +691,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
         const firstName=(u.user_metadata?.full_name||email.split("@")[0]).split(" ")[0];
         onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id});
       }
-    } catch(e){
+    } catch {
       setErr("Something went wrong. Try again.");
     }
     setLoading(false);
@@ -989,7 +985,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
       if(parsed.stores)parsed.stores.sort((a,b)=>a.adjustedCost-b.adjustedCost);
       setResults(parsed);
       fetchVids(parsed.productName,parsed.brand);
-    }catch(e){setResults({error:true});}
+    }catch{setResults({error:true});}
     setLoading(false);
   };
   const fetchVids=async(pname,brand)=>{
@@ -1001,7 +997,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
       "Return ONLY valid JSON:",
       '{"manufacturer":{"title":"t","channel":"c","duration":"M:SS","views":"48K","youtubeId":"dQw4w9WgXcQ","snippet":"s"},"review":{"title":"t","channel":"c","duration":"M:SS","views":"287K","youtubeId":"jNQXAC9IVRw","snippet":"s","isMindfulHunter":true,"reviewerNote":"r"}}',
     ].join("\n");
-    try{const v=await callAI(prompt,400);setVids(v);}catch(e){setVids(null);}
+    try{const v=await callAI(prompt,400);setVids(v);}catch{setVids(null);}
     setVloading(false);
   };
   const isWishlisted=results&&wishlist.find(w=>w.productName===results.productName);
@@ -1061,7 +1057,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
   );
 }
 
-function AddMemberCard({family, setFamily, T}) {
+function AddMemberCard({setFamily, T}) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [gender, setGender] = useState("mens");
@@ -1157,7 +1153,6 @@ export default function App() {
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
   const [dbCoupons,setDbCoupons]=useState([]);
-  const [dealsLoading,setDealsLoading]=useState(true);
 
   useEffect(()=>{
     if(user && user.id && family.length){
@@ -1165,6 +1160,7 @@ export default function App() {
         if(session) saveFamily(family, user.id).catch(()=>{});
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[family]);
 
   useEffect(()=>{
@@ -1196,19 +1192,15 @@ export default function App() {
   },[]);
 
   useEffect(()=>{
-    setDealsLoading(true);
-    // Load first 100 fast, then load rest in background
     sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
       .then(rows=>{
         if(rows&&rows.length) setDeals(rows.map(parseDeal));
-        setDealsLoading(false);
-        // Load remaining pages in background
         return sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"900",offset:"100"});
       })
       .then(rows=>{
         if(rows&&rows.length) setDeals(prev=>[...prev,...rows.map(parseDeal)]);
       })
-      .catch(()=>setDealsLoading(false));
+      .catch(()=>{});
     sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
       .then(rows=>{if(rows&&rows.length)setDbCoupons(rows.map(parseCoupon));})
       .catch(()=>{});
@@ -1331,7 +1323,7 @@ export default function App() {
               {filtered.length===0?(
                 <div style={{color:T.textMuted,padding:40,fontFamily:"monospace",fontSize:12}}>No deals match these filters.</div>
               ):filtered.map(d=>(
-                <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T} portal={portal}/>
+                <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T}/>
               ))}
             </div>
           </div>
@@ -1427,7 +1419,7 @@ export default function App() {
                       </div>
                     );
                   })}
-                  <AddMemberCard family={family} setFamily={setFamily} T={T}/>
+                  <AddMemberCard setFamily={setFamily} T={T}/>
                 </div>
               </div>
             )}
@@ -1461,4 +1453,3 @@ export default function App() {
     </div>
   );
 }
-// Fri 22 May 2026 08:29:21 PM PDT
