@@ -213,7 +213,7 @@ const TOPO_D = [
 ];
 
 const API_URL = "https://claude-proxy.jamesreed.workers.dev/timberline";
-const AI_MODEL = "claude-sonnet-4-20250514";
+const AI_MODEL = "claude-haiku-4-5-20251001";
 
 function callAI(prompt, maxTok) {
   return fetch(API_URL, {
