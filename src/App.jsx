@@ -33,7 +33,7 @@ async function loadFamily(userId, token) {
   return r.json();
 }
 
-async function saveFamily(members, userId, token) {
+async function saveFamily(members, userId) {
   if (!members.length) return;
   const rows = members.map((m,i) => ({
     user_id:userId, name:m.name, gender:m.gender||"mens",
@@ -41,8 +41,7 @@ async function saveFamily(members, userId, token) {
     boots:m.boots||"10", gloves:m.gloves||"L", socks:m.socks||"L", beanie:m.beanie||"L",
     sort_order:i,
   }));
-  const client = createClient(SB_URL, SB_KEY, {auth:{persistSession:false,autoRefreshToken:false,global:{headers:{Authorization:"Bearer "+token}}}});
-  await client.from("family_members").upsert(rows, {onConflict:"user_id,name"});
+  await supabase.from("family_members").upsert(rows, {onConflict:"user_id,name"});
 }
 function parseDeal(row){
   const orig=Math.round(parseFloat(row.orig_price)*100)/100;
@@ -1163,7 +1162,7 @@ export default function App() {
   useEffect(()=>{
     if(user && user.id && family.length){
       supabase.auth.getSession().then(({data:{session}})=>{
-        if(session) saveFamily(family, user.id, session.access_token).catch(()=>{});
+        if(session) saveFamily(family, user.id).catch(()=>{});
       });
     }
   },[family]);
@@ -1451,7 +1450,7 @@ export default function App() {
                     } else {
                       const first={name:u.name,jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L",gender:"mens"};
                       setFamily([first]);
-                      saveFamily([first], u.id, tok);
+                      saveFamily([first], u.id);
                     }
                   }).catch(()=>{});
                 });
