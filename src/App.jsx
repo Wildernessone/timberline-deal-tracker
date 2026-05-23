@@ -41,16 +41,8 @@ async function saveFamily(members, userId, token) {
     boots:m.boots||"10", gloves:m.gloves||"L", socks:m.socks||"L", beanie:m.beanie||"L",
     sort_order:i,
   }));
-  await fetch(SB_URL+"/rest/v1/family_members", {
-    method:"POST",
-    headers:{
-      apikey:SB_KEY,
-      Authorization:"Bearer "+token,
-      "Content-Type":"application/json",
-      Prefer:"return=minimal,resolution=merge-duplicates"
-    },
-    body:JSON.stringify(rows)
-  });
+  const client = createClient(SB_URL, SB_KEY, {auth:{persistSession:false,autoRefreshToken:false,global:{headers:{Authorization:"Bearer "+token}}}});
+  await client.from("family_members").upsert(rows, {onConflict:"user_id,name"});
 }
 function parseDeal(row){
   const orig=Math.round(parseFloat(row.orig_price)*100)/100;
