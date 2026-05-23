@@ -38,7 +38,7 @@ async function saveFamily(members, userId) {
   const rows = members.map((m,i) => ({
     user_id:userId, name:m.name, gender:m.gender||"mens",
     jacket:m.jacket||"L", shirt:m.shirt||"L", base:m.base||"L", pants:m.pants||"34x32",
-    boots:m.boots||"10", gloves:m.gloves||"L", socks:m.socks||"L", beanie:m.beanie||"L",
+    boots:m.boots||"10",
     sort_order:i,
   }));
   await supabase.from("family_members").upsert(rows, {onConflict:"user_id,name"});
@@ -61,9 +61,6 @@ const CAT_TO_FIELDS = {
   baselayer:["base"], base:["base"],
   pants:["pants"], bibs:["pants"], waders:["pants"],
   boots:["boots"],
-  gloves:["gloves"],
-  socks:["socks"],
-  beanie:["beanie"], hat:["beanie"],
 };
 function fieldsForCat(cat){
   const c=(cat||"").toLowerCase().replace(/[^a-z]/g,"");
@@ -220,9 +217,6 @@ const SIZE_OPTIONS = {
     "YXS","YS","YM","YL","YXL",
   ],
   boots: ["4","4.5","5","5.5","6","6.5","7","7.5","8","8.5","9","9.5","10","10.5","11","11.5","12","12.5","13","14","15"],
-  gloves: ["XS","S","M","L","XL","2XL","YS","YM","YL"],
-  socks:  ["XS","S","M","L","XL","2XL","YS","YM","YL"],
-  beanie: ["XS","S","M","L","XL","YS","YM","YL"],
 };
 
 
@@ -1090,10 +1084,10 @@ function AddMemberCard({setFamily, T}) {
     const n = name.trim().split(" ")[0];
     if (!n) return;
     const defaults = gender === "youth"
-      ? {jacket:"YM",shirt:"YM",base:"YS",pants:"YM",boots:"5",gloves:"YS",socks:"S",beanie:"YS"}
+      ? {jacket:"YM",shirt:"YM",base:"YS",pants:"YM",boots:"5"}
       : gender === "womens"
-      ? {jacket:"M",shirt:"M",base:"S",pants:"8",boots:"8",gloves:"S",socks:"M",beanie:"M"}
-      : {jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10",gloves:"L",socks:"L",beanie:"L"};
+      ? {jacket:"M",shirt:"M",base:"S",pants:"8",boots:"8"}
+      : {jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10"};
     setFamily(prev => [...prev, {name:n, gender, ...defaults}]);
     setName("");
     setGender("mens");
@@ -1195,7 +1189,7 @@ export default function App() {
         const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
         setUser(userObj);
         loadFamily(u.id,session.access_token).then(rows=>{
-          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,socks:r.socks,beanie:r.beanie})));
+          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots})));
         }).catch(()=>{});
       }
     });
@@ -1208,7 +1202,7 @@ export default function App() {
         const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
         setUser(userObj);
         loadFamily(u.id,session.access_token).then(rows=>{
-          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,socks:r.socks,beanie:r.beanie})));
+          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots})));
         }).catch(()=>{});
       }
     });
@@ -1403,7 +1397,7 @@ export default function App() {
                   {family.map((m,idx)=>{
                     const col=MC[idx%MC.length];
                     const mDeals=taggedDeals.filter(d=>d.tags.includes(m.name));
-                    const SIZE_FIELDS=[["🧥","JACKET",m.jacket],["👕","SHIRT",m.shirt],["👕","BASE",m.base],["👖","PANTS",m.pants],["🥾","BOOTS",m.boots],["🧤","GLOVES",m.gloves],["🧦","SOCKS",m.socks],["🧢","BEANIE",m.beanie]];
+                    const SIZE_FIELDS=[["🧥","JACKET",m.jacket],["👕","SHIRT",m.shirt],["👕","BASE",m.base],["👖","PANTS",m.pants],["🥾","BOOTS",m.boots]];
                     return (
                       <div key={idx} style={{background:T.bgCard,backdropFilter:"blur(12px)",border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden",boxShadow:`0 2px 12px ${T.shadow}`,position:"relative",zIndex:1}}>
                         <div style={{height:4,background:col}}/>
@@ -1414,7 +1408,7 @@ export default function App() {
                           </div>
                           {editIdx===idx?(
                             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-                              {["jacket","shirt","base","pants","boots","gloves","socks","beanie"].map(field=>(
+                              {["jacket","shirt","base","pants","boots"].map(field=>(
                                 <div key={field} style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"monospace",letterSpacing:"0.08em"}}>{field.toUpperCase()}</span>
                                   <SizePicker
@@ -1464,8 +1458,7 @@ export default function App() {
                     if(rows && rows.length){
                       setFamily(rows.map(r=>({
                         name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,
-                        base:r.base,pants:r.pants,boots:r.boots,gloves:r.gloves,
-                        socks:r.socks,beanie:r.beanie,
+                        base:r.base,pants:r.pants,boots:r.boots,
                       })));
                     }
                   }).catch(()=>{});
