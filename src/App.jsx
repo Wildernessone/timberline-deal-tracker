@@ -642,7 +642,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
         <div style={{height:4,background:`linear-gradient(90deg,${T.accent},#52b788)`}}/>
         <div style={{padding:"28px 32px"}}>
           <div style={{textAlign:"center",marginBottom:24}}>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{P.icon} {P.name}</div>
+            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{P.name}</div>
             <div style={{fontSize:12,color:T.textMuted,marginTop:4}}>{mode==="login"?"Welcome back":"Create your free account"}</div>
           </div>
           <div style={{display:"flex",background:T.border,borderRadius:10,padding:3,marginBottom:24}}>
@@ -713,7 +713,6 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
                   const on=(prefs.hunts||[]).includes(h.id);
                   return (
                     <button key={h.id} onClick={()=>toggle("hunts",h.id)} style={{padding:"12px 14px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all 0.15s",border:`1.5px solid ${on?T.accent:T.border}`,background:on?T.accentLight:T.bgCard}}>
-                      <span style={{fontSize:20}}>{h.icon}</span>
                       <div style={{fontSize:12,fontWeight:700,color:on?T.accent:T.text}}>{h.label}</div>
                       {on&&<span style={{marginLeft:"auto",color:T.accent,fontSize:14}}>✓</span>}
                     </button>
@@ -734,7 +733,6 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
                   const on=(prefs.cats||[]).includes(c.id);
                   return (
                     <button key={c.id} onClick={()=>toggle("cats",c.id)} style={{padding:"12px 14px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all 0.15s",border:`1.5px solid ${on?T.accent:T.border}`,background:on?T.accentLight:T.bgCard}}>
-                      <span style={{fontSize:20}}>{c.icon}</span>
                       <div style={{fontSize:12,fontWeight:700,color:on?T.accent:T.text}}>{c.label}</div>
                       {on&&<span style={{marginLeft:"auto",color:T.accent,fontSize:14}}>✓</span>}
                     </button>
@@ -914,13 +912,13 @@ function AddMemberCard({setFamily, T}) {
           style={{width:"100%",padding:"10px 14px",borderRadius:9,border:`1px solid ${T.border}`,background:T.bgSolid,color:T.text,fontSize:15,fontWeight:600,outline:"none",fontFamily:"inherit",marginBottom:12}}
         />
         <div style={{display:"flex",gap:6,marginBottom:16}}>
-          {[{v:"mens",label:"Men",icon:"🧔"},{v:"womens",label:"Women",icon:"👩"},{v:"youth",label:"Youth",icon:"🧒"}].map(g => (
+          {[{v:"mens",label:"Men"},{v:"womens",label:"Women"},{v:"youth",label:"Youth"}].map(g => (
             <button
               key={g.v}
               onClick={() => setGender(g.v)}
               style={{flex:1,padding:"8px 4px",borderRadius:8,border:`1.5px solid ${gender===g.v?T.accent:T.border}`,background:gender===g.v?T.accentLight:"transparent",color:gender===g.v?T.accent:T.textMuted,fontSize:12,fontWeight:600,cursor:"pointer"}}
             >
-              {g.icon} {g.label}
+              {g.label}
             </button>
           ))}
         </div>
@@ -1126,7 +1124,6 @@ export default function App() {
       {isGuest&&(
         <div style={{background:T.accentLight,borderBottom:`1px solid ${T.accentBorder}`,padding:"10px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",position:"relative",zIndex:1}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:16}}>{P.icon}</span>
             <span style={{fontSize:13,color:T.accent,fontWeight:600}}>Showing {P.tagline} deals</span>
             <span style={{fontSize:12,color:T.textMuted}}>| Log in to filter by sizes and family</span>
           </div>
@@ -1219,7 +1216,7 @@ export default function App() {
           <div style={{animation:"fadeUp 0.25s ease"}}>
             {!user?(
               <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
-                <div style={{fontSize:48,marginBottom:20,marginTop:60}}>👨‍👩‍👧‍👦</div>
+                <div style={{marginTop:80}}/>
                 <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Family Profiles</h2>
                 <p style={{fontSize:15,color:T.textSub,maxWidth:440,lineHeight:1.7,marginBottom:32}}>Add everyone in your family with their sizes. Deals get automatically tagged to whoever they fit.</p>
                 <div style={{display:"flex",gap:10}}>
@@ -1240,7 +1237,7 @@ export default function App() {
                   {family.map((m,idx)=>{
                     const col=MC[idx%MC.length];
                     const mDeals=taggedDeals.filter(d=>d.tags.includes(m.name));
-                    const SIZE_FIELDS=[["🧥","JACKET",m.jacket],["👕","SHIRT",m.shirt],["👕","BASE",m.base],["👖","PANTS",m.pants],["🥾","BOOTS",m.boots]];
+                    const SIZE_FIELDS=[["JACKET",m.jacket],["SHIRT",m.shirt],["BASE",m.base],["PANTS",m.pants],["BOOTS",m.boots]];
                     return (
                       <div key={idx} style={{background:T.bgCard,backdropFilter:"blur(12px)",border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden",boxShadow:`0 2px 12px ${T.shadow}`,position:"relative",zIndex:1}}>
                         <div style={{height:4,background:col}}/>
@@ -1266,11 +1263,10 @@ export default function App() {
                             </div>
                           ):(
                             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-                              {SIZE_FIELDS.map(([icon,label,val])=>(
-                                <div key={label} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:9,padding:"10px 8px",textAlign:"center"}}>
-                                  <div style={{fontSize:18,marginBottom:4}}>{icon}</div>
-                                  <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em",marginBottom:3}}>{label}</div>
-                                  <div style={{fontSize:16,fontWeight:800,color:T.text}}>{val}</div>
+                              {SIZE_FIELDS.map(([label,val])=>(
+                                <div key={label} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:9,padding:"14px 8px",textAlign:"center"}}>
+                                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:6}}>{label}</div>
+                                  <div style={{fontSize:22,fontWeight:800,color:T.text,letterSpacing:"-0.01em"}}>{val}</div>
                                 </div>
                               ))}
                             </div>
