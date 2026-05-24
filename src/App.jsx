@@ -1107,18 +1107,27 @@ export default function App() {
         a{color:inherit;text-decoration:none;}
         button{font-family:inherit;}
         input,select,textarea{font-family:inherit;}
+        @media (max-width:768px){
+          .tl-header-inner{padding:10px 14px !important;height:auto !important;flex-wrap:wrap !important;gap:10px !important;}
+          .tl-header-brand-sub{display:none !important;}
+          .tl-header-nav{order:3 !important;width:100% !important;justify-content:center !important;overflow-x:auto !important;flex-wrap:wrap !important;}
+          .tl-header-pref{display:none !important;}
+          .tl-page-hero{padding:32px 16px 28px !important;}
+          .tl-page-hero h1{font-size:36px !important;}
+          .tl-page-body{padding:20px 16px 48px !important;}
+        }
       `}</style>
       <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:"multiply"}} aria-hidden="true">
         <filter id="paperNoise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter>
         <rect width="100%" height="100%" filter="url(#paperNoise)"/>
       </svg>
       <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`,position:"sticky",top:0,zIndex:100}}>
-        <div style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
+        <div className="tl-header-inner" style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
             <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em"}}>Timberline</div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
+            <div className="tl-header-brand-sub" style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
           </div>
-          <nav style={{display:"flex",gap:2}}>
+          <nav className="tl-header-nav" style={{display:"flex",gap:2}}>
             {TABS.map(t=>(
               <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"7px 14px",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500,transition:"color 0.18s",background:"transparent",color:tab===t.id?T.panelText:T.panelMuted}}>
                 {t.label}
@@ -1126,7 +1135,7 @@ export default function App() {
             ))}
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            {user&&<button onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.panelMuted,fontWeight:500}}>Preferences</button>}
+            {user&&<button className="tl-header-pref" onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.panelMuted,fontWeight:500}}>Preferences</button>}
             {user?(
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:T.panelAccent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:T.panelBg}}>{user.avatar}</div>
@@ -1158,12 +1167,12 @@ export default function App() {
         {tab==="deals"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Drops</h1>
                 <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
               </div>
             </div>
-            <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+            <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
               <div style={{display:"flex",gap:20,marginBottom:32,flexWrap:"wrap",alignItems:"center"}}>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
@@ -1199,12 +1208,12 @@ export default function App() {
         {tab==="search"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
               </div>
             </div>
-            <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+            <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
               <PriceSearch T={T} P={P} stores={stores} wishlist={wishlist} setWishlist={setWishlist}/>
             </div>
           </div>
@@ -1212,12 +1221,12 @@ export default function App() {
         {tab==="coupons"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Verified today. Click any card to visit the brand.</p>
               </div>
             </div>
-            <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"grid",gap:14}}>
+            <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"grid",gap:14}}>
               {portalCoupons.map((c,i)=>(
                 <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
                   <div style={{background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,cursor:"pointer",boxShadow:`0 2px 12px ${T.shadow}`,border:`1px solid ${c.verified?T.border:T.redBorder}`}}>
@@ -1236,7 +1245,7 @@ export default function App() {
         {tab==="family"&&(
           <div style={{animation:"fadeUp 0.25s ease"}}>
             {!user?(
-              <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
+              <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
                 <div style={{fontSize:48,marginBottom:20,marginTop:60}}>👨‍👩‍👧‍👦</div>
                 <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Family Profiles</h2>
                 <p style={{fontSize:15,color:T.textSub,maxWidth:440,lineHeight:1.7,marginBottom:32}}>Add everyone in your family with their sizes. Deals get automatically tagged to whoever they fit.</p>
@@ -1248,12 +1257,12 @@ export default function App() {
             ):(
               <>
                 <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-                  <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                  <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
                     <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Family Profiles</h1>
                     <p style={{color:T.panelSub,fontSize:14}}>Deals auto-tagged by size · AI gear advisor per member</p>
                   </div>
                 </div>
-                <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+                <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:18}}>
                   {family.map((m,idx)=>{
                     const col=MC[idx%MC.length];
