@@ -145,36 +145,47 @@ const ALL_BRANDS = [
 ];
 
 const STORES = [
-  {id:"sitka",name:"Sitka",freeAt:199,ship:8,loyalty:null,cat:"boutique"},
-  {id:"firstlite",name:"First Lite",freeAt:75,ship:7,loyalty:null,cat:"boutique"},
-  {id:"kuiu",name:"Kuiu",freeAt:99,ship:8,loyalty:null,cat:"boutique"},
-  {id:"stoneglacier",name:"Stone Glacier",freeAt:100,ship:8,cat:"boutique",loyalty:null},
-  {id:"eberlestock",name:"Eberlestock",freeAt:75,ship:7,loyalty:null,cat:"boutique"},
-  {id:"exomtn",name:"Exo Mtn Gear",freeAt:99,ship:9,loyalty:null,cat:"boutique"},
-  {id:"bridgerwatch",name:"Bridger Watch",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
-  {id:"aziak",name:"Aziak Equipment",freeAt:99,ship:8,loyalty:null,cat:"boutique"},
-  {id:"wiserprecision",name:"Wiser Precision",freeAt:100,ship:10,loyalty:null,cat:"boutique"},
-  {id:"kapturegear",name:"Kapture Gear",freeAt:75,ship:7,loyalty:null,cat:"boutique"},
-  {id:"grakksaw",name:"Grakksaw",freeAt:75,ship:6,loyalty:null,cat:"boutique"},
-  {id:"obigear",name:"OBI Gear",freeAt:99,ship:8,loyalty:null,cat:"boutique"},
-  {id:"bridgerboiler",name:"Bridger Boiler",freeAt:99,ship:7,loyalty:null,cat:"boutique"},
-  {id:"javelinbipod",name:"Javelin Bipod",freeAt:100,ship:9,loyalty:null,cat:"boutique"},
-  {id:"sneektec",name:"Sneek Tec",freeAt:50,ship:5,loyalty:null,cat:"boutique"},
-  {id:"keen",name:"Keen",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
-  {id:"katabatic",name:"Katabatic Gear",freeAt:99,ship:10,loyalty:null,cat:"boutique"},
-  {id:"zpacks",name:"Zpacks",freeAt:200,ship:12,loyalty:null,cat:"boutique"},
-  {id:"flextail",name:"Flextail",freeAt:50,ship:6,loyalty:null,cat:"boutique"},
-  {id:"ollin",name:"Ollin",freeAt:50,ship:5,loyalty:null,cat:"boutique"},
-  {id:"magview",name:"Magview",freeAt:50,ship:5,loyalty:null,cat:"boutique"},
-  {id:"mtntough",name:"Mtn Tough",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
-  {id:"mtnops",name:"Mtn Ops",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
-  {id:"crispi",name:"Crispi",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
-  {id:"yeti",name:"Yeti",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
+  {id:"sitka",name:"Sitka",brand:"Sitka",loyalty:null,cat:"boutique"},
+  {id:"firstlite",name:"First Lite",brand:"First Lite",loyalty:null,cat:"boutique"},
+  {id:"kuiu",name:"Kuiu",brand:"Kuiu",loyalty:null,cat:"boutique"},
+  {id:"stoneglacier",name:"Stone Glacier",brand:"Stone Glacier",cat:"boutique",loyalty:null},
+  {id:"eberlestock",name:"Eberlestock",brand:"Eberlestock",loyalty:null,cat:"boutique"},
+  {id:"exomtn",name:"Exo Mtn Gear",brand:"Exo Mtn Gear",loyalty:null,cat:"boutique"},
+  {id:"bridgerwatch",name:"Bridger Watch",brand:"Bridger Watch",loyalty:null,cat:"boutique"},
+  {id:"aziak",name:"Aziak Equipment",brand:"Aziak",loyalty:null,cat:"boutique"},
+  {id:"wiserprecision",name:"Wiser Precision",brand:"Wiser Precision",loyalty:null,cat:"boutique"},
+  {id:"kapturegear",name:"Kapture Gear",brand:"Kapture",loyalty:null,cat:"boutique"},
+  {id:"grakksaw",name:"Grakksaw",brand:"Grakksaw",loyalty:null,cat:"boutique"},
+  {id:"obigear",name:"OBI Gear",brand:"OBI",loyalty:null,cat:"boutique"},
+  {id:"bridgerboiler",name:"Bridger Boiler",brand:"Bridger Boiler",loyalty:null,cat:"boutique"},
+  {id:"javelinbipod",name:"Javelin Bipod",brand:"Javelin Bipod",loyalty:null,cat:"boutique"},
+  {id:"sneektec",name:"Sneek Tec",brand:"Sneek Tec",loyalty:null,cat:"boutique"},
+  {id:"keen",name:"Keen",brand:"Keen",loyalty:null,cat:"boutique"},
+  {id:"katabatic",name:"Katabatic Gear",brand:"Katabatic Gear",loyalty:null,cat:"boutique"},
+  {id:"zpacks",name:"Zpacks",brand:"Zpacks",loyalty:null,cat:"boutique"},
+  {id:"flextail",name:"Flextail",brand:"Flextail",loyalty:null,cat:"boutique"},
+  {id:"ollin",name:"Ollin",brand:"Ollin",loyalty:null,cat:"boutique"},
+  {id:"magview",name:"Magview",brand:"Magview",loyalty:null,cat:"boutique"},
+  {id:"mtntough",name:"Mtn Tough",brand:"Mtn Tough",loyalty:null,cat:"boutique"},
+  {id:"mtnops",name:"Mtn Ops",brand:"Mtn Ops",loyalty:null,cat:"boutique"},
+  {id:"crispi",name:"Crispi",brand:"Crispi",loyalty:null,cat:"boutique"},
+  {id:"yeti",name:"Yeti",brand:"Yeti",loyalty:null,cat:"boutique"},
   {
-    id:"gohunt",name:"GoHunt Gear",freeAt:99,ship:9,cat:"specialty",
+    id:"gohunt",name:"GoHunt Gear",brand:"GoHunt",cat:"specialty",
     loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
   },
 ];
+
+function formatShipping(s, shippingMap){
+  const row = s.brand && shippingMap ? shippingMap[s.brand] : null;
+  if (!row) return "Shipping: not verified yet";
+  const { free_at, flat_rate } = row;
+  if (free_at === 0 && flat_rate === 0) return "Free shipping on all orders";
+  if (free_at != null && flat_rate != null) return "Free over $" + free_at + " · $" + flat_rate + " flat";
+  if (free_at != null) return "Free shipping over $" + free_at;
+  if (flat_rate != null) return "$" + flat_rate + " flat shipping";
+  return "Shipping varies — see policy";
+}
 
 const PORTAL = {
   name:"Timberline Deal Tracker",tagline:"Western - Elk - Backcountry",
@@ -666,7 +677,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
   );
 }
 
-function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
+function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onClose}) {
   const [sec,setSec]=useState("hunts");
   const toggle=(key,id)=>setPrefs(p=>{const a=p[key]||[];return {...p,[key]:a.includes(id)?a.filter(x=>x!==id):[...a,id]};});
   const toggleStore=id=>setStores(p=>p.includes(id)?p.filter(s=>s!==id):[...p,id]);
@@ -760,7 +771,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
                           </div>
                           <div style={{flex:1}}>
                             <div style={{fontWeight:700,fontSize:13,color:on?T.text:T.textMuted}}>{s.name}</div>
-                            <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>Free shipping over ${s.freeAt}{s.loyalty?" | "+s.loyalty.desc:""}</div>
+                            <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{formatShipping(s, shippingMap)}{s.loyalty?" | "+s.loyalty.desc:""}</div>
                           </div>
                           {!on&&<span style={{fontSize:11,color:T.red,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>HIDDEN</span>}
                         </div>
@@ -957,6 +968,7 @@ export default function App() {
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
   const [dbCoupons,setDbCoupons]=useState([]);
+  const [shippingMap,setShippingMap]=useState({});
 
   useEffect(()=>{
     if(user && user.id && family.length){
@@ -1017,6 +1029,14 @@ export default function App() {
         const now=Date.now();
         const valid=rows.filter(r=>!r.expires_at||new Date(r.expires_at).getTime()>now);
         setDbCoupons(valid.map(parseCoupon));
+      })
+      .catch(()=>{});
+    sbGet("brand_shipping",{select:"brand,free_at,flat_rate,scraped_at,policy_url"})
+      .then(rows=>{
+        if(!rows||!rows.length)return;
+        const m={};
+        rows.forEach(r=>{m[r.brand]={free_at:r.free_at,flat_rate:r.flat_rate,scraped_at:r.scraped_at,policy_url:r.policy_url};});
+        setShippingMap(m);
       })
       .catch(()=>{});
   },[]);
@@ -1286,7 +1306,7 @@ export default function App() {
                 });
               }
             }} onClose={()=>setShowAuth(false)}/>}
-      {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} onClose={()=>setShowPrefs(false)}/>}
+      {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} shippingMap={shippingMap} onClose={()=>setShowPrefs(false)}/>}
       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)}/>
     </div>
   );
