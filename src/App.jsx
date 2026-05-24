@@ -150,7 +150,7 @@ const LIGHT = {
   accent:"#2d5a3d",accentLight:"#e6efe7",accentBorder:"#a8c4b0",
   orange:"#b85a1a",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
   red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  topo:"#2d5a3d",topoOp:0.10,navActive:"#e6efe7",
+  topo:"#2d5a3d",topoOp:0.04,navActive:"#e6efe7",
   shadow:"rgba(45,90,61,0.05)",shadowHov:"rgba(45,90,61,0.14)",toggle:"🌙",
 };
 // DARK: Sitka/Kuiu near-black — deep, technical, glowing sage topo
@@ -161,7 +161,7 @@ const DARK = {
   accent:"#5fba85",accentLight:"#0d1f12",accentBorder:"#1f3d28",
   orange:"#e8a455",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
   red:"#e85a45",redLight:"#1f0a05",redBorder:"#6a2010",
-  topo:"#5fba85",topoOp:0.18,navActive:"#0d1f12",
+  topo:"#5fba85",topoOp:0.08,navActive:"#0d1f12",
   shadow:"rgba(0,0,0,0.55)",shadowHov:"rgba(0,0,0,0.85)",toggle:"☀️",
 };
 
@@ -1282,12 +1282,8 @@ export default function App() {
             ))}
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
-            {user&&<button onClick={()=>setShowPrefs(true)} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,color:T.textMuted,fontWeight:600}}>Preferences</button>}
-            <div style={{display:"flex",alignItems:"center",gap:6,background:T.accentLight,border:`1px solid ${T.accentBorder}`,borderRadius:999,padding:"5px 12px"}}>
-              <div style={{width:6,height:6,background:T.accent,borderRadius:"50%"}}/>
-              <span style={{fontSize:11,color:T.accent,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>LIVE</span>
-            </div>
-            <button onClick={()=>setTheme(t=>t==="light"?"dark":"light")} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:16}}>{T.toggle}</button>
+            {user&&<button onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.textMuted,fontWeight:500}}>Preferences</button>}
+            <button onClick={()=>setTheme(t=>t==="light"?"dark":"light")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:18,padding:"4px 8px"}}>{T.toggle}</button>
             {user?(
               <div style={{display:"flex",alignItems:"center",gap:8}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:T.accent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"white"}}>{user.avatar}</div>
@@ -1315,18 +1311,10 @@ export default function App() {
           </div>
         </div>
       )}
-      {!isGuest&&(
-        <div style={{background:T.accentLight,borderBottom:`1px solid ${T.accentBorder}`,padding:"6px 28px",display:"flex",alignItems:"center",gap:12,position:"relative",zIndex:1}}>
-          <span style={{fontSize:11,fontWeight:700,color:T.accent,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em"}}>{P.icon} {P.name.toUpperCase()}</span>
-          <span style={{color:T.accentBorder,fontSize:10}}>|</span>
-          <span style={{fontSize:11,color:T.accent,opacity:0.7,fontFamily:"'JetBrains Mono',monospace"}}>{P.tagline}</span>
-        </div>
-      )}
       <div style={{maxWidth:1200,margin:"0 auto",padding:"44px 32px 64px",position:"relative",zIndex:1}}>
         {tab==="deals"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{marginBottom:36}}>
-              <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>FIELD INTEL</div>
               <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Drops</h1>
               <p style={{color:T.textSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.text}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
             </div>
@@ -1363,7 +1351,6 @@ export default function App() {
         )}
         {tab==="search"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
-            <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>RECON</div>
             <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
             <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
             <PriceSearch T={T} P={P} stores={stores} wishlist={wishlist} setWishlist={setWishlist}/>
@@ -1371,7 +1358,6 @@ export default function App() {
         )}
         {tab==="coupons"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
-            <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>CACHED</div>
             <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
             <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Verified today. Click any card to visit the brand.</p>
             <div style={{display:"grid",gap:14}}>
@@ -1404,7 +1390,6 @@ export default function App() {
               </div>
             ):(
               <div>
-                <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.22em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>SQUAD</div>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Family Profiles</h1>
                 <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Deals auto-tagged by size · AI gear advisor per member</p>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:18}}>
