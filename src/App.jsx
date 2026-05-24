@@ -52,6 +52,7 @@ function parseDeal(row){
     cat:row.cat,orig:orig,sale:sale,
     coupon:row.coupon,fake:row.fake_sale,fakeNote:row.fake_note,
     url:row.url,blurb:row.blurb,tags:[],
+    image:row.image_url,
     sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
     history:[orig,sale],
   };
@@ -198,26 +199,6 @@ const SIZE_OPTIONS = {
 };
 
 
-const API_URL = "https://claude-proxy.jamesreed.workers.dev/timberline";
-const AI_MODEL = "claude-haiku-4-5-20251001";
-
-function callAI(prompt, maxTok) {
-  return fetch(API_URL, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      model:AI_MODEL,
-      max_tokens:maxTok||600,
-      messages:[{role:"user",content:prompt}],
-    }),
-  })
-  .then(r=>r.json())
-  .then(d=>{
-    const txt=(d.content&&d.content[0]&&d.content[0].text)||"{}";
-    return JSON.parse(txt.replace(/```json|```/g,"").trim());
-  });
-}
-
 function Spark({history,fake,T}) {
   const max=Math.max(...history);
   const min=Math.min(...history);
@@ -337,6 +318,14 @@ function DealCard({d,family,memberFilter,onOpen,T}) {
         boxShadow:hov?`0 20px 56px ${T.shadowHov}`:`0 2px 8px ${T.shadow}`,
       }}
     >
+      {d.image&&(
+        <div style={{position:"relative",width:"100%",paddingBottom:"66%",background:T.bgSolid,overflow:"hidden"}}>
+          <img src={d.image} alt={d.product} loading="lazy"
+            style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"transform 0.4s",transform:hov?"scale(1.04)":"none"}}
+            onError={e=>{e.currentTarget.style.display="none";}}
+          />
+        </div>
+      )}
       <div style={{padding:"22px 22px 0"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -769,159 +758,84 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,onClose}) {
   );
 }
 
-function StoreRow({store,rank,isBest,isVal,T}) {
-  const rankCol=rank===0?T.accent:rank===1?T.orange:T.textMuted;
-  const badgeBg=isBest?T.accent:isVal?T.orange:"#888";
-  const borderCol=isBest?T.accent:isVal?T.orange:T.border;
-  const badgeLabel=isBest?"BEST DEAL":isVal?"BEST VALUE":store.honorableMention?"HONORABLE MENTION":"";
-  return (
-    <div style={{background:T.bgCard,border:`1.5px solid ${borderCol}`,borderRadius:12,overflow:"hidden",backdropFilter:"blur(12px)"}}>
-      {(isBest||isVal||store.honorableMention)&&(
-        <div style={{background:badgeBg,padding:"4px 16px",display:"flex",alignItems:"center",gap:8}}>
-          <span style={{color:"white",fontSize:11,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{badgeLabel}</span>
-          {(isVal||store.honorableMention)&&<span style={{color:"rgba(255,255,255,0.8)",fontSize:11}}>{isVal?store.loyaltyDesc:store.honorableMentionReason}</span>}
-        </div>
-      )}
-      <div style={{padding:"14px 18px"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,minWidth:140}}>
-            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:700,color:rankCol,background:rankCol+"18",border:`1px solid ${rankCol}33`,borderRadius:4,padding:"2px 7px"}}>#{rank+1}</span>
-            <span style={{fontWeight:700,fontSize:15,color:T.text}}>{store.storeName}</span>
-          </div>
-          <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap",flex:1}}>
-            <div style={{textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>ITEM</div>
-              <div style={{fontWeight:700,fontSize:16,color:T.text}}>${store.price}</div>
-            </div>
-            <span style={{color:T.border}}>+</span>
-            <div style={{textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>SHIP</div>
-              <div style={{fontWeight:700,fontSize:16,color:store.qualifiesForFreeShipping?T.accent:T.text}}>
-                {store.qualifiesForFreeShipping?"FREE":"$"+store.shipping}
-              </div>
-            </div>
-            {store.couponCode&&(
-              <div style={{display:"flex",alignItems:"center",gap:4}}>
-                <span style={{color:T.border}}>-</span>
-                <div style={{textAlign:"center"}}>
-                  <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>COUPON</div>
-                  <div style={{fontWeight:700,fontSize:16,color:T.orange}}>-${store.couponDiscount}</div>
-                </div>
-              </div>
-            )}
-            <span style={{color:T.border,fontSize:16}}>=</span>
-            <div style={{textAlign:"center"}}>
-              <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>YOU PAY</div>
-              <div style={{fontWeight:900,fontSize:20,color:isBest?T.accent:T.text}}>${store.finalCost}</div>
-            </div>
-            {store.loyaltyValue>0&&(
-              <div style={{textAlign:"center",opacity:0.85}}>
-                <div style={{fontSize:9,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",marginBottom:2}}>LOYALTY</div>
-                <div style={{fontWeight:700,fontSize:14,color:T.orange}}>+${store.loyaltyValue}</div>
-              </div>
-            )}
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"flex-end",flexShrink:0}}>
-            {store.couponCode&&(
-              <div style={{display:"flex",alignItems:"center",gap:6}}>
-                <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:5,padding:"3px 10px",fontSize:12,fontWeight:700,letterSpacing:"0.1em"}}>{store.couponCode}</code>
-                <button onClick={()=>{if(navigator.clipboard)navigator.clipboard.writeText(store.couponCode);}} style={{background:"none",border:`1px solid ${T.border}`,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10,color:T.textMuted}}>Copy</button>
-              </div>
-            )}
-            <a href={store.url} target="_blank" rel="noopener noreferrer" style={{borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:700,textDecoration:"none",whiteSpace:"nowrap",background:isBest?T.accent:T.bgSolid,color:isBest?"white":T.textSub,border:`1px solid ${isBest?T.accent:T.border}`}}>
-              Shop {store.storeName}
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PriceSearch({T,P,stores,wishlist,setWishlist}) {
+function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal}) {
   const [query,setQuery]=useState("");
-  const [results,setResults]=useState(null);
-  const [loading,setLoading]=useState(false);
-  const search=async()=>{
-    if(!query.trim()||loading)return;
-    setLoading(true);setResults(null);
-    const sc=STORES.filter(s=>stores.includes(s.id)).map(s=>s.name+": free over $"+s.freeAt+", else $"+s.ship+(s.loyalty?" - "+s.loyalty.desc:"")).join("; ");
-    const prompt=[
-      "Hunting gear price comparison.",
-      "User portal context: "+P.searchContext+". Prioritize relevant brands and stores for this context, but include all stores.",
-      "Search: "+query,
-      "Stores: "+sc,
-      "Return ONLY valid JSON:",
-      '{"productName":"name","brand":"brand","category":"cat","description":"2 sentences","msrp":0,"stores":[{"storeId":"id","storeName":"name","price":0,"shipping":0,"qualifiesForFreeShipping":true,"couponCode":null,"couponDiscount":0,"finalCost":0,"loyaltyValue":0,"loyaltyDesc":null,"adjustedCost":0,"url":"url","honorableMention":false,"honorableMentionReason":null}],"bestDeal":"storeId","bestValue":"storeId","insight":"one sentence"}',
-    ].join("\n");
-    try{
-      const parsed=await callAI(prompt,1200);
-      if(parsed.stores)parsed.stores.sort((a,b)=>a.adjustedCost-b.adjustedCost);
-      setResults(parsed);
-    }catch{setResults({error:true});}
-    setLoading(false);
+  const trimmed = query.trim().toLowerCase();
+
+  const results = useMemo(()=>{
+    const t = query.trim().toLowerCase();
+    const words = t ? t.split(/\s+/).filter(w=>w.length>1) : [];
+    if (!words.length) return [];
+    return deals
+      .map(d => {
+        const text = ((d.product||"")+" "+(d.brand||"")+" "+(d.cat||"")).toLowerCase();
+        const matched = words.filter(w => text.includes(w)).length;
+        const productHit = words.filter(w => (d.product||"").toLowerCase().includes(w)).length;
+        return { d, score: matched + productHit };
+       })
+      .filter(x => x.score >= words.length)
+      .sort((a,b) => (a.d.fake?1:0) - (b.d.fake?1:0) || b.score - a.score || a.d.sale - b.d.sale)
+      .slice(0, 60)
+      .map(x => x.d);
+  }, [query, deals]);
+
+  const inWishlist = (q) => wishlist.some(w => (w.query||w.productName||"") === q);
+  const toggleWishlist = () => {
+    if (!trimmed) return;
+    if (inWishlist(trimmed)) setWishlist(w => w.filter(x => (x.query||x.productName) !== trimmed));
+    else setWishlist(p => [...p, { query: trimmed, addedAt: new Date().toISOString() }]);
   };
-  const isWishlisted=results&&wishlist.find(w=>w.productName===results.productName);
-  const showVideo=results&&!results.error&&!isApparel(results.category,results.productName);
-  const ytQuery=showVideo?(results.brand||"")+" "+(results.productName||"")+" official review Mindful Hunter":"";
-  const ytUrl="https://www.youtube.com/results?search_query="+encodeURIComponent(ytQuery);
+
   return (
     <div>
-      <div style={{display:"flex",gap:10,marginBottom:32}}>
-        <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&search()} placeholder={P.searchHint} style={{flex:1,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 20px",fontSize:15,color:T.text,outline:"none",backdropFilter:"blur(8px)",fontFamily:"inherit"}}/>
-        <button onClick={search} disabled={loading||!query.trim()} style={{border:"none",borderRadius:12,padding:"14px 28px",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",transition:"all 0.15s",background:loading||!query.trim()?T.border:T.accent,color:loading||!query.trim()?T.textMuted:"white"}}>
-          {loading?"Searching...":"Find Best Price"}
-        </button>
+      <div style={{display:"flex",gap:10,marginBottom:20}}>
+        <input value={query} onChange={e=>setQuery(e.target.value)} placeholder={P.searchHint} style={{flex:1,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 20px",fontSize:15,color:T.text,outline:"none",backdropFilter:"blur(8px)",fontFamily:"inherit"}}/>
+        {trimmed && (
+          <button onClick={toggleWishlist} style={{border:`1px solid ${inWishlist(trimmed)?T.accent:T.border}`,borderRadius:12,padding:"14px 22px",fontWeight:600,fontSize:13,cursor:"pointer",whiteSpace:"nowrap",background:inWishlist(trimmed)?T.accentLight:"transparent",color:inWishlist(trimmed)?T.accent:T.textSub}}>
+            {inWishlist(trimmed) ? "★ Saved" : "☆ Save search"}
+          </button>
+        )}
       </div>
-      {wishlist.length>0&&!results&&(
+
+      {!trimmed && wishlist.length > 0 && (
         <div style={{marginBottom:28}}>
-          <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>YOUR WISHLIST</div>
+          <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>SAVED SEARCHES</div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             {wishlist.map((w,i)=>(
-              <button key={i} onClick={()=>setQuery(w.productName)} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:999,padding:"6px 16px",cursor:"pointer",color:T.textSub,fontSize:12,fontWeight:600}}>
-                {w.productName}
+              <button key={i} onClick={()=>setQuery(w.query||w.productName||"")} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:999,padding:"6px 16px",cursor:"pointer",color:T.textSub,fontSize:12,fontWeight:600}}>
+                {w.query||w.productName}
               </button>
             ))}
           </div>
         </div>
       )}
-      {results&&!results.error&&(
-        <div style={{display:"grid",gridTemplateColumns:showVideo?"1fr 360px":"1fr",gap:24,alignItems:"start"}}>
-          <div>
-            <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px 24px",marginBottom:16,backdropFilter:"blur(12px)"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                <div>
-                  <div style={{fontSize:10,color:T.accent,fontWeight:700,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>
-                    {(results.brand||"").toUpperCase()} | {(results.category||"").toUpperCase()}
-                  </div>
-                  <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text,marginBottom:6}}>{results.productName}</div>
-                  <p style={{fontSize:13,color:T.textSub,lineHeight:1.6,margin:0}}>{results.description}</p>
-                </div>
-                <button onClick={()=>isWishlisted?setWishlist(w=>w.filter(x=>x.productName!==results.productName)):setWishlist(p=>[...p,{...results,addedAt:new Date().toISOString()}])} style={{border:`1px solid ${isWishlisted?T.accent:T.border}`,borderRadius:8,padding:"7px 14px",cursor:"pointer",fontSize:13,fontWeight:600,flexShrink:0,marginLeft:16,background:isWishlisted?T.accentLight:"transparent",color:isWishlisted?T.accent:T.textMuted}}>
-                  {isWishlisted?"Wishlisted":"Wishlist"}
-                </button>
-              </div>
-              {results.msrp>0&&<div style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>MSRP ${results.msrp} | {results.insight}</div>}
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {(results.stores||[]).map((store,i)=>(
-                <StoreRow key={store.storeId} store={store} rank={i} isBest={store.storeId===results.bestDeal} isVal={store.storeId===results.bestValue&&store.storeId!==results.bestDeal} T={T}/>
-              ))}
-            </div>
-          </div>
-          {showVideo&&(
-          <div style={{position:"sticky",top:84}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>FIELD INTEL</div>
-            <a href={ytUrl} target="_blank" rel="noopener noreferrer"
-               style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"14px 20px",background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:10,textDecoration:"none",color:T.text,fontSize:13,fontWeight:600}}>
-              <span style={{color:T.accent,fontSize:16}}>▶</span>
-              Click here for more info on this product
-            </a>
-          </div>
-          )}
+
+      {!trimmed && (
+        <div style={{padding:"32px 24px",background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,textAlign:"center"}}>
+          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:8}}>Search active deals</div>
+          <p style={{fontSize:13,color:T.textSub,lineHeight:1.6,maxWidth:520,margin:"0 auto"}}>Type a brand or product (e.g. "kuiu attack pant", "exo k4 pack", "sitka kelvin"). Only shows items currently on sale across our {deals.length}+ tracked deals — no fake prices.</p>
         </div>
       )}
-      {results&&results.error&&<div style={{color:T.textMuted,textAlign:"center",padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>Search failed. Try a more specific product name.</div>}
+
+      {trimmed && (
+        <>
+          <div style={{marginBottom:16,color:T.textMuted,fontSize:12,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em"}}>
+            {results.length} MATCH{results.length===1?"":"ES"} IN ACTIVE DEALS
+          </div>
+          {results.length > 0 ? (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
+              {results.map(d => (
+                <DealCard key={d.id} d={d} family={family} memberFilter="All" onOpen={onOpenDeal} T={T}/>
+              ))}
+            </div>
+          ) : (
+            <div style={{padding:"40px 24px",background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,textAlign:"center"}}>
+              <div style={{fontSize:14,color:T.text,marginBottom:6,fontWeight:600}}>No active deals match "{trimmed}"</div>
+              <p style={{fontSize:12,color:T.textMuted,lineHeight:1.6,maxWidth:440,margin:"0 auto"}}>Save this search and we'll show it next time a matching deal scrapes in. Or try fewer/different keywords.</p>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -1075,7 +989,12 @@ export default function App() {
       })
       .catch(()=>{});
     sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
-      .then(rows=>{if(rows&&rows.length)setDbCoupons(rows.map(parseCoupon));})
+      .then(rows=>{
+        if(!rows||!rows.length)return;
+        const now=Date.now();
+        const valid=rows.filter(r=>!r.expires_at||new Date(r.expires_at).getTime()>now);
+        setDbCoupons(valid.map(parseCoupon));
+      })
       .catch(()=>{});
   },[]);
   const T=PALETTE;
@@ -1222,7 +1141,7 @@ export default function App() {
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
-              <PriceSearch T={T} P={P} stores={stores} wishlist={wishlist} setWishlist={setWishlist}/>
+              <PriceSearch T={T} P={P} wishlist={wishlist} setWishlist={setWishlist} deals={taggedDeals} family={family} onOpenDeal={setModalDeal}/>
             </div>
           </div>
         )}
