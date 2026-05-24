@@ -226,44 +226,17 @@ function Spark({history,fake,T}) {
 }
 
 function VideoPanel({deal,T}) {
-  const [vid,setVid]=useState(null);
-  const [loading,setLoading]=useState(false);
-  const dealId=deal?deal.id:null;
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(()=>{
-    if(!deal)return;
-    setVid(null);
-    setLoading(true);
-    const prompt=[
-      "You are a hunting gear video curator. Return ONE YouTube video for this product, chosen by strict priority:",
-      "1. Official brand/manufacturer video for THIS specific product (if it exists)",
-      "2. Mindful Hunter (Jay Nichol) review of this product (he covers Sitka/Kuiu/Stone Glacier/First Lite)",
-      "3. Highest-rated independent review of this product",
-      "Product: "+deal.brand+" "+deal.product,
-      "Return ONLY valid JSON with the single best video. Do not mention which priority it came from.",
-      '{"title":"t","channel":"c","duration":"M:SS","views":"48K","youtubeId":"dQw4w9WgXcQ","snippet":"one sentence description"}',
-    ].join("\n");
-    callAI(prompt,400).then(d=>setVid(d)).catch(()=>setVid(null)).finally(()=>setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[dealId]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-  if(loading)return <div style={{height:200,background:T.border,borderRadius:12,marginBottom:24,opacity:0.4}}/>;
-  if(!vid||!vid.youtubeId)return null;
+  if(!deal)return null;
+  // Single search baked with priorities: official brand > Mindful Hunter > review
+  const query=deal.brand+" "+deal.product+" official review Mindful Hunter";
+  const url="https://www.youtube.com/results?search_query="+encodeURIComponent(query);
   return (
-    <div style={{marginBottom:24,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
-      <div style={{position:"relative",paddingBottom:"56.25%"}}>
-        <iframe
-          src={"https://www.youtube.com/embed/"+vid.youtubeId+"?modestbranding=1&rel=0"}
-          style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      </div>
-      {vid.snippet&&(
-        <div style={{padding:"12px 16px"}}>
-          <p style={{fontSize:12,color:T.textSub,margin:0,lineHeight:1.6}}>{vid.snippet}</p>
-        </div>
-      )}
+    <div style={{marginBottom:24}}>
+      <a href={url} target="_blank" rel="noopener noreferrer"
+         style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"14px 20px",background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:10,textDecoration:"none",color:T.text,fontSize:13,fontWeight:600,transition:"border-color 0.15s, background 0.15s"}}>
+        <span style={{color:T.accent,fontSize:16}}>▶</span>
+        Click here for more info on this product
+      </a>
     </div>
   );
 }
