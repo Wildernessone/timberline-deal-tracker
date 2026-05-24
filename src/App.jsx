@@ -186,55 +186,6 @@ const SIZE_OPTIONS = {
 };
 
 
-// Procedural topographic contour map: peaks with nested elevation lines
-const TOPO_PEAKS = [
-  {cx:180,  cy:230, base:30, count:9,  growth:14, asym:0.82, seed:1.1},
-  {cx:540,  cy:160, base:25, count:7,  growth:12, asym:0.95, seed:2.3},
-  {cx:880,  cy:340, base:35, count:11, growth:16, asym:0.78, seed:3.5},
-  {cx:1180, cy:200, base:22, count:8,  growth:13, asym:0.88, seed:4.7},
-  {cx:340,  cy:480, base:20, count:6,  growth:11, asym:0.92, seed:5.9},
-  {cx:1080, cy:520, base:25, count:7,  growth:14, asym:0.85, seed:6.4},
-  {cx:680,  cy:520, base:18, count:5,  growth:13, asym:1.05, seed:7.2},
-];
-
-function topoBlob(cx, cy, r, asym, seed) {
-  const N = 24;
-  const pts = [];
-  for (let i = 0; i < N; i++) {
-    const a = (i / N) * Math.PI * 2;
-    const noise = 1 + 0.18 * Math.sin(seed + a * 3.1) + 0.08 * Math.cos(seed * 1.7 + a * 5.3);
-    pts.push([cx + Math.cos(a) * r * noise, cy + Math.sin(a) * r * asym * noise]);
-  }
-  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < N; i++) {
-    const p0 = pts[(i - 1 + N) % N];
-    const p1 = pts[i];
-    const p2 = pts[(i + 1) % N];
-    const p3 = pts[(i + 2) % N];
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
-    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
-    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
-  }
-  return d + ' Z';
-}
-
-const TOPO_LINES = TOPO_PEAKS.flatMap((peak, pi) => {
-  const lines = [];
-  for (let i = 0; i < peak.count; i++) {
-    const r = peak.base + i * peak.growth;
-    const isIndex = i % 5 === 0;
-    lines.push({
-      d: topoBlob(peak.cx, peak.cy, r, peak.asym, peak.seed + i * 0.3),
-      weight: isIndex ? 1.3 : 0.55,
-      opacity: Math.max(0.35, 1 - i * 0.06),
-      key: `${pi}-${i}`,
-    });
-  }
-  return lines;
-});
-
 const API_URL = "https://claude-proxy.jamesreed.workers.dev/timberline";
 const AI_MODEL = "claude-haiku-4-5-20251001";
 
@@ -253,33 +204,6 @@ function callAI(prompt, maxTok) {
     const txt=(d.content&&d.content[0]&&d.content[0].text)||"{}";
     return JSON.parse(txt.replace(/```json|```/g,"").trim());
   });
-}
-
-function TopoBG({T}) {
-  return (
-    <svg
-      style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0}}
-      preserveAspectRatio="xMidYMid slice"
-      viewBox="0 0 1300 600"
-      aria-hidden="true"
-    >
-      <defs>
-        <filter id="topoBlur" x="-5%" y="-5%" width="110%" height="110%">
-          <feGaussianBlur stdDeviation="0.35"/>
-        </filter>
-      </defs>
-      <g stroke={T.topo} fill="none" strokeLinejoin="round" strokeLinecap="round" filter="url(#topoBlur)" opacity={T.topoOp}>
-        {TOPO_LINES.map(l => (
-          <path
-            key={l.key}
-            d={l.d}
-            strokeWidth={l.weight}
-            opacity={l.opacity}
-          />
-        ))}
-      </g>
-    </svg>
-  );
 }
 
 function Spark({history,fake,T}) {
@@ -1267,7 +1191,6 @@ export default function App() {
         button{font-family:inherit;}
         input,select,textarea{font-family:inherit;}
       `}</style>
-      <TopoBG T={T}/>
       <div style={{background:T.bgHeader,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
