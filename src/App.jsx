@@ -143,6 +143,8 @@ const STORES = [
   {id:"flextail",name:"Flextail",freeAt:50,ship:6,loyalty:null,cat:"boutique"},
   {id:"ollin",name:"Ollin",freeAt:50,ship:5,loyalty:null,cat:"boutique"},
   {id:"magview",name:"Magview",freeAt:50,ship:5,loyalty:null,cat:"boutique"},
+  {id:"mtntough",name:"Mtn Tough",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
+  {id:"mtnops",name:"Mtn Ops",freeAt:0,ship:0,loyalty:null,cat:"boutique"},
   {
     id:"gohunt",name:"GoHunt Gear",freeAt:99,ship:9,cat:"specialty",
     loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
@@ -152,8 +154,8 @@ const STORES = [
 const PORTAL = {
   name:"Timberline Deal Tracker",tagline:"Western - Elk - Backcountry",
   accent:"#2d6a4f",icon:"🏔",
-  brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Spartan Precision","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview"],
-  stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","exomtn","bridgerwatch","aziak","wiserprecision","kapturegear","grakksaw","obigear","bridgerboiler","javelinbipod","sneektec","keen","katabatic","zpacks","flextail","ollin","magview","gohunt"],
+  brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Spartan Precision","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer"],
+  stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","exomtn","bridgerwatch","aziak","wiserprecision","kapturegear","grakksaw","obigear","bridgerboiler","javelinbipod","sneektec","keen","katabatic","zpacks","flextail","ollin","magview","mtntough","mtnops","gohunt"],
   searchHint:'Try "Sitka Kelvin Down" or "Vortex Razor HD 10x42"...',
   dealCats:["Insulation","Base Layer","Wind Layer","Pants","Bibs","Packs","Optics","Boots"],
   searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
