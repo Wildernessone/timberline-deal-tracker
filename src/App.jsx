@@ -815,52 +815,13 @@ function StoreRow({store,rank,isBest,isVal,T}) {
   );
 }
 
-function PriceVidPanel({vids,vtab,setVtab,T}) {
-  const av=vtab==="manufacturer"?vids.manufacturer:vids.review;
-  const VTABS=[{key:"manufacturer",icon:"🎬",label:"Official",col:T.accent},{key:"review",icon:"⭐",label:"Top Review",col:T.orange}];
-  return (
-    <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",backdropFilter:"blur(12px)"}}>
-      <div style={{display:"flex",borderBottom:`1px solid ${T.border}`}}>
-        {VTABS.map(t=>(
-          <button key={t.key} onClick={()=>setVtab(t.key)} style={{flex:1,padding:"10px 0",border:"none",cursor:"pointer",fontSize:11,fontWeight:600,transition:"all 0.15s",background:vtab===t.key?t.col+"18":"transparent",borderBottom:vtab===t.key?`2px solid ${t.col}`:"2px solid transparent",color:vtab===t.key?t.col:T.textMuted}}>
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
-      {av&&(
-        <div>
-          <div style={{position:"relative",paddingBottom:"56%"}}>
-            <iframe src={"https://www.youtube.com/embed/"+av.youtubeId+"?modestbranding=1&rel=0"} style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen/>
-          </div>
-          <div style={{padding:"12px 14px"}}>
-            <div style={{fontWeight:700,fontSize:13,color:T.text,marginBottom:4,lineHeight:1.4}}>{av.title}</div>
-            <div style={{display:"flex",gap:10,marginBottom:6,flexWrap:"wrap"}}>
-              <span style={{fontSize:11,fontWeight:600,color:vtab==="manufacturer"?T.accent:T.orange}}>
-                {av.channel}
-                {av.isMindfulHunter&&<span style={{marginLeft:6,background:T.orangeLight,color:T.orange,border:`1px solid ${T.orangeBorder}`,borderRadius:4,padding:"1px 6px",fontSize:10}}>Recommended</span>}
-              </span>
-              <span style={{fontSize:11,color:T.textMuted}}>{av.duration}</span>
-              <span style={{fontSize:11,color:T.textMuted}}>{av.views} views</span>
-            </div>
-            <p style={{fontSize:11,color:T.textSub,margin:0,lineHeight:1.55}}>{av.snippet}</p>
-            {av.reviewerNote&&<div style={{marginTop:5,fontSize:10,color:T.textMuted,fontStyle:"italic"}}>{av.isMindfulHunter?"🎯 ":"📈 "}{av.reviewerNote}</div>}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function PriceSearch({T,P,stores,wishlist,setWishlist}) {
   const [query,setQuery]=useState("");
   const [results,setResults]=useState(null);
   const [loading,setLoading]=useState(false);
-  const [vids,setVids]=useState(null);
-  const [vloading,setVloading]=useState(false);
-  const [vtab,setVtab]=useState("manufacturer");
   const search=async()=>{
     if(!query.trim()||loading)return;
-    setLoading(true);setResults(null);setVids(null);
+    setLoading(true);setResults(null);
     const sc=STORES.filter(s=>stores.includes(s.id)).map(s=>s.name+": free over $"+s.freeAt+", else $"+s.ship+(s.loyalty?" - "+s.loyalty.desc:"")).join("; ");
     const prompt=[
       "Hunting gear price comparison.",
@@ -874,23 +835,12 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
       const parsed=await callAI(prompt,1200);
       if(parsed.stores)parsed.stores.sort((a,b)=>a.adjustedCost-b.adjustedCost);
       setResults(parsed);
-      fetchVids(parsed.productName,parsed.brand);
     }catch{setResults({error:true});}
     setLoading(false);
   };
-  const fetchVids=async(pname,brand)=>{
-    if(!pname)return;
-    setVloading(true);
-    const prompt=[
-      "Hunting video curator. Mindful Hunter priority for Sitka/Kuiu/Stone Glacier/First Lite.",
-      "Product: "+brand+" "+pname,
-      "Return ONLY valid JSON:",
-      '{"manufacturer":{"title":"t","channel":"c","duration":"M:SS","views":"48K","youtubeId":"dQw4w9WgXcQ","snippet":"s"},"review":{"title":"t","channel":"c","duration":"M:SS","views":"287K","youtubeId":"jNQXAC9IVRw","snippet":"s","isMindfulHunter":true,"reviewerNote":"r"}}',
-    ].join("\n");
-    try{const v=await callAI(prompt,400);setVids(v);}catch{setVids(null);}
-    setVloading(false);
-  };
   const isWishlisted=results&&wishlist.find(w=>w.productName===results.productName);
+  const ytQuery=results&&!results.error?(results.brand||"")+" "+(results.productName||"")+" official review Mindful Hunter":"";
+  const ytUrl="https://www.youtube.com/results?search_query="+encodeURIComponent(ytQuery);
   return (
     <div>
       <div style={{display:"flex",gap:10,marginBottom:32}}>
@@ -937,8 +887,11 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
           </div>
           <div style={{position:"sticky",top:84}}>
             <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>FIELD INTEL</div>
-            {vloading&&<div style={{background:T.bgCard,borderRadius:12,height:200,display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${T.border}`}}><span style={{color:T.textMuted,fontSize:12}}>Loading videos...</span></div>}
-            {vids&&!vloading&&<PriceVidPanel vids={vids} vtab={vtab} setVtab={setVtab} T={T}/>}
+            <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+               style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"14px 20px",background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:10,textDecoration:"none",color:T.text,fontSize:13,fontWeight:600}}>
+              <span style={{color:T.accent,fontSize:16}}>▶</span>
+              Click here for more info on this product
+            </a>
           </div>
         </div>
       )}
