@@ -39,6 +39,7 @@ async function saveFamily(members, userId) {
     user_id:userId, name:m.name, gender:m.gender||"mens",
     jacket:m.jacket||"L", shirt:m.shirt||"L", base:m.base||"L", pants:m.pants||"34x32",
     boots:m.boots||"10",
+    looking_for: m.lookingFor || [],
     sort_order:i,
   }));
   await supabase.from("family_members").upsert(rows, {onConflict:"user_id,name"});
@@ -462,75 +463,94 @@ function DealModal({deal,family,T,onClose}) {
   );
 }
 
-function GearAdvisor({member,deals,T}) {
-  const [recs,setRecs]=useState(null);
-  const [loading,setLoading]=useState(false);
-  const [open,setOpen]=useState(false);
-  const PRIOS={high:T.red,medium:T.orange,low:T.accent};
-  const fetch_recs=()=>{
-    if(recs||loading){setOpen(true);return;}
-    setLoading(true);setOpen(true);
-    const dc=deals.map(d=>d.brand+" "+d.product+" $"+d.sale+(d.fake?" [FAKE]":"")).join(", ");
-    const prompt=[
-      "Hunting gear advisor.",
-      "Hunter: "+member.name+", "+member.gender,
-      "Sizes: jacket "+member.jacket+", boots "+member.boots+", pants "+member.pants,
-      "Deals: "+dc,
-      "Return ONLY valid JSON:",
-      '{"needs":[{"item":"gear","reason":"why","priority":"high"},{"item":"gear","reason":"why","priority":"medium"},{"item":"gear","reason":"why","priority":"low"}],"dealMatch":{"found":true,"product":"name","brand":"brand","price":0,"url":"url","whyGood":"reason"},"tip":"one tip"}',
-    ].join("\n");
-    callAI(prompt,500).then(d=>setRecs(d)).catch(()=>setRecs({error:true})).finally(()=>setLoading(false));
+function matchDealsForItem(item, deals, member) {
+  const words = item.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  if (!words.length) return [];
+  return deals
+    .map(d => {
+      const text = (d.product+" "+d.cat+" "+d.brand).toLowerCase();
+      const wordScore = words.reduce((s, w) => s + (text.includes(w) ? 1 : 0), 0);
+      const memberMatch = d.tags.includes(member.name) ? 0.5 : 0;
+      return { deal: d, score: wordScore + memberMatch };
+    })
+    .filter(x => x.score >= 1)
+    .sort((a, b) => b.score - a.score || a.deal.sale - b.deal.sale)
+    .slice(0, 3)
+    .map(x => x.deal);
+}
+
+function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
+  const [input, setInput] = useState("");
+  const items = member.lookingFor || [];
+  const addItem = () => {
+    const v = input.trim();
+    if (!v || items.includes(v)) return;
+    setFamily(prev => {
+      const u = [...prev];
+      u[memberIdx] = {...u[memberIdx], lookingFor: [...(u[memberIdx].lookingFor||[]), v]};
+      return u;
+    });
+    setInput("");
   };
+  const removeItem = (it) => setFamily(prev => {
+    const u = [...prev];
+    u[memberIdx] = {...u[memberIdx], lookingFor: (u[memberIdx].lookingFor||[]).filter(x => x !== it)};
+    return u;
+  });
   return (
     <div style={{marginTop:16,borderTop:`1px solid ${T.border}`,paddingTop:16}}>
-      {!open?(
-        <button onClick={fetch_recs} style={{width:"100%",padding:"9px 14px",borderRadius:9,background:T.accentLight,border:`1px solid ${T.accentBorder}`,color:T.accent,fontSize:12,fontWeight:700,cursor:"pointer"}}>
-          What does {member.name} need?
-        </button>
-      ):(
-        <div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <span style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em"}}>AI GEAR ADVISOR</span>
-            <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:12}}>hide</button>
-          </div>
-          {loading&&[1,2,3].map(i=><div key={i} style={{height:52,borderRadius:8,background:T.border,opacity:0.4,marginBottom:8}}/>)}
-          {recs&&!recs.error&&(
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {(recs.needs||[]).map((n,i)=>{
-                const pc=PRIOS[n.priority]||T.accent;
-                return (
-                  <div key={i} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:9,padding:"10px 14px",display:"flex",alignItems:"flex-start",gap:10}}>
-                    <div style={{width:6,height:6,borderRadius:"50%",background:pc,flexShrink:0,marginTop:5}}/>
-                    <div style={{flex:1}}>
-                      <div style={{fontWeight:700,fontSize:13,color:T.text,marginBottom:2}}>{n.item}</div>
-                      <div style={{fontSize:11,color:T.textSub,lineHeight:1.5}}>{n.reason}</div>
-                    </div>
-                    <span style={{fontSize:9,fontWeight:700,color:pc,background:pc+"18",borderRadius:5,padding:"2px 7px",flexShrink:0,fontFamily:"'JetBrains Mono',monospace"}}>{(n.priority||"").toUpperCase()}</span>
+      <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",marginBottom:8}}>LOOKING FOR</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+        {items.map(it => (
+          <span key={it} style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:999,padding:"4px 8px 4px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}}>
+            {it}
+            <button onClick={()=>removeItem(it)} style={{background:"none",border:"none",cursor:"pointer",color:T.accent,fontSize:14,lineHeight:1,padding:0,opacity:0.6}}>×</button>
+          </span>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:6,marginBottom:items.length?12:0}}>
+        <input
+          value={input}
+          onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&addItem()}
+          placeholder="e.g. insulated jacket, lightweight pack"
+          style={{flex:1,padding:"7px 12px",borderRadius:8,border:`1px solid ${T.border}`,background:T.bgSolid,color:T.text,fontSize:12,outline:"none",fontFamily:"inherit"}}
+        />
+        <button onClick={addItem} style={{background:T.accent,color:"white",border:"none",borderRadius:8,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>Add</button>
+      </div>
+      {items.length>0 && (
+        <div style={{display:"flex",flexDirection:"column",gap:14,marginTop:12}}>
+          {items.map(it => {
+            const matches = matchDealsForItem(it, deals, member);
+            return (
+              <div key={it}>
+                <div style={{fontSize:11,fontWeight:700,color:T.text,marginBottom:6}}>{it}</div>
+                {matches.length === 0 ? (
+                  <div style={{fontSize:11,color:T.textMuted,fontStyle:"italic",padding:"6px 0"}}>No matches yet — check back as new deals scrape in.</div>
+                ) : (
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {matches.map(d => {
+                      const disc = Math.round((1 - d.sale/d.orig)*100);
+                      return (
+                        <a key={d.id} href={d.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+                          <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,cursor:"pointer"}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:10,color:T.accent,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>{d.brand.toUpperCase()}</div>
+                              <div style={{fontSize:12,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{d.product}</div>
+                            </div>
+                            <div style={{textAlign:"right",flexShrink:0}}>
+                              <div style={{fontSize:14,fontWeight:800,color:T.text}}>${d.sale}</div>
+                              <div style={{fontSize:10,color:T.orange,fontWeight:700}}>−{disc}%</div>
+                            </div>
+                          </div>
+                        </a>
+                      );
+                    })}
                   </div>
-                );
-              })}
-              {recs.dealMatch&&recs.dealMatch.found&&(
-                <div style={{background:T.accentLight,border:`1px solid ${T.accentBorder}`,borderRadius:10,padding:"12px 14px"}}>
-                  <div style={{fontSize:10,color:T.accent,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",marginBottom:6}}>DEAL MATCH RIGHT NOW</div>
-                  <div style={{fontWeight:700,fontSize:14,color:T.text,marginBottom:3}}>{recs.dealMatch.product}</div>
-                  <div style={{fontSize:12,color:T.textSub,marginBottom:8,lineHeight:1.5}}>{recs.dealMatch.whyGood}</div>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <span style={{fontWeight:800,fontSize:20,color:T.accent}}>${recs.dealMatch.price}</span>
-                    {recs.dealMatch.url&&(
-                      <a href={recs.dealMatch.url} target="_blank" rel="noopener noreferrer" style={{background:T.accent,color:"white",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:700,textDecoration:"none"}}>Shop Now</a>
-                    )}
-                  </div>
-                </div>
-              )}
-              {recs.tip&&(
-                <div style={{background:T.orangeLight,border:`1px solid ${T.orangeBorder}`,borderRadius:9,padding:"10px 14px",display:"flex",gap:10}}>
-                  <span style={{fontSize:14,flexShrink:0}}>💡</span>
-                  <span style={{fontSize:12,color:T.orange,lineHeight:1.6}}>{recs.tip}</span>
-                </div>
-              )}
-            </div>
-          )}
-          {recs&&recs.error&&<div style={{color:T.textMuted,fontSize:12,textAlign:"center",padding:"12px 0"}}>Could not load. Try again.</div>}
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -940,7 +960,7 @@ function AddMemberCard({setFamily, T}) {
       : gender === "womens"
       ? {jacket:"M",shirt:"M",base:"S",pants:"8",boots:"8"}
       : {jacket:"L",shirt:"L",base:"L",pants:"34x32",boots:"10"};
-    setFamily(prev => [...prev, {name:n, gender, ...defaults}]);
+    setFamily(prev => [...prev, {name:n, gender, ...defaults, lookingFor:[]}]);
     setName("");
     setGender("mens");
     setAdding(false);
@@ -1039,7 +1059,7 @@ export default function App() {
         const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
         setUser(userObj);
         loadFamily(u.id,session.access_token).then(rows=>{
-          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots})));
+          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,lookingFor:r.looking_for||[]})));
         }).catch(()=>{});
       }
     });
@@ -1052,7 +1072,7 @@ export default function App() {
         const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
         setUser(userObj);
         loadFamily(u.id,session.access_token).then(rows=>{
-          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots})));
+          if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,lookingFor:r.looking_for||[]})));
         }).catch(()=>{});
       }
     });
@@ -1300,7 +1320,7 @@ export default function App() {
                             <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>ACTIVE DEALS</span>
                             <span style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{mDeals.length}</span>
                           </div>
-                          <GearAdvisor member={m} deals={deals} T={T}/>
+                          <GearAdvisor member={m} memberIdx={idx} deals={taggedDeals} setFamily={setFamily} T={T}/>
                         </div>
                       </div>
                     );
@@ -1323,7 +1343,7 @@ export default function App() {
                     if(rows && rows.length){
                       setFamily(rows.map(r=>({
                         name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,
-                        base:r.base,pants:r.pants,boots:r.boots,
+                        base:r.base,pants:r.pants,boots:r.boots,lookingFor:r.looking_for||[],
                       })));
                     }
                   }).catch(()=>{});
