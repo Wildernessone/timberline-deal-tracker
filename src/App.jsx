@@ -159,7 +159,7 @@ const DARK = {
   accent:"#5fba85",accentLight:"#0e2818",accentBorder:"#2a4d38",
   orange:"#e0a055",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
   red:"#e55c45",redLight:"#1f0a05",redBorder:"#6a2010",
-  topo:"#c89a55",topoOp:0.18,navActive:"#0e2818",
+  topo:"#5a7d5e",topoOp:0.28,navActive:"#0e2818",
   shadow:"rgba(0,0,0,0.5)",shadowHov:"rgba(0,0,0,0.75)",toggle:"☀️",
 };
 
@@ -262,16 +262,11 @@ function TopoBG({T}) {
       aria-hidden="true"
     >
       <defs>
-        <radialGradient id="topoVignette" cx="50%" cy="45%" r="75%">
-          <stop offset="0%"  stopColor={T.topo} stopOpacity={T.topoOp*1.15}/>
-          <stop offset="60%" stopColor={T.topo} stopOpacity={T.topoOp*0.85}/>
-          <stop offset="100%" stopColor={T.topo} stopOpacity={T.topoOp*0.25}/>
-        </radialGradient>
         <filter id="topoBlur" x="-5%" y="-5%" width="110%" height="110%">
           <feGaussianBlur stdDeviation="0.35"/>
         </filter>
       </defs>
-      <g stroke="url(#topoVignette)" fill="none" strokeLinejoin="round" strokeLinecap="round" filter="url(#topoBlur)">
+      <g stroke={T.topo} fill="none" strokeLinejoin="round" strokeLinecap="round" filter="url(#topoBlur)" opacity={T.topoOp}>
         {TOPO_LINES.map(l => (
           <path
             key={l.key}
