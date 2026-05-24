@@ -368,15 +368,17 @@ function DealCard({d,family,memberFilter,onOpen,T}) {
           </div>
           {d.fake?(
             <span style={{background:T.redLight,color:T.red,border:`1px solid ${T.redBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>FAKE SALE</span>
-          ):(
+          ):disc>0?(
             <span style={{background:T.orange,color:"white",borderRadius:6,fontSize:11,fontWeight:800,padding:"4px 10px",letterSpacing:"0.04em"}}>−{disc}%</span>
+          ):(
+            <span style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>OUTLET</span>
           )}
         </div>
         <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:21,color:T.text,lineHeight:1.2,marginBottom:14,letterSpacing:"-0.01em"}}>{d.product}</div>
         <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:14}}>
           <span style={{fontWeight:800,fontSize:30,color:d.fake?T.red:T.text,letterSpacing:"-0.02em"}}>${d.sale}</span>
-          <span style={{fontSize:15,color:T.textMuted,textDecoration:"line-through"}}>${d.orig}</span>
-          <span style={{fontSize:12,fontWeight:700,color:d.fake?T.red:T.accent,marginLeft:"auto"}}>Save ${save}</span>
+          {d.orig>d.sale&&<span style={{fontSize:15,color:T.textMuted,textDecoration:"line-through"}}>${d.orig}</span>}
+          {save>0&&<span style={{fontSize:12,fontWeight:700,color:d.fake?T.red:T.accent,marginLeft:"auto"}}>Save ${save}</span>}
         </div>
         {d.fake&&(
           <div style={{background:T.redLight,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"10px 12px",marginBottom:14}}>
@@ -458,8 +460,9 @@ function DealModal({deal,family,T,onClose}) {
           )}
           <div style={{display:"flex",alignItems:"baseline",gap:14,marginBottom:20}}>
             <span style={{fontWeight:900,fontSize:42,color:deal.fake?T.red:T.text}}>${deal.sale}</span>
-            <span style={{fontSize:22,color:T.textMuted,textDecoration:"line-through"}}>${deal.orig}</span>
-            {!deal.fake&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Save ${save} ({disc}% off)</span>}
+            {deal.orig>deal.sale&&<span style={{fontSize:22,color:T.textMuted,textDecoration:"line-through"}}>${deal.orig}</span>}
+            {!deal.fake&&save>0&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Save ${save} ({disc}% off)</span>}
+            {!deal.fake&&save===0&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Outlet price</span>}
           </div>
           <div style={{marginBottom:24}}>
             <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>PRICE HISTORY</div>
