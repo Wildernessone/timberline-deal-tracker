@@ -226,9 +226,12 @@ function Spark({history,fake,T}) {
   );
 }
 
+const APPAREL_RX=/\b(t-?shirt|tee|hoodie|sweatshirt|long\s*sleeve|crew|pullover|hat|cap|beanie|trucker|sticker|decal|patch|koozie|mug|tumbler|lanyard|keychain|flag|poster|logo)\b/i;
+const isApparel=(...parts)=>APPAREL_RX.test(parts.filter(Boolean).join(" "));
+
 function VideoPanel({deal,T}) {
   if(!deal)return null;
-  // Single search baked with priorities: official brand > Mindful Hunter > review
+  if(isApparel(deal.cat,deal.product))return null;
   const query=deal.brand+" "+deal.product+" official review Mindful Hunter";
   const url="https://www.youtube.com/results?search_query="+encodeURIComponent(query);
   return (
@@ -839,7 +842,8 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
     setLoading(false);
   };
   const isWishlisted=results&&wishlist.find(w=>w.productName===results.productName);
-  const ytQuery=results&&!results.error?(results.brand||"")+" "+(results.productName||"")+" official review Mindful Hunter":"";
+  const showVideo=results&&!results.error&&!isApparel(results.category,results.productName);
+  const ytQuery=showVideo?(results.brand||"")+" "+(results.productName||"")+" official review Mindful Hunter":"";
   const ytUrl="https://www.youtube.com/results?search_query="+encodeURIComponent(ytQuery);
   return (
     <div>
@@ -862,7 +866,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
         </div>
       )}
       {results&&!results.error&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 360px",gap:24,alignItems:"start"}}>
+        <div style={{display:"grid",gridTemplateColumns:showVideo?"1fr 360px":"1fr",gap:24,alignItems:"start"}}>
           <div>
             <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px 24px",marginBottom:16,backdropFilter:"blur(12px)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
@@ -885,6 +889,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
               ))}
             </div>
           </div>
+          {showVideo&&(
           <div style={{position:"sticky",top:84}}>
             <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>FIELD INTEL</div>
             <a href={ytUrl} target="_blank" rel="noopener noreferrer"
@@ -893,6 +898,7 @@ function PriceSearch({T,P,stores,wishlist,setWishlist}) {
               Click here for more info on this product
             </a>
           </div>
+          )}
         </div>
       )}
       {results&&results.error&&<div style={{color:T.textMuted,textAlign:"center",padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>Search failed. Try a more specific product name.</div>}
