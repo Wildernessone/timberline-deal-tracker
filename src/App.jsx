@@ -26,6 +26,28 @@ function sbGet(table,params){
   return fetch(url,{headers:SB_H}).then(r=>r.json());
 }
 
+function getSessionId() {
+  try {
+    let s = localStorage.getItem("timberline-sid");
+    if (!s) { s = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("timberline-sid", s); }
+    return s;
+  } catch { return null; }
+}
+
+function logClick(d) {
+  try {
+    fetch(SB_URL+"/rest/v1/clicks", {
+      method: "POST",
+      headers: { ...SB_H, "Content-Type": "application/json", "Prefer": "return=minimal" },
+      body: JSON.stringify({
+        deal_id: d.id, brand: d.brand, product: d.product, url: d.url,
+        session_id: getSessionId(),
+      }),
+      keepalive: true,
+    }).catch(()=>{});
+  } catch { /* never block the click */ }
+}
+
 async function loadFamily(userId, token) {
   const r = await fetch(SB_URL+"/rest/v1/family_members?user_id=eq."+userId+"&order=sort_order.asc", {
     headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
@@ -377,7 +399,7 @@ function DealCard({d,family,memberFilter,onOpen,T}) {
         </div>
         <a
           href={d.url} target="_blank" rel="noopener noreferrer"
-          onClick={e=>e.stopPropagation()}
+          onClick={e=>{e.stopPropagation();logClick(d);}}
           style={{color:"white",borderRadius:9,padding:"9px 18px",fontSize:12,fontWeight:700,textDecoration:"none",background:d.fake?T.red:T.text,letterSpacing:"0.02em",whiteSpace:"nowrap",transition:"opacity 0.15s"}}
         >
           {d.fake?"View anyway →":"Shop →"}
@@ -462,6 +484,7 @@ function DealModal({deal,family,T,onClose}) {
           )}
           <a
             href={deal.url} target="_blank" rel="noopener noreferrer"
+            onClick={()=>logClick(deal)}
             style={{display:"block",width:"100%",textAlign:"center",color:"white",borderRadius:12,padding:"15px",fontSize:16,fontWeight:700,textDecoration:"none",background:deal.fake?T.red:T.accent}}
           >
             {deal.fake?"View on "+deal.brand+" (proceed with caution)":"Shop "+deal.brand+" -- $"+deal.sale}
@@ -544,7 +567,7 @@ function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
                     {matches.map(d => {
                       const disc = Math.round((1 - d.sale/d.orig)*100);
                       return (
-                        <a key={d.id} href={d.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+                        <a key={d.id} href={d.url} target="_blank" rel="noopener noreferrer" onClick={()=>logClick(d)} style={{textDecoration:"none"}}>
                           <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,cursor:"pointer"}}>
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontSize:10,color:T.accent,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>{d.brand.toUpperCase()}</div>
