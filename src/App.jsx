@@ -142,25 +142,27 @@ const PORTAL = {
   searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
 };
 
+// LIGHT: First Lite editorial cream — clean, paper-warm, brand-green topo watermark
 const LIGHT = {
-  bg:"#faf7f0",bgCard:"rgba(255,255,255,0.92)",bgSolid:"#ffffff",
-  bgHeader:"rgba(250,247,240,0.96)",border:"#e8e0d2",borderHov:"#c9a96a",
-  text:"#1f1b16",textSub:"#5c5448",textMuted:"#9c9080",
-  accent:"#2d5a3d",accentLight:"#ecf4ed",accentBorder:"#b5d4be",
+  bg:"#f7f3e9",bgCard:"rgba(255,253,247,0.82)",bgSolid:"#fffdf7",
+  bgHeader:"rgba(247,243,233,0.92)",border:"#e0d6c3",borderHov:"#2d5a3d",
+  text:"#1a1a14",textSub:"#5c5448",textMuted:"#9c9080",
+  accent:"#2d5a3d",accentLight:"#e6efe7",accentBorder:"#a8c4b0",
   orange:"#b85a1a",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
   red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  topo:"#8b6f47",topoOp:0.22,navActive:"#ecf4ed",
-  shadow:"rgba(40,30,20,0.06)",shadowHov:"rgba(40,30,20,0.16)",toggle:"🌙",
+  topo:"#2d5a3d",topoOp:0.10,navActive:"#e6efe7",
+  shadow:"rgba(45,90,61,0.05)",shadowHov:"rgba(45,90,61,0.14)",toggle:"🌙",
 };
+// DARK: Sitka/Kuiu near-black — deep, technical, glowing sage topo
 const DARK = {
-  bg:"#0e1410",bgCard:"rgba(20,28,22,0.92)",bgSolid:"#131a14",
-  bgHeader:"rgba(10,16,12,0.96)",border:"#2a3528",borderHov:"#6e9c7a",
-  text:"#e8e4d8",textSub:"#a8a898",textMuted:"#666660",
-  accent:"#5fba85",accentLight:"#0e2818",accentBorder:"#2a4d38",
-  orange:"#e0a055",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
-  red:"#e55c45",redLight:"#1f0a05",redBorder:"#6a2010",
-  topo:"#5a7d5e",topoOp:0.28,navActive:"#0e2818",
-  shadow:"rgba(0,0,0,0.5)",shadowHov:"rgba(0,0,0,0.75)",toggle:"☀️",
+  bg:"#080a08",bgCard:"rgba(14,18,14,0.82)",bgSolid:"#0e120e",
+  bgHeader:"rgba(8,10,8,0.92)",border:"#1f261f",borderHov:"#5fba85",
+  text:"#ece6d6",textSub:"#9aa098",textMuted:"#555a52",
+  accent:"#5fba85",accentLight:"#0d1f12",accentBorder:"#1f3d28",
+  orange:"#e8a455",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
+  red:"#e85a45",redLight:"#1f0a05",redBorder:"#6a2010",
+  topo:"#5fba85",topoOp:0.18,navActive:"#0d1f12",
+  shadow:"rgba(0,0,0,0.55)",shadowHov:"rgba(0,0,0,0.85)",toggle:"☀️",
 };
 
 const INIT_FAMILY = [];
