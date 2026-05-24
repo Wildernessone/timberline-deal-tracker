@@ -606,6 +606,65 @@ function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
   );
 }
 
+function Footer({T,onOpenLegal}) {
+  return (
+    <footer style={{background:T.panelBg,borderTop:`1px solid ${T.panelBorder}`,padding:"32px 24px 24px",marginTop:48}}>
+      <div style={{maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"flex-start",gap:24}}>
+        <div style={{maxWidth:380}}>
+          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>Timberline Deal Tracker</div>
+          <div style={{fontSize:12,color:T.panelSub,lineHeight:1.6}}>Verified hunting gear sales from 30+ Western backcountry brands, refreshed daily. No fake prices, no fake savings.</div>
+        </div>
+        <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
+          <button onClick={()=>onOpenLegal("about")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>About</button>
+          <button onClick={()=>onOpenLegal("affiliate")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>Affiliate Disclosure</button>
+          <button onClick={()=>onOpenLegal("terms")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>Terms</button>
+          <button onClick={()=>onOpenLegal("privacy")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>Privacy</button>
+        </div>
+      </div>
+      <div style={{maxWidth:1200,margin:"24px auto 0",paddingTop:16,borderTop:`1px solid ${T.panelBorder}`,fontSize:11,color:T.panelMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em"}}>
+        © {new Date().getFullYear()} Timberline Deal Tracker · We may earn a commission when you buy through links on this site — your price never changes.
+      </div>
+    </footer>
+  );
+}
+
+const LEGAL_TEXT = {
+  about: {
+    title: "About Timberline",
+    body: "Timberline Deal Tracker is a family-built site that surfaces real, verified sales from the Western hunting gear brands we actually use. We don't make up sale prices, fabricate discount percentages, or list invented coupon codes. If a brand doesn't publish a shipping policy, we say so. If a deal isn't actually on sale, it doesn't appear. We refresh deals daily and verify shipping policies weekly. Built by hunters, for hunters.",
+  },
+  affiliate: {
+    title: "Affiliate Disclosure",
+    body: "Some links on this site are affiliate links — when you click through and make a purchase, the brand may pay us a small commission. This never affects the price you pay. We don't accept payment to feature, promote, or rank any product, and we don't hide products that don't pay commission. Every deal you see here is one we'd link to anyway. Commissions cover the cost of running the scrapers and database. Federal Trade Commission regulations (16 CFR Part 255) require this disclosure.",
+  },
+  terms: {
+    title: "Terms of Use",
+    body: "Timberline Deal Tracker is provided as-is, for personal informational use. Prices, availability, and shipping policies are scraped from brand sites multiple times per day; we cannot guarantee accuracy at the moment of purchase — always verify on the brand's checkout page before buying. We are not the seller of any product listed. We are not responsible for orders, returns, sizing, fit, or quality of any item purchased through links on this site. You agree not to scrape, mirror, or commercially redistribute our data without permission. Account holders agree to provide accurate signup info and not abuse the family profile feature. We may suspend accounts that violate these terms.",
+  },
+  privacy: {
+    title: "Privacy Policy",
+    body: "We store the minimum data needed to run the site: your email and password hash (handled by Supabase Auth), your family member names and sizes (so deals match), and an anonymous session ID per browser to deduplicate click counts. We do not sell, share, or rent your data. We do not run ad-tracking pixels. Click tracking records which deal you clicked and your session ID — no personal identifiers. Analytics are aggregate only. You can delete your account at any time by emailing the address on the About page; this removes your auth record and family profiles. Cookies: a single auth session cookie for login, plus localStorage for your preferences. No third-party tracking cookies.",
+  },
+};
+
+function LegalModal({which,T,onClose}) {
+  if (!which) return null;
+  const content = LEGAL_TEXT[which];
+  if (!content) return null;
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:2500,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,backdropFilter:"blur(6px)"}} onClick={onClose}>
+      <div style={{background:T.bgSolid,borderRadius:16,maxWidth:560,width:"100%",maxHeight:"86vh",overflowY:"auto",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`}} onClick={e=>e.stopPropagation()}>
+        <div style={{padding:"22px 26px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{content.title}</div>
+          <button onClick={onClose} style={{background:T.border,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:14,color:T.textSub}}>x</button>
+        </div>
+        <div style={{padding:"22px 26px",fontSize:14,color:T.textSub,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{content.body}</div>
+        <div style={{padding:"0 26px 22px",fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>Last updated: {new Date().toISOString().slice(0,10)}</div>
+      </div>
+    </div>
+  );
+}
+
 function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
   const [email,setEmail]=useState("");
   const [pass,setPass]=useState("");
@@ -968,7 +1027,10 @@ export default function App() {
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
+  const [dealsLoading,setDealsLoading]=useState(true);
+  const [dealsError,setDealsError]=useState(false);
   const [dbCoupons,setDbCoupons]=useState([]);
+  const [showLegal,setShowLegal]=useState(null);
   const [shippingMap,setShippingMap]=useState({});
 
   useEffect(()=>{
@@ -1014,6 +1076,7 @@ export default function App() {
     sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
       .then(rows=>{
         if(rows&&rows.length) setDeals(rows.map(parseDeal));
+        setDealsLoading(false);
         const loadMore = async (offset) => {
           const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:String(PAGE),offset:String(offset)});
           if (more && more.length) {
@@ -1023,7 +1086,7 @@ export default function App() {
         };
         return loadMore(100);
       })
-      .catch(()=>{});
+      .catch(()=>{setDealsError(true);setDealsLoading(false);});
     sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
       .then(rows=>{
         if(!rows||!rows.length)return;
@@ -1083,9 +1146,13 @@ export default function App() {
           .tl-header-brand-sub{display:none !important;}
           .tl-header-nav{order:3 !important;width:100% !important;justify-content:center !important;overflow-x:auto !important;flex-wrap:wrap !important;}
           .tl-header-pref{display:none !important;}
-          .tl-page-hero{padding:32px 16px 28px !important;}
-          .tl-page-hero h1{font-size:36px !important;}
-          .tl-page-body{padding:20px 16px 48px !important;}
+          .tl-page-hero{padding:28px 16px 24px !important;}
+          .tl-page-hero h1{font-size:32px !important;line-height:1.1 !important;}
+          .tl-page-body{padding:18px 14px 32px !important;}
+          .tl-deal-grid{grid-template-columns:1fr !important;gap:14px !important;}
+        }
+        @media (max-width:480px){
+          .tl-page-hero h1{font-size:28px !important;}
         }
       `}</style>
       <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:"multiply"}} aria-hidden="true">
@@ -1143,6 +1210,9 @@ export default function App() {
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+              <div style={{fontSize:11,color:T.textMuted,marginBottom:18,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em"}}>
+                We may earn a commission when you buy through these links — your price never changes. <button onClick={()=>setShowLegal("affiliate")} style={{background:"none",border:"none",color:T.accent,cursor:"pointer",padding:0,fontFamily:"inherit",fontSize:11,textDecoration:"underline"}}>Disclosure</button>
+              </div>
               <div style={{display:"flex",gap:20,marginBottom:32,flexWrap:"wrap",alignItems:"center"}}>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
@@ -1165,9 +1235,17 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
-              {filtered.length===0?(
-                <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>No deals match these filters.</div>
+              <div className="tl-deal-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
+              {dealsError?(
+                <div style={{color:T.red,padding:40,fontSize:14,textAlign:"center",gridColumn:"1 / -1"}}>
+                  <div style={{fontWeight:700,marginBottom:6}}>Couldn't load deals</div>
+                  <div style={{fontSize:12,color:T.textMuted,marginBottom:14}}>Network or server hiccup. Try refreshing.</div>
+                  <button onClick={()=>window.location.reload()} style={{background:T.accent,color:"white",border:"none",borderRadius:8,padding:"8px 18px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Reload</button>
+                </div>
+              ):dealsLoading&&deals.length===0?(
+                <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>Loading deals...</div>
+              ):filtered.length===0?(
+                <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>No deals match these filters.</div>
               ):filtered.map(d=>(
                 <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T}/>
               ))}
@@ -1307,6 +1385,8 @@ export default function App() {
             }} onClose={()=>setShowAuth(false)}/>}
       {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} shippingMap={shippingMap} onClose={()=>setShowPrefs(false)}/>}
       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)}/>
+      <LegalModal which={showLegal} T={T} onClose={()=>setShowLegal(null)}/>
+      <Footer T={T} onOpenLegal={setShowLegal}/>
     </div>
   );
 }
