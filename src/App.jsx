@@ -142,27 +142,31 @@ const PORTAL = {
   searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
 };
 
-// LIGHT: First Lite editorial cream — clean, paper-warm, brand-green topo watermark
+// LIGHT: Sitka style — clean white content + cinematic dark hero
 const LIGHT = {
-  bg:"#f7f3e9",bgCard:"rgba(255,253,247,0.82)",bgSolid:"#fffdf7",
-  bgHeader:"rgba(247,243,233,0.92)",border:"#e0d6c3",borderHov:"#2d5a3d",
-  text:"#1a1a14",textSub:"#5c5448",textMuted:"#9c9080",
-  accent:"#2d5a3d",accentLight:"#e6efe7",accentBorder:"#a8c4b0",
+  bg:"#ffffff",bgCard:"#ffffff",bgSolid:"#ffffff",
+  bgHeader:"#15140f",border:"#e6e3dc",borderHov:"#2d5a3d",
+  text:"#15140f",textSub:"#57544c",textMuted:"#9a968c",
+  accent:"#2d5a3d",accentLight:"#eef3ee",accentBorder:"#c2d4c5",
   orange:"#b85a1a",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
   red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  topo:"#2d5a3d",topoOp:0.04,navActive:"#e6efe7",
-  shadow:"rgba(45,90,61,0.05)",shadowHov:"rgba(45,90,61,0.14)",toggle:"🌙",
+  topo:"#2d5a3d",topoOp:0,navActive:"#eef3ee",
+  shadow:"rgba(0,0,0,0.05)",shadowHov:"rgba(0,0,0,0.14)",toggle:"🌙",
+  // Cinematic dark panels (header, hero) — same in both modes
+  panelBg:"#15140f",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#2a2823",panelAccent:"#7fd9a3",
 };
-// DARK: Sitka/Kuiu near-black — deep, technical, glowing sage topo
+// DARK: Full near-black with bright sage
 const DARK = {
-  bg:"#080a08",bgCard:"rgba(14,18,14,0.82)",bgSolid:"#0e120e",
-  bgHeader:"rgba(8,10,8,0.92)",border:"#1f261f",borderHov:"#5fba85",
-  text:"#ece6d6",textSub:"#9aa098",textMuted:"#555a52",
-  accent:"#5fba85",accentLight:"#0d1f12",accentBorder:"#1f3d28",
+  bg:"#0a0a0a",bgCard:"#141414",bgSolid:"#141414",
+  bgHeader:"#0a0a0a",border:"#262626",borderHov:"#7fd9a3",
+  text:"#f5f1e9",textSub:"#a8a59e",textMuted:"#666661",
+  accent:"#7fd9a3",accentLight:"#0f1f15",accentBorder:"#2a4d38",
   orange:"#e8a455",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
   red:"#e85a45",redLight:"#1f0a05",redBorder:"#6a2010",
-  topo:"#5fba85",topoOp:0.08,navActive:"#0d1f12",
+  topo:"#7fd9a3",topoOp:0,navActive:"#0f1f15",
   shadow:"rgba(0,0,0,0.55)",shadowHov:"rgba(0,0,0,0.85)",toggle:"☀️",
+  // Same cinematic panels in dark mode (slightly darker than card bg for separation)
+  panelBg:"#000000",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#262626",panelAccent:"#7fd9a3",
 };
 
 const INIT_FAMILY = [];
@@ -1191,31 +1195,35 @@ export default function App() {
         button{font-family:inherit;}
         input,select,textarea{font-family:inherit;}
       `}</style>
-      <div style={{background:T.bgHeader,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${T.border}`,position:"sticky",top:0,zIndex:100}}>
+      <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:theme==="light"?"multiply":"screen"}} aria-hidden="true">
+        <filter id="paperNoise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter>
+        <rect width="100%" height="100%" filter="url(#paperNoise)"/>
+      </svg>
+      <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`,position:"sticky",top:0,zIndex:100}}>
         <div style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text,letterSpacing:"-0.02em"}}>Timberline</div>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.accent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
+            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em"}}>Timberline</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
           </div>
-          <nav style={{display:"flex",gap:4,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:4}}>
+          <nav style={{display:"flex",gap:2}}>
             {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"7px 16px",border:"none",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:600,transition:"all 0.18s",background:tab===t.id?T.bgSolid:"transparent",color:tab===t.id?T.text:T.textMuted,boxShadow:tab===t.id?`0 1px 3px ${T.shadow}`:"none"}}>
+              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"7px 14px",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500,transition:"color 0.18s",background:"transparent",color:tab===t.id?T.panelText:T.panelMuted}}>
                 {t.label}
               </button>
             ))}
           </nav>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            {user&&<button onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.textMuted,fontWeight:500}}>Preferences</button>}
-            <button onClick={()=>setTheme(t=>t==="light"?"dark":"light")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:18,padding:"4px 8px"}}>{T.toggle}</button>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            {user&&<button onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.panelMuted,fontWeight:500}}>Preferences</button>}
+            <button onClick={()=>setTheme(t=>t==="light"?"dark":"light")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:18,padding:"4px 8px",color:T.panelText}}>{T.toggle}</button>
             {user?(
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <div style={{width:34,height:34,borderRadius:"50%",background:T.accent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"white"}}>{user.avatar}</div>
-                <button onClick={()=>{supabase.auth.signOut();setUser(null);setFamily([]);}} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,color:T.textMuted,fontWeight:600}}>Log out</button>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:34,height:34,borderRadius:"50%",background:T.panelAccent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:T.panelBg}}>{user.avatar}</div>
+                <button onClick={()=>{supabase.auth.signOut();setUser(null);setFamily([]);}} style={{background:"transparent",border:`1px solid ${T.panelBorder}`,borderRadius:6,padding:"6px 12px",cursor:"pointer",fontSize:12,color:T.panelMuted,fontWeight:500}}>Log out</button>
               </div>
             ):(
               <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>{setAuthMode("login");setShowAuth(true);}} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"7px 16px",cursor:"pointer",fontSize:13,color:T.textSub,fontWeight:600}}>Log in</button>
-                <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}} style={{background:T.accent,border:"none",borderRadius:8,padding:"7px 16px",cursor:"pointer",fontSize:13,color:"white",fontWeight:700}}>Sign up free</button>
+                <button onClick={()=>{setAuthMode("login");setShowAuth(true);}} style={{background:"transparent",border:`1px solid ${T.panelBorder}`,borderRadius:6,padding:"7px 16px",cursor:"pointer",fontSize:13,color:T.panelText,fontWeight:500}}>Log in</button>
+                <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}} style={{background:T.panelText,border:"none",borderRadius:6,padding:"7px 16px",cursor:"pointer",fontSize:13,color:T.panelBg,fontWeight:600}}>Sign up free</button>
               </div>
             )}
           </div>
@@ -1234,56 +1242,70 @@ export default function App() {
           </div>
         </div>
       )}
-      <div style={{maxWidth:1200,margin:"0 auto",padding:"44px 32px 64px",position:"relative",zIndex:1}}>
+      <div style={{position:"relative",zIndex:1}}>
         {tab==="deals"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
-            <div style={{marginBottom:36}}>
-              <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Drops</h1>
-              <p style={{color:T.textSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.text}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
+            <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
+              <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Drops</h1>
+                <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
+              </div>
             </div>
-            <div style={{display:"flex",gap:20,marginBottom:28,flexWrap:"wrap",alignItems:"center"}}>
-              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
-                {memberNames.map((m,i)=>{
-                  const col=i===0?T.accent:MC[(i-1)%MC.length];
-                  const active=memberFilter===m;
-                  return (
-                    <button key={m} onClick={()=>setMemberFilter(m)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:"1px solid",borderColor:active?col:T.border,background:active?col+"22":T.bgCard,color:active?col:T.textMuted}}>
-                      {m}
+            <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+              <div style={{display:"flex",gap:20,marginBottom:32,flexWrap:"wrap",alignItems:"center"}}>
+                <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
+                  {memberNames.map((m,i)=>{
+                    const col=i===0?T.accent:MC[(i-1)%MC.length];
+                    const active=memberFilter===m;
+                    return (
+                      <button key={m} onClick={()=>setMemberFilter(m)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:"1px solid",borderColor:active?col:T.border,background:active?col+"22":T.bgCard,color:active?col:T.textMuted}}>
+                        {m}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>BRAND</span>
+                  {["All",...BRANDS_LIST].map(b=>(
+                    <button key={b} onClick={()=>setBrandFilter(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
+                      {b}
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>BRAND</span>
-                {["All",...BRANDS_LIST].map(b=>(
-                  <button key={b} onClick={()=>setBrandFilter(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
-                    {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
               {filtered.length===0?(
                 <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>No deals match these filters.</div>
               ):filtered.map(d=>(
                 <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T}/>
               ))}
+              </div>
             </div>
           </div>
         )}
         {tab==="search"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
-            <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
-            <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
-            <PriceSearch T={T} P={P} stores={stores} wishlist={wishlist} setWishlist={setWishlist}/>
+            <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
+              <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
+                <p style={{color:T.panelSub,fontSize:14}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
+              </div>
+            </div>
+            <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+              <PriceSearch T={T} P={P} stores={stores} wishlist={wishlist} setWishlist={setWishlist}/>
+            </div>
           </div>
         )}
         {tab==="coupons"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
-            <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
-            <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Verified today. Click any card to visit the brand.</p>
-            <div style={{display:"grid",gap:14}}>
+            <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
+              <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
+                <p style={{color:T.panelSub,fontSize:14}}>Verified today. Click any card to visit the brand.</p>
+              </div>
+            </div>
+            <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"grid",gap:14}}>
               {portalCoupons.map((c,i)=>(
                 <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
                   <div style={{background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,cursor:"pointer",boxShadow:`0 2px 12px ${T.shadow}`,border:`1px solid ${c.verified?T.border:T.redBorder}`}}>
@@ -1302,8 +1324,8 @@ export default function App() {
         {tab==="family"&&(
           <div style={{animation:"fadeUp 0.25s ease"}}>
             {!user?(
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"80px 24px",textAlign:"center"}}>
-                <div style={{fontSize:48,marginBottom:20}}>👨‍👩‍👧‍👦</div>
+              <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
+                <div style={{fontSize:48,marginBottom:20,marginTop:60}}>👨‍👩‍👧‍👦</div>
                 <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Family Profiles</h2>
                 <p style={{fontSize:15,color:T.textSub,maxWidth:440,lineHeight:1.7,marginBottom:32}}>Add everyone in your family with their sizes. Deals get automatically tagged to whoever they fit.</p>
                 <div style={{display:"flex",gap:10}}>
@@ -1312,9 +1334,14 @@ export default function App() {
                 </div>
               </div>
             ):(
-              <div>
-                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.text,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Family Profiles</h1>
-                <p style={{color:T.textSub,fontSize:14,marginBottom:32}}>Deals auto-tagged by size · AI gear advisor per member</p>
+              <>
+                <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
+                  <div style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                    <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Family Profiles</h1>
+                    <p style={{color:T.panelSub,fontSize:14}}>Deals auto-tagged by size · AI gear advisor per member</p>
+                  </div>
+                </div>
+                <div style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:18}}>
                   {family.map((m,idx)=>{
                     const col=MC[idx%MC.length];
@@ -1365,7 +1392,8 @@ export default function App() {
                   })}
                   <AddMemberCard setFamily={setFamily} T={T}/>
                 </div>
-              </div>
+                </div>
+              </>
             )}
           </div>
         )}
