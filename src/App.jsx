@@ -1057,13 +1057,19 @@ export default function App() {
   },[]);
 
   useEffect(()=>{
+    // Initial fast fetch (100 for snappy first paint), then page through the rest in 1000-row chunks
+    const PAGE = 1000;
     sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
       .then(rows=>{
         if(rows&&rows.length) setDeals(rows.map(parseDeal));
-        return sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"900",offset:"100"});
-      })
-      .then(rows=>{
-        if(rows&&rows.length) setDeals(prev=>[...prev,...rows.map(parseDeal)]);
+        const loadMore = async (offset) => {
+          const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:String(PAGE),offset:String(offset)});
+          if (more && more.length) {
+            setDeals(prev=>[...prev,...more.map(parseDeal)]);
+            if (more.length === PAGE) await loadMore(offset + PAGE);
+          }
+        };
+        return loadMore(100);
       })
       .catch(()=>{});
     sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
