@@ -142,31 +142,18 @@ const PORTAL = {
   searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
 };
 
-// LIGHT: Sitka style — clean white content + cinematic dark hero
-const LIGHT = {
-  bg:"#ffffff",bgCard:"#ffffff",bgSolid:"#ffffff",
-  bgHeader:"#15140f",border:"#e6e3dc",borderHov:"#2d5a3d",
-  text:"#15140f",textSub:"#57544c",textMuted:"#9a968c",
-  accent:"#2d5a3d",accentLight:"#eef3ee",accentBorder:"#c2d4c5",
-  orange:"#b85a1a",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
+// Single brand palette — Sitka cinematic black panels + First Lite cream content + Kuiu orange CTA
+const PALETTE = {
+  bg:"#fbfaf6",bgCard:"#ffffff",bgSolid:"#ffffff",
+  bgHeader:"#15140f",border:"#e6e1d4",borderHov:"#1a1815",
+  text:"#1a1815",textSub:"#57544c",textMuted:"#9a968c",
+  accent:"#2d5a3d",accentLight:"#eef3ee",accentBorder:"#b8cdbc",
+  orange:"#c4501e",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
   red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  topo:"#2d5a3d",topoOp:0,navActive:"#eef3ee",
-  shadow:"rgba(0,0,0,0.05)",shadowHov:"rgba(0,0,0,0.14)",toggle:"🌙",
-  // Cinematic dark panels (header, hero) — same in both modes
-  panelBg:"#15140f",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#2a2823",panelAccent:"#7fd9a3",
-};
-// DARK: Full near-black with bright sage
-const DARK = {
-  bg:"#0a0a0a",bgCard:"#141414",bgSolid:"#141414",
-  bgHeader:"#0a0a0a",border:"#262626",borderHov:"#7fd9a3",
-  text:"#f5f1e9",textSub:"#a8a59e",textMuted:"#666661",
-  accent:"#7fd9a3",accentLight:"#0f1f15",accentBorder:"#2a4d38",
-  orange:"#e8a455",orangeLight:"#1a1208",orangeBorder:"#6a4a10",
-  red:"#e85a45",redLight:"#1f0a05",redBorder:"#6a2010",
-  topo:"#7fd9a3",topoOp:0,navActive:"#0f1f15",
-  shadow:"rgba(0,0,0,0.55)",shadowHov:"rgba(0,0,0,0.85)",toggle:"☀️",
-  // Same cinematic panels in dark mode (slightly darker than card bg for separation)
-  panelBg:"#000000",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#262626",panelAccent:"#7fd9a3",
+  navActive:"#eef3ee",
+  shadow:"rgba(20,18,12,0.05)",shadowHov:"rgba(20,18,12,0.14)",
+  // Cinematic dark panels for header + page hero
+  panelBg:"#15140f",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#2a2823",panelAccent:"#a8d4b0",
 };
 
 const INIT_FAMILY = [];
@@ -239,85 +226,42 @@ function Spark({history,fake,T}) {
 }
 
 function VideoPanel({deal,T}) {
-  const [vids,setVids]=useState(null);
+  const [vid,setVid]=useState(null);
   const [loading,setLoading]=useState(false);
-  const [tab,setTab]=useState("manufacturer");
   const dealId=deal?deal.id:null;
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(()=>{
     if(!deal)return;
-    setVids(null);
+    setVid(null);
     setLoading(true);
     const prompt=[
-      "Hunting gear video curator.",
-      "MINDFUL HUNTER PRIORITY: Jay Nichol covers Sitka/Kuiu/Stone Glacier/First Lite.",
+      "You are a hunting gear video curator. Return ONE YouTube video for this product, chosen by strict priority:",
+      "1. Official brand/manufacturer video for THIS specific product (if it exists)",
+      "2. Mindful Hunter (Jay Nichol) review of this product (he covers Sitka/Kuiu/Stone Glacier/First Lite)",
+      "3. Highest-rated independent review of this product",
       "Product: "+deal.brand+" "+deal.product,
-      "Return ONLY valid JSON:",
-      '{"manufacturer":{"title":"t","channel":"c","duration":"M:SS","views":"48K","youtubeId":"dQw4w9WgXcQ","snippet":"s"},"review":{"title":"t","channel":"c","duration":"M:SS","views":"287K","youtubeId":"jNQXAC9IVRw","snippet":"s","isMindfulHunter":true,"reviewerNote":"r"}}',
+      "Return ONLY valid JSON with the single best video. Do not mention which priority it came from.",
+      '{"title":"t","channel":"c","duration":"M:SS","views":"48K","youtubeId":"dQw4w9WgXcQ","snippet":"one sentence description"}',
     ].join("\n");
-    callAI(prompt,500).then(d=>setVids(d)).catch(()=>setVids(null)).finally(()=>setLoading(false));
+    callAI(prompt,400).then(d=>setVid(d)).catch(()=>setVid(null)).finally(()=>setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[dealId]);
   /* eslint-enable react-hooks/set-state-in-effect */
-  if(loading)return <div style={{height:80,background:T.border,borderRadius:10,marginBottom:24,opacity:0.4}}/>;
-  if(!vids)return null;
-  const active=tab==="manufacturer"?vids.manufacturer:vids.review;
-  const VTABS=[
-    {key:"manufacturer",icon:"🎬",label:"Official Video",col:T.accent},
-    {key:"review",icon:"⭐",label:"Top Review",col:T.orange},
-  ];
+  if(loading)return <div style={{height:200,background:T.border,borderRadius:12,marginBottom:24,opacity:0.4}}/>;
+  if(!vid||!vid.youtubeId)return null;
   return (
-    <div style={{marginBottom:24}}>
-      <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:10,fontFamily:"'JetBrains Mono',monospace"}}>
-        FIELD INTEL
+    <div style={{marginBottom:24,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
+      <div style={{position:"relative",paddingBottom:"56.25%"}}>
+        <iframe
+          src={"https://www.youtube.com/embed/"+vid.youtubeId+"?modestbranding=1&rel=0"}
+          style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
       </div>
-      <div style={{display:"flex",gap:8,marginBottom:12}}>
-        {VTABS.map(t=>(
-          <button
-            key={t.key}
-            onClick={()=>setTab(t.key)}
-            style={{
-              padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",
-              fontSize:12,fontWeight:600,transition:"all 0.15s",
-              background:tab===t.key?t.col:T.border,
-              color:tab===t.key?"white":T.textSub,
-            }}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </div>
-      {active&&(
-        <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
-          <div style={{position:"relative",paddingBottom:"52%"}}>
-            <iframe
-              src={"https://www.youtube.com/embed/"+active.youtubeId+"?modestbranding=1&rel=0"}
-              style={{position:"absolute",inset:0,width:"100%",height:"100%",border:"none"}}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-          <div style={{padding:"12px 16px"}}>
-            <div style={{fontWeight:700,fontSize:14,color:T.text,marginBottom:4}}>{active.title}</div>
-            <div style={{display:"flex",gap:10,marginBottom:6,flexWrap:"wrap"}}>
-              <span style={{fontSize:11,fontWeight:600,color:tab==="manufacturer"?T.accent:T.orange}}>
-                {active.channel}
-                {active.isMindfulHunter&&(
-                  <span style={{marginLeft:6,background:T.orangeLight,color:T.orange,border:`1px solid ${T.orangeBorder}`,borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700}}>
-                    Recommended
-                  </span>
-                )}
-              </span>
-              <span style={{fontSize:11,color:T.textMuted}}>{active.duration}</span>
-              <span style={{fontSize:11,color:T.textMuted}}>{active.views} views</span>
-            </div>
-            <p style={{fontSize:12,color:T.textSub,margin:0,lineHeight:1.6}}>{active.snippet}</p>
-            {active.reviewerNote&&(
-              <div style={{marginTop:6,fontSize:11,color:T.textMuted,fontStyle:"italic"}}>
-                {active.isMindfulHunter?"🎯 ":"📈 "}{active.reviewerNote}
-              </div>
-            )}
-          </div>
+      {vid.snippet&&(
+        <div style={{padding:"12px 16px"}}>
+          <p style={{fontSize:12,color:T.textSub,margin:0,lineHeight:1.6}}>{vid.snippet}</p>
         </div>
       )}
     </div>
@@ -1089,7 +1033,6 @@ function AddMemberCard({setFamily, T}) {
 
 
 export default function App() {
-  const [theme,setTheme]=useState("light");
   const [tab,setTab]=useState("deals");
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
@@ -1157,7 +1100,7 @@ export default function App() {
       .then(rows=>{if(rows&&rows.length)setDbCoupons(rows.map(parseCoupon));})
       .catch(()=>{});
   },[]);
-  const T=theme==="light"?LIGHT:DARK;
+  const T=PALETTE;
   const P=PORTAL;
   const isGuest=!user;
   const liveBrands=useMemo(
@@ -1195,7 +1138,7 @@ export default function App() {
         button{font-family:inherit;}
         input,select,textarea{font-family:inherit;}
       `}</style>
-      <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:theme==="light"?"multiply":"screen"}} aria-hidden="true">
+      <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:"multiply"}} aria-hidden="true">
         <filter id="paperNoise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter>
         <rect width="100%" height="100%" filter="url(#paperNoise)"/>
       </svg>
@@ -1214,7 +1157,6 @@ export default function App() {
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             {user&&<button onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.panelMuted,fontWeight:500}}>Preferences</button>}
-            <button onClick={()=>setTheme(t=>t==="light"?"dark":"light")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:18,padding:"4px 8px",color:T.panelText}}>{T.toggle}</button>
             {user?(
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:T.panelAccent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:T.panelBg}}>{user.avatar}</div>
