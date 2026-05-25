@@ -53,7 +53,7 @@ const BRAND_DOMAINS = {
   "Chota Outdoor":"chotaoutdoorgear.com","Goat Knives":"goatknives.com",
   "Darn Tough":"darntough.com","FHF Gear":"fhfgear.com",
   "Peax Equipment":"peaxequipment.com","On Glass":"onglassadapter.com",
-  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com",
+  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com","MotionDucks":"motionducks.com","Buck Gardner":"buckgardner.com","Duck Creek Decoys":"duckcreekdecoys.com","Chenegear":"chenegear.com","Quickcoys":"quickcoys.com",
 };
 
 function BrandLogo({brand, T, size=14}) {
@@ -295,6 +295,11 @@ const STORES = [
   {id:"higdon",name:"Higdon Outdoors",brand:"Higdon Outdoors",loyalty:null,cat:"boutique"},
   {id:"tanglefree",name:"Tanglefree",brand:"Tanglefree",loyalty:null,cat:"boutique"},
   {id:"rigemright",name:"Rig Em Right",brand:"Rig Em Right",loyalty:null,cat:"boutique"},
+  {id:"motionducks",name:"MotionDucks",brand:"MotionDucks",loyalty:null,cat:"boutique"},
+  {id:"buckgardner",name:"Buck Gardner",brand:"Buck Gardner",loyalty:null,cat:"boutique"},
+  {id:"duckcreekdecoys",name:"Duck Creek Decoys",brand:"Duck Creek Decoys",loyalty:null,cat:"boutique"},
+  {id:"chenegear",name:"Chenegear",brand:"Chenegear",loyalty:null,cat:"boutique"},
+  {id:"quickcoys",name:"Quickcoys",brand:"Quickcoys",loyalty:null,cat:"boutique"},
   {
     id:"gohunt",name:"GoHunt Gear",brand:"GoHunt",cat:"specialty",
     loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
@@ -337,7 +342,7 @@ const PORTALS = {
   waterfowl: {
     id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",domain:"duckblinddeals.com",ogImage:"https://duckblinddeals.com/og-duck-blind-deals.png",description:"Real waterfowl gear deals — waders, blinds, decoys, and layout gear from Drake, Sitka Waterfowl, Banded and more. Updated every morning. No fake markdowns.",tagline:"Waterfowl · Waders · Blinds",
     accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Active Deals",heroTagline:"Real waterfowl gear sales — scraped fresh every morning from every blind, wader, and decoy brand we trust. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%233a5a78\"/><g fill=\"%23fffdf7\"><path d=\"M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z\"/><circle cx=\"30\" cy=\"30\" r=\"1.5\" fill=\"%233a5a78\"/></g></svg>`,
-    brands:["Drake Waterfowl","Sitka","Yeti","Garmin","onX","Vortex","Leupold","Sig Sauer","Chota Outdoor","Helinox","Mtn Ops","Benchmade","Outdoor Edge","Wilderness Athlete","Darn Tough","Forloh","Higdon Outdoors","Tanglefree","Rig Em Right"],
+    brands:["Drake Waterfowl","Sitka","Yeti","Garmin","onX","Vortex","Leupold","Sig Sauer","Chota Outdoor","Helinox","Mtn Ops","Benchmade","Outdoor Edge","Wilderness Athlete","Darn Tough","Forloh","Higdon Outdoors","Tanglefree","Rig Em Right","MotionDucks","Buck Gardner","Duck Creek Decoys","Chenegear","Quickcoys"],
     searchHint:'Try "Drake LST" or "Chota waders"...',
     searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
   },
