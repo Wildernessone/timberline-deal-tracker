@@ -1366,7 +1366,7 @@ export default function App() {
   useEffect(()=>{
     // Initial fast fetch (100 for snappy first paint), then page through the rest in 1000-row chunks
     const PAGE = 1000;
-    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
+    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:"100",offset:"0"})
       .then(rows=>{
         if(rows&&rows.length) {
           const mapped = rows.map(parseDeal);
@@ -1382,9 +1382,13 @@ export default function App() {
         }
         setDealsLoading(false);
         const loadMore = async (offset) => {
-          const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:String(PAGE),offset:String(offset)});
+          const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:String(PAGE),offset:String(offset)});
           if (more && more.length) {
-            setDeals(prev=>[...prev,...more.map(parseDeal)]);
+            setDeals(prev => {
+              const seen = new Set(prev.map(d => d.id));
+              const fresh = more.map(parseDeal).filter(d => !seen.has(d.id));
+              return [...prev, ...fresh];
+            });
             if (more.length === PAGE) await loadMore(offset + PAGE);
           }
         };
