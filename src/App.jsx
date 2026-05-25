@@ -717,7 +717,7 @@ function BackToTop({T}) {
     <button
       onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}
       aria-label="Back to top"
-      style={{position:"fixed",bottom:28,right:28,zIndex:900,padding:"12px 18px",borderRadius:999,background:T.accent,color:"white",border:"none",cursor:"pointer",fontSize:13,fontWeight:700,boxShadow:`0 8px 28px ${T.shadowHov}`,display:"flex",alignItems:"center",gap:8,fontFamily:"inherit",letterSpacing:"0.02em"}}
+      style={{position:"fixed",top:84,left:"50%",transform:"translateX(-50%)",zIndex:899,padding:"8px 16px",borderRadius:999,background:T.text,color:T.bgSolid,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,boxShadow:`0 6px 20px ${T.shadowHov}`,display:"flex",alignItems:"center",gap:6,fontFamily:"inherit",letterSpacing:"0.04em",opacity:0.92}}
     >
       <span style={{fontSize:16,lineHeight:1}}>↑</span> Top
     </button>
