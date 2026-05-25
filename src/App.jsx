@@ -310,28 +310,28 @@ function formatShipping(s, shippingMap){
 const PORTALS = {
   timberline: {
     id:"timberline",name:"Timberline Deal Tracker",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",
+    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment"],
     searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
     searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
   },
   whitetail: {
     id:"whitetail",name:"Whitetail Deal Tracker",tagline:"Treestand · Rut · Eastern Woods",
-    accent:"#7a4a2a",
+    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Rut Drops",
     brands:["Sitka","First Lite","Kings Camo","Drake Waterfowl","Hoyt","Mathews","Yeti","Mountain House","Peak Refuel","GSI Outdoors","Garmin","onX","Vortex","Leupold","Sig Sauer","Maven","Kenetrek","Crispi","Schnees","Outdoor Research","Mtn Ops","Wilderness Athlete","Phelps Game Calls","Primos","Montana Knife Company","Outdoor Edge","Goat Knives","Benchmade","Helinox","Thermarest","Nemo Equipment","Forloh","Kryptek","Badlands","Wildtech Gear","Marsupial Gear","Darn Tough","Duckworth"],
     searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
   turkey: {
     id:"turkey",name:"Turkey Deal Tracker",tagline:"Calls · Decoys · Spring Gobbler",
-    accent:"#8a6a2e",
+    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Gobbler Drops",
     brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
     searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
     searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
   },
   waterfowl: {
     id:"waterfowl",name:"Duck Blind Deals",tagline:"Waterfowl · Waders · Blinds",
-    accent:"#3a5a78",
+    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Splash Drops",
     brands:["Drake Waterfowl","Sitka","Kings Camo","Yeti","Garmin","onX","Vortex","Leupold","Maven","Sig Sauer","Chota Outdoor","Helinox","Nemo Equipment","Mountain House","Peak Refuel","GSI Outdoors","Mtn Ops","Benchmade","Outdoor Edge","Goat Knives","Wilderness Athlete","Mathews","Hoyt","Marsupial Gear","Outdoorsmans","Blue Coolers","Darn Tough","Duckworth","Forloh","Kryptek"],
     searchHint:'Try "Drake LST" or "Chota waders"...',
     searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
@@ -1418,8 +1418,19 @@ export default function App() {
       })
       .catch(()=>{});
   },[]);
-  const T=PALETTE;
+  const T = useMemo(() => ({
+    ...PALETTE,
+    accent: PORTAL.accent || PALETTE.accent,
+    accentLight: PORTAL.accentLight || PALETTE.accentLight,
+    accentBorder: PORTAL.accentBorder || PALETTE.accentBorder,
+    panelAccent: PORTAL.panelAccent || PALETTE.panelAccent,
+  }), []);
   const P=PORTAL;
+  useEffect(() => {
+    try {
+      document.title = PORTAL.name + " — " + PORTAL.tagline.replace(/ ./g, "");
+    } catch { /* ignore */ }
+  }, []);
   const isGuest=!user;
   const liveBrands=useMemo(
     ()=>[...new Set(deals.map(d=>d.brand))].sort(),
@@ -1540,7 +1551,7 @@ export default function App() {
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
               <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
-                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Drops</h1>
+                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>{PORTAL.heroTitle || "Active Drops"}</h1>
                 <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
               </div>
             </div>
