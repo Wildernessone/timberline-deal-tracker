@@ -323,7 +323,7 @@ const PORTALS = {
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
   turkey: {
-    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",domain:"gobblerdeals.com",tagline:"Calls · Decoys · Spring Gobbler",
+    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",tagline:"Calls · Decoys · Spring Gobbler",
     accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Gobbler Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%238a6a2e\"/><g fill=\"%23fffdf7\"><circle cx=\"32\" cy=\"22\" r=\"6\"/><path d=\"M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z\"/><path d=\"M14 38 Q8 40 10 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/><path d=\"M50 38 Q56 40 54 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/></g></svg>`,
     brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
     searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
