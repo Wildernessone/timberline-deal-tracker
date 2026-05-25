@@ -520,9 +520,9 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched}) {
     >
       {d.image&&(
         <div style={{position:"relative",width:"100%",paddingBottom:"66%",background:T.bgSolid,overflow:"hidden"}}>
-          <img src={d.image} alt={d.product} loading="lazy"
+          <img src={d.image} alt={d.product} loading="lazy" decoding="async" fetchpriority="low"
             style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"transform 0.4s",transform:hov?"scale(1.04)":"none"}}
-            onError={e=>{e.currentTarget.style.display="none";}}
+            onError={e=>{const p=e.currentTarget.parentElement; if(p)p.style.display="none";}}
           />
         </div>
       )}
@@ -1557,6 +1557,7 @@ export default function App() {
           .tl-page-hero p{font-size:14px !important;line-height:1.5 !important;}
           .tl-page-body{padding:18px 14px 32px !important;}
           .tl-deal-grid{grid-template-columns:1fr !important;gap:14px !important;}
+          .tl-deal-grid > *{content-visibility:auto;contain-intrinsic-size:auto 380px;}
         }
         @media (max-width:480px){
           .tl-page-hero h1{font-size:28px !important;}
