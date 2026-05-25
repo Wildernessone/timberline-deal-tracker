@@ -1563,7 +1563,7 @@ export default function App() {
       <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`,position:"sticky",top:0,zIndex:100}}>
         <div className="tl-header-inner" style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em"}}>{PORTAL.shortName || "Timberline"}</div>
+            <div onClick={()=>{setTab("deals");setBrandFilter("All");setMemberFilter("All");window.scrollTo(0,0);}} style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em",cursor:"pointer"}}>{PORTAL.shortName || "Timberline"}</div>
             <div className="tl-header-brand-sub" style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
             <div className="tl-sister-sites" style={{display:"flex",gap:8,marginLeft:14,paddingLeft:14,borderLeft:`1px solid ${T.panelBorder}`,alignItems:"center"}}>
               {Object.values(PORTALS).filter(x=>x.id!==PORTAL.id&&x.domain).map(x=>(
