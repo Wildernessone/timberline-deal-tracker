@@ -310,7 +310,7 @@ function formatShipping(s, shippingMap){
 const PORTALS = {
   timberline: {
     id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%232d5a3d\"/><path d=\"M6 52 L22 22 L32 36 L44 16 L58 52 Z\" fill=\"%23fffdf7\"/></svg>`,
+    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%232d5a3d\"/><path d=\"M6 52 L22 22 L32 36 L44 16 L58 52 Z\" fill=\"%23fffdf7\"/></svg>`,
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment"],
     searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
     searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
@@ -318,7 +318,7 @@ const PORTALS = {
   whitetail: {
     id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",tagline:"Whitetail · Treestand · Rut",
     accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Rut Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%237a4a2a\"/><g stroke=\"%23fffdf7\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M32 54 L32 34\"/><path d=\"M32 34 L20 22 L18 12\"/><path d=\"M32 34 L44 22 L46 12\"/><path d=\"M22 24 L14 18\"/><path d=\"M22 28 L13 28\"/><path d=\"M26 20 L22 12\"/><path d=\"M42 24 L50 18\"/><path d=\"M42 28 L51 28\"/><path d=\"M38 20 L42 12\"/></g></svg>`,
-    brands:["Sitka","First Lite","Kings Camo","Drake Waterfowl","Hoyt","Mathews","Yeti","Mountain House","Peak Refuel","GSI Outdoors","Garmin","onX","Vortex","Leupold","Sig Sauer","Maven","Kenetrek","Crispi","Schnees","Outdoor Research","Mtn Ops","Wilderness Athlete","Phelps Game Calls","Primos","Montana Knife Company","Outdoor Edge","Goat Knives","Benchmade","Helinox","Thermarest","Nemo Equipment","Forloh","Kryptek","Badlands","Wildtech Gear","Marsupial Gear","Darn Tough","Duckworth"],
+    brands:[],
     searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
@@ -1016,7 +1016,9 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
   const toggle=(key,id)=>setPrefs(p=>{const a=p[key]||[];return {...p,[key]:a.includes(id)?a.filter(x=>x!==id):[...a,id]};});
   const toggleStore=id=>setStores(p=>p.includes(id)?p.filter(s=>s!==id):[...p,id]);
   const SECS=[{id:"hunts",label:"Hunt Types"},{id:"cats",label:"Gear Types"},{id:"brands",label:"Brands"},{id:"stores",label:"Stores"}];
-  const bycat={boutique:STORES.filter(s=>s.cat==="boutique"),specialty:STORES.filter(s=>s.cat==="specialty"),bigbox:STORES.filter(s=>s.cat==="bigbox")};
+  const portalBrandSet=new Set(PORTAL.brands||[]);
+  const portalStores=STORES.filter(s=>!portalBrandSet.size||portalBrandSet.has(s.brand));
+  const bycat={boutique:portalStores.filter(s=>s.cat==="boutique"),specialty:portalStores.filter(s=>s.cat==="specialty"),bigbox:portalStores.filter(s=>s.cat==="bigbox")};
   const SGRPS=[{label:"Boutique and Brand Direct",key:"boutique"},{label:"Specialty Hunting Retailers",key:"specialty"},{label:"Big Box Retailers",key:"bigbox"}];
   return (
     <div style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(6px)"}} onClick={onClose}>
@@ -1040,7 +1042,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
             <div>
               <p style={{fontSize:12,color:T.textMuted,marginBottom:16,lineHeight:1.6}}>Select the types of hunting you do.</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8}}>
-                {HUNT_TYPES.map(h=>{
+                {HUNT_TYPES.filter(h=>!PORTAL.huntTypes||PORTAL.huntTypes.includes(h.id)).map(h=>{
                   const on=(prefs.hunts||[]).includes(h.id);
                   return (
                     <button key={h.id} onClick={()=>toggle("hunts",h.id)} style={{padding:"12px 14px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all 0.15s",border:`1.5px solid ${on?T.accent:T.border}`,background:on?T.accentLight:T.bgCard}}>
@@ -1051,7 +1053,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
                 })}
               </div>
               <div style={{marginTop:16,display:"flex",gap:8}}>
-                <button onClick={()=>setPrefs(p=>({...p,hunts:HUNT_TYPES.map(h=>h.id)}))} style={{fontSize:11,color:T.accent,background:"none",border:`1px solid ${T.accentBorder}`,borderRadius:6,padding:"4px 12px",cursor:"pointer"}}>Select All</button>
+                <button onClick={()=>setPrefs(p=>({...p,hunts:HUNT_TYPES.filter(h=>!PORTAL.huntTypes||PORTAL.huntTypes.includes(h.id)).map(h=>h.id)}))} style={{fontSize:11,color:T.accent,background:"none",border:`1px solid ${T.accentBorder}`,borderRadius:6,padding:"4px 12px",cursor:"pointer"}}>Select All</button>
                 <button onClick={()=>setPrefs(p=>({...p,hunts:[]}))} style={{fontSize:11,color:T.textMuted,background:"none",border:`1px solid ${T.border}`,borderRadius:6,padding:"4px 12px",cursor:"pointer"}}>Clear All</button>
               </div>
             </div>
@@ -1060,7 +1062,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
             <div>
               <p style={{fontSize:12,color:T.textMuted,marginBottom:16,lineHeight:1.6}}>Only see deals for gear you buy.</p>
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8}}>
-                {GEAR_CATS.map(c=>{
+                {GEAR_CATS.filter(c=>!PORTAL.gearCats||PORTAL.gearCats.includes(c.id)).map(c=>{
                   const on=(prefs.cats||[]).includes(c.id);
                   return (
                     <button key={c.id} onClick={()=>toggle("cats",c.id)} style={{padding:"12px 14px",borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",gap:10,transition:"all 0.15s",border:`1.5px solid ${on?T.accent:T.border}`,background:on?T.accentLight:T.bgCard}}>
