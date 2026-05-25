@@ -1551,8 +1551,10 @@ export default function App() {
           .tl-sister-sites{display:none !important;}
           .tl-header-nav{order:3 !important;width:100% !important;justify-content:center !important;overflow-x:auto !important;flex-wrap:wrap !important;}
           .tl-header-pref{display:none !important;}
+          .tl-sister-sites{display:none !important;}
           .tl-page-hero{padding:28px 16px 24px !important;}
           .tl-page-hero h1{font-size:32px !important;line-height:1.1 !important;}
+          .tl-page-hero p{font-size:14px !important;line-height:1.5 !important;}
           .tl-page-body{padding:18px 14px 32px !important;}
           .tl-deal-grid{grid-template-columns:1fr !important;gap:14px !important;}
         }
