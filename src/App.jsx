@@ -1021,7 +1021,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
   );
 }
 
-function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onClose}) {
+function PrefsInline({T,prefs,setPrefs,stores,setStores,shippingMap}) {
   const [sec,setSec]=useState("hunts");
   const toggle=(key,id)=>setPrefs(p=>{const a=p[key]||[];return {...p,[key]:a.includes(id)?a.filter(x=>x!==id):[...a,id]};});
   const toggleStore=id=>setStores(p=>p.includes(id)?p.filter(s=>s!==id):[...p,id]);
@@ -1031,16 +1031,12 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
   const bycat={boutique:portalStores.filter(s=>s.cat==="boutique"),specialty:portalStores.filter(s=>s.cat==="specialty"),bigbox:portalStores.filter(s=>s.cat==="bigbox")};
   const SGRPS=[{label:"Boutique and Brand Direct",key:"boutique"},{label:"Specialty Hunting Retailers",key:"specialty"},{label:"Big Box Retailers",key:"bigbox"}];
   return (
-    <div style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(6px)"}} onClick={onClose}>
-      <div style={{background:T.bgSolid,borderRadius:20,maxWidth:680,width:"100%",maxHeight:"88vh",overflow:"hidden",display:"flex",flexDirection:"column",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`}} onClick={e=>e.stopPropagation()}>
-        <div style={{padding:"20px 24px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <div>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>My Preferences</div>
-            <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>Your feed filters to match</div>
-          </div>
-          <button onClick={onClose} style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub}}>x</button>
+    <div style={{marginTop:48,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden"}}>
+        <div style={{padding:"20px 24px",borderBottom:`1px solid ${T.border}`}}>
+          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>Preferences</div>
+          <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>Filter your feed to match how you hunt</div>
         </div>
-        <div style={{display:"flex",borderBottom:`1px solid ${T.border}`,flexShrink:0}}>
+        <div style={{display:"flex",borderBottom:`1px solid ${T.border}`}}>
           {SECS.map(s=>(
             <button key={s.id} onClick={()=>setSec(s.id)} style={{flex:1,padding:"12px 0",border:"none",cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",background:sec===s.id?T.accentLight:"transparent",borderBottom:sec===s.id?`2px solid ${T.accent}`:"2px solid transparent",color:sec===s.id?T.accent:T.textMuted}}>
               {s.label}
@@ -1112,11 +1108,6 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
             </div>
           )}
         </div>
-        <div style={{padding:"14px 24px",borderTop:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0,background:T.bgCard}}>
-          <div style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>{(prefs.hunts||[]).length} hunt types | {stores.length} stores</div>
-          <button onClick={onClose} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"9px 24px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Save Preferences</button>
-        </div>
-      </div>
     </div>
   );
 }
@@ -1321,7 +1312,6 @@ export default function App() {
   const [stores,setStores]=useState(STORES.map(s=>s.id));
   const [showAuth,setShowAuth]=useState(false);
   const [authMode,setAuthMode]=useState("login");
-  const [showPrefs,setShowPrefs]=useState(false);
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
@@ -1579,7 +1569,7 @@ export default function App() {
             ))}
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            {user&&<button className="tl-header-pref" onClick={()=>setShowPrefs(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:13,color:T.panelMuted,fontWeight:500}}>Preferences</button>}
+            
             {user?(
               <div style={{display:"flex",alignItems:"center",gap:10}}>
                 <div style={{width:34,height:34,borderRadius:"50%",background:T.panelAccent,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:T.panelBg}}>{user.avatar}</div>
@@ -1777,6 +1767,7 @@ export default function App() {
                   })}
                   <AddMemberCard setFamily={setFamily} T={T}/>
                 </div>
+                <PrefsInline T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} shippingMap={shippingMap}/>
                 <div style={{marginTop:48,padding:"24px",border:`1px solid ${T.border}`,borderRadius:12,background:T.bgCard}}>
                   <div style={{fontSize:11,color:T.textMuted,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:12}}>WATCHING & SAVED SEARCHES</div>
                   <div style={{fontSize:12,color:T.textSub,marginBottom:14,lineHeight:1.6}}>We email you when matching deals appear. Click the X to stop watching.</div>
@@ -1835,7 +1826,7 @@ export default function App() {
                 });
               }
             }} onClose={()=>setShowAuth(false)}/>}
-      {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} shippingMap={shippingMap} onClose={()=>setShowPrefs(false)}/>}
+      
       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)} onWatch={handleWatch} isWatched={modalDeal?isWatched(modalDeal):false}/>
       <LegalModal which={showLegal} T={T} onClose={()=>setShowLegal(null)}/>
       <BackToTop T={T}/>
