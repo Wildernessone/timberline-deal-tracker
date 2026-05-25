@@ -365,7 +365,7 @@ function SizePicker({field, value, onChange, T, col}) {
 }
 
 
-function DealCard({d,family,memberFilter,onOpen,T}) {
+function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched}) {
   const [hov,setHov]=useState(false);
   const disc=Math.round((1-d.sale/d.orig)*100);
   const save=Math.round((d.orig-d.sale)*100)/100;
@@ -444,6 +444,14 @@ function DealCard({d,family,memberFilter,onOpen,T}) {
             <span key={sz} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:6,padding:"3px 9px",fontSize:10,color:T.textSub,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{sz}</span>
           ))}
         </div>
+        {onWatch && (
+          <button
+            onClick={e=>{e.stopPropagation();onWatch(d);}}
+            title={isWatched?"Watching - email when on sale":"Watch - email me when on sale"}
+            aria-label="Watch product"
+            style={{background:isWatched?T.accentLight:T.bgSolid,border:`1px solid ${isWatched?T.accent:T.border}`,borderRadius:9,padding:"8px 10px",fontSize:14,cursor:"pointer",color:isWatched?T.accent:T.textMuted,fontWeight:700,lineHeight:1}}
+          >{isWatched?"★":"☆"}</button>
+        )}
         <a
           href={d.url} target="_blank" rel="noopener noreferrer"
           onClick={e=>{e.stopPropagation();logClick(d);}}
@@ -971,10 +979,11 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
   );
 }
 
-function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user}) {
+function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user,onWatch,isWatched}) {
   const [query,setQuery]=useState("");
   const trimmed = query.trim().toLowerCase();
-
+  const [historyMap, setHistoryMap] = useState({});
+  
   const results = useMemo(()=>{
     const t = query.trim().toLowerCase();
     const words = t ? t.split(/\s+/).filter(w=>w.length>1) : [];
@@ -991,6 +1000,24 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user}) {
       .slice(0, 60)
       .map(x => x.d);
   }, [query, deals]);
+
+  useEffect(() => {
+    if (!results.length) { setHistoryMap({}); return; }
+    const urls = results.map(r => r.url).filter(Boolean).slice(0, 60);
+    if (!urls.length) return;
+    const list = urls.map(u => `"${encodeURIComponent(u).replace(/"/g, "")}"`).join(",");
+    fetch(SB_URL + `/rest/v1/price_history?select=deal_url,sale_price,observed_at&deal_url=in.(${list})&order=observed_at.asc&limit=2000`, { headers: SB_H })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => {
+        const m = {};
+        rows.forEach(row => {
+          if (!m[row.deal_url]) m[row.deal_url] = [];
+          m[row.deal_url].push(parseFloat(row.sale_price));
+        });
+        setHistoryMap(m);
+      })
+      .catch(()=>{});
+  }, [results]);
 
   const inWishlist = (q) => wishlist.some(w => (w.query||w.productName||"") === q);
   const toggleWishlist = async () => {
@@ -1048,7 +1075,7 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user}) {
           {results.length > 0 ? (
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
               {results.map(d => (
-                <DealCard key={d.id} d={d} family={family} memberFilter="All" onOpen={onOpenDeal} T={T}/>
+                <DealCard key={d.id} d={historyMap[d.url]?.length>1 ? {...d, history: historyMap[d.url]} : d} family={family} memberFilter="All" onOpen={onOpenDeal} T={T} onWatch={onWatch} isWatched={isWatched(d)}/>
               ))}
             </div>
           ) : (
@@ -1255,6 +1282,24 @@ export default function App() {
   });
   const portalCoupons=dbCoupons;
   const BRANDS_LIST=liveBrands;
+  const watchQueryFor = d => ((d.brand||"")+" "+(d.product||"")).trim().toLowerCase();
+  const isWatched = d => wishlist.some(w => (w.query||"") === watchQueryFor(d));
+  const handleWatch = async (d) => {
+    if (!user) { setAuthMode("signup"); setShowAuth(true); return; }
+    const q = watchQueryFor(d);
+    if (isWatched(d)) {
+      const existing = wishlist.find(x => (x.query||"") === q);
+      setWishlist(w => w.filter(x => (x.query||"") !== q));
+      if (user?.token && existing?.id) deleteWishlistItem(existing.id, user.token);
+    } else {
+      setWishlist(p => [...p, { query: q, addedAt: new Date().toISOString() }]);
+      if (user?.token) {
+        const id = await saveWishlistItem(q, user.token);
+        if (id) setWishlist(p => p.map(x => x.query === q && !x.id ? { ...x, id } : x));
+      }
+    }
+  };
+
   const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
@@ -1385,7 +1430,7 @@ export default function App() {
                   )}
                 </div>
               ):filtered.map(d=>(
-                <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T}/>
+                <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T} onWatch={handleWatch} isWatched={isWatched(d)}/>
               ))}
               </div>
             </div>
@@ -1400,7 +1445,7 @@ export default function App() {
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
-              <PriceSearch T={T} P={P} wishlist={wishlist} setWishlist={setWishlist} deals={taggedDeals} family={family} onOpenDeal={setModalDeal} user={user}/>
+              <PriceSearch T={T} P={P} wishlist={wishlist} setWishlist={setWishlist} deals={taggedDeals} family={family} onOpenDeal={setModalDeal} user={user} onWatch={handleWatch} isWatched={isWatched}/>
             </div>
           </div>
         )}
