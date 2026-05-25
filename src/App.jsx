@@ -310,27 +310,27 @@ function formatShipping(s, shippingMap){
 const PORTALS = {
   timberline: {
     id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%232d5a3d\"/><path d=\"M6 52 L22 22 L32 36 L44 16 L58 52 Z\" fill=\"%23fffdf7\"/></svg>`,
+    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",domain:"timberlinedeals.com",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%232d5a3d\"/><path d=\"M6 52 L22 22 L32 36 L44 16 L58 52 Z\" fill=\"%23fffdf7\"/></svg>`,
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment"],
     searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
     searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
   },
   whitetail: {
-    id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",tagline:"Whitetail · Treestand · Rut",
+    id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",domain:"treestandsaver.com",tagline:"Whitetail · Treestand · Rut",
     accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Rut Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%237a4a2a\"/><g stroke=\"%23fffdf7\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M32 54 L32 34\"/><path d=\"M32 34 L20 22 L18 12\"/><path d=\"M32 34 L44 22 L46 12\"/><path d=\"M22 24 L14 18\"/><path d=\"M22 28 L13 28\"/><path d=\"M26 20 L22 12\"/><path d=\"M42 24 L50 18\"/><path d=\"M42 28 L51 28\"/><path d=\"M38 20 L42 12\"/></g></svg>`,
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Bridger Watch","Aziak","Kapture","Bridger Boiler","Keen","Katabatic Gear","Zpacks","Magview","Mtn Tough","Mtn Ops","Crispi","Yeti","Outdoor Research","Kings Camo","Marsupial Gear","Blue Coolers","Hoyt","Maven","Mathews","Forloh","Kryptek","Montana Knife Company","Kenetrek","Primos","Canvas Cutter","Outdoor Edge","Badlands","Wilderness Athlete","Outdoor Vitals","Pnuma Outdoors","Thermarest","Helinox","Duckworth","Chota Outdoor","Goat Knives","Darn Tough","FHF Gear","Peax Equipment","On Glass","GoHunt","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","Sig Sauer","Schnees","SKRE Gear","TideWe","Mossy Oak","Bone Collector","Nomad Outdoor","XOP Outdoors","Novix Outdoors","Hunting Beast Gear"],
     searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
   turkey: {
-    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",tagline:"Calls · Decoys · Spring Gobbler",
+    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",domain:"gobblerdeals.com",tagline:"Calls · Decoys · Spring Gobbler",
     accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Gobbler Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%238a6a2e\"/><g fill=\"%23fffdf7\"><circle cx=\"32\" cy=\"22\" r=\"6\"/><path d=\"M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z\"/><path d=\"M14 38 Q8 40 10 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/><path d=\"M50 38 Q56 40 54 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/></g></svg>`,
     brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
     searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
     searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
   },
   waterfowl: {
-    id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",tagline:"Waterfowl · Waders · Blinds",
+    id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",domain:"duckblinddeals.com",tagline:"Waterfowl · Waders · Blinds",
     accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Splash Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%233a5a78\"/><g fill=\"%23fffdf7\"><path d=\"M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z\"/><circle cx=\"30\" cy=\"30\" r=\"1.5\" fill=\"%233a5a78\"/></g></svg>`,
     brands:["Drake Waterfowl","Sitka","Kings Camo","Yeti","Garmin","onX","Vortex","Leupold","Maven","Sig Sauer","Chota Outdoor","Helinox","Nemo Equipment","Mountain House","Peak Refuel","GSI Outdoors","Mtn Ops","Benchmade","Outdoor Edge","Goat Knives","Wilderness Athlete","Mathews","Hoyt","Marsupial Gear","Outdoorsmans","Blue Coolers","Darn Tough","Duckworth","Forloh","Kryptek"],
     searchHint:'Try "Drake LST" or "Chota waders"...',
@@ -1502,6 +1502,7 @@ export default function App() {
         @media (max-width:768px){
           .tl-header-inner{padding:10px 14px !important;height:auto !important;flex-wrap:wrap !important;gap:10px !important;}
           .tl-header-brand-sub{display:none !important;}
+          .tl-sister-sites{display:none !important;}
           .tl-header-nav{order:3 !important;width:100% !important;justify-content:center !important;overflow-x:auto !important;flex-wrap:wrap !important;}
           .tl-header-pref{display:none !important;}
           .tl-page-hero{padding:28px 16px 24px !important;}
@@ -1522,6 +1523,11 @@ export default function App() {
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
             <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em"}}>{PORTAL.shortName || "Timberline"}</div>
             <div className="tl-header-brand-sub" style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
+            <div className="tl-sister-sites" style={{display:"flex",gap:8,marginLeft:14,paddingLeft:14,borderLeft:`1px solid ${T.panelBorder}`,alignItems:"center"}}>
+              {Object.values(PORTALS).filter(x=>x.id!==PORTAL.id&&x.domain).map(x=>(
+                <a key={x.id} href={"https://"+x.domain} title={x.name} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:T.panelSub,letterSpacing:"0.1em",textTransform:"uppercase",textDecoration:"none",fontWeight:600,padding:"4px 8px",borderRadius:6,border:`1px solid ${T.panelBorder}`,transition:"all 0.15s"}} onMouseOver={e=>{e.currentTarget.style.borderColor=T.panelAccent;e.currentTarget.style.color=T.panelText;}} onMouseOut={e=>{e.currentTarget.style.borderColor=T.panelBorder;e.currentTarget.style.color=T.panelSub;}}>{x.shortName}</a>
+              ))}
+            </div>
           </div>
           <nav className="tl-header-nav" style={{display:"flex",gap:2}}>
             {TABS.map(t=>(
