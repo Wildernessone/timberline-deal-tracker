@@ -556,7 +556,7 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched}) {
   );
 }
 
-function DealModal({deal,family,T,onClose}) {
+function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
   if(!deal)return null;
   const disc=Math.round((1-deal.sale/deal.orig)*100);
   const save=Math.round((deal.orig-deal.sale)*100)/100;
@@ -624,6 +624,15 @@ function DealModal({deal,family,T,onClose}) {
               <span style={{color:T.orange,fontSize:11,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>COUPON</span>
               <code style={{color:T.orange,fontSize:20,fontWeight:800,letterSpacing:"0.15em"}}>{deal.coupon}</code>
             </div>
+          )}
+          {onWatch && (
+            <button
+              onClick={()=>onWatch(deal)}
+              style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:"100%",background:isWatched?T.accentLight:T.bgSolid,border:`1px solid ${isWatched?T.accent:T.border}`,borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",color:isWatched?T.accent:T.textSub,marginBottom:10,fontFamily:"inherit"}}
+            >
+              <span style={{fontSize:18,lineHeight:1}}>{isWatched?"★":"☆"}</span>
+              {isWatched?"Watching - we'll email when it drops":"Watch this product - email me when on sale"}
+            </button>
           )}
           <a
             href={deal.url} target="_blank" rel="noopener noreferrer"
@@ -1669,7 +1678,7 @@ export default function App() {
               }
             }} onClose={()=>setShowAuth(false)}/>}
       {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} shippingMap={shippingMap} onClose={()=>setShowPrefs(false)}/>}
-      <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)}/>
+      <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)} onWatch={handleWatch} isWatched={modalDeal?isWatched(modalDeal):false}/>
       <LegalModal which={showLegal} T={T} onClose={()=>setShowLegal(null)}/>
       <BackToTop T={T}/>
       <Footer T={T} onOpenLegal={setShowLegal}/>
