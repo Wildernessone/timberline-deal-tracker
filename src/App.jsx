@@ -191,7 +191,7 @@ function parseCoupon(row){
   };
 }
 
-const MC = ["#2d6a4f","#1d4e89","#7b2d8b","#b5451b"];
+const MC = ["#cc5500"];
 
 const HUNT_TYPES = [
   {id:"whitetail",label:"Whitetail",icon:"🌳"},
@@ -1015,7 +1015,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
   const [sec,setSec]=useState("hunts");
   const toggle=(key,id)=>setPrefs(p=>{const a=p[key]||[];return {...p,[key]:a.includes(id)?a.filter(x=>x!==id):[...a,id]};});
   const toggleStore=id=>setStores(p=>p.includes(id)?p.filter(s=>s!==id):[...p,id]);
-  const SECS=[{id:"hunts",label:"Hunt Types"},{id:"cats",label:"Gear Types"},{id:"brands",label:"Brands"},{id:"stores",label:"Stores"}];
+  const SECS=[{id:"hunts",label:"Hunt Types"},{id:"cats",label:"Gear Types"},{id:"stores",label:"Stores"}];
   const portalBrandSet=new Set(PORTAL.brands||[]);
   const portalStores=STORES.filter(s=>!portalBrandSet.size||portalBrandSet.has(s.brand));
   const bycat={boutique:portalStores.filter(s=>s.cat==="boutique"),specialty:portalStores.filter(s=>s.cat==="specialty"),bigbox:portalStores.filter(s=>s.cat==="bigbox")};
@@ -1074,19 +1074,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
               </div>
             </div>
           )}
-          {sec==="brands"&&(
-            <div>
-              <p style={{fontSize:12,color:T.textMuted,marginBottom:16,lineHeight:1.6}}>Only show deals from brands you actually buy.</p>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                {brandList.map(b=>{
-                  const on=(prefs.brands||[]).includes(b);
-                  return (
-                    <button key={b} onClick={()=>toggle("brands",b)} style={{padding:"6px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1.5px solid ${on?T.accent:T.border}`,background:on?T.accentLight:"transparent",color:on?T.accent:T.textMuted}}>
-                      {on?"✓ ":""}{b}
-                    </button>
-                  );
-                })}
-              </div>
+          </div>
             </div>
           )}
           {sec==="stores"&&(
@@ -1694,7 +1682,10 @@ export default function App() {
                         <div style={{padding:"18px 18px 16px"}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
                             <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{m.name}</div>
-                            <button onClick={()=>setEditIdx(editIdx===idx?null:idx)} style={{background:T.border,border:"none",borderRadius:7,padding:"4px 12px",cursor:"pointer",fontSize:11,color:T.textSub,fontWeight:600}}>{editIdx===idx?"Done":"Edit"}</button>
+                            <div style={{display:"flex",gap:6}}>
+                              <button onClick={()=>setEditIdx(editIdx===idx?null:idx)} style={{background:T.border,border:"none",borderRadius:7,padding:"4px 12px",cursor:"pointer",fontSize:11,color:T.textSub,fontWeight:600}}>{editIdx===idx?"Done":"Edit"}</button>
+                              <button onClick={async()=>{ if(!window.confirm("Remove "+m.name+" from family?"))return; const nm=m.name; setFamily(prev=>prev.filter((_,i)=>i!==idx)); if(user){ try{ await supabase.from("family_members").delete().eq("user_id",user.id).eq("name",nm); }catch{} } if(editIdx===idx)setEditIdx(null); }} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:11,color:T.red||"#cc4444",fontWeight:600}} title={"Remove "+m.name}>Remove</button>
+                            </div>
                           </div>
                           {editIdx===idx?(
                             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
