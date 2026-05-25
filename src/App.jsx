@@ -1452,6 +1452,23 @@ export default function App() {
       let canonical = document.querySelector("link[rel='canonical']");
       if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
       canonical.href = url;
+      const gsc = import.meta.env.VITE_GSC_TOKEN;
+      if (gsc) {
+        let v = document.querySelector('meta[name="google-site-verification"]');
+        if (!v) { v = document.createElement("meta"); v.setAttribute("name","google-site-verification"); document.head.appendChild(v); }
+        v.setAttribute("content", gsc);
+      }
+      const gaId = import.meta.env.VITE_GA_ID;
+      if (gaId && !window.__gaLoaded) {
+        window.__gaLoaded = true;
+        const s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
+        document.head.appendChild(s);
+        const inline = document.createElement("script");
+        inline.text = "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','" + gaId + "');";
+        document.head.appendChild(inline);
+      }
     } catch { /* ignore */ }
   }, []);
   const isGuest=!user;
