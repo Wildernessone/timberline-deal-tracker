@@ -158,6 +158,7 @@ function parseDeal(row){
     image:row.image_url,
     sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
     history:[orig,sale],
+    createdAt:row.created_at,
   };
 }
 const CAT_TO_FIELDS = {
@@ -1306,6 +1307,7 @@ export default function App() {
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
   const [brandFilter,setBrandFilter]=useState("All");
+  const [sortBy,setSortBy]=useState("discount");
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
   const [wishlist,setWishlist]=useState([]);
@@ -1486,7 +1488,19 @@ export default function App() {
     ()=>deals.map(d=>({...d,tags:computeTags(d,family)})),
     [deals,family]
   );
-  const sortedDeals=taggedDeals;
+  const sortedDeals=useMemo(()=>{
+    const arr=[...taggedDeals];
+    if(sortBy==="discount") arr.sort((a,b)=>{
+      const da=a.orig>a.sale?(a.orig-a.sale)/a.orig:0;
+      const db=b.orig>b.sale?(b.orig-b.sale)/b.orig:0;
+      return (a.fake?1:0)-(b.fake?1:0) || db-da;
+    });
+    else if(sortBy==="newest") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || (b.createdAt||"").localeCompare(a.createdAt||""));
+    else if(sortBy==="lowest") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || a.sale-b.sale);
+    else if(sortBy==="highest") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || b.sale-a.sale);
+    else if(sortBy==="brand") arr.sort((a,b)=>(a.brand||"").localeCompare(b.brand||""));
+    return arr;
+  },[taggedDeals,sortBy]);
   const portalBrandSet = useMemo(() => new Set(PORTAL.brands || []), []);
   const filtered=sortedDeals.filter(d=>{
     if (portalBrandSet.size && !portalBrandSet.has(d.brand)) return false;
@@ -1600,6 +1614,16 @@ export default function App() {
                 We may earn a commission when you buy through these links — your price never changes. <button onClick={()=>setShowLegal("affiliate")} style={{background:"none",border:"none",color:T.accent,cursor:"pointer",padding:0,fontFamily:"inherit",fontSize:11,textDecoration:"underline"}}>Disclosure</button>
               </div>
               <div style={{display:"flex",gap:20,marginBottom:32,flexWrap:"wrap",alignItems:"center"}}>
+                <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>SORT</span>
+                  <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"5px 10px",borderRadius:999,fontSize:12,fontWeight:600,border:`1px solid ${T.border}`,background:T.bgCard,color:T.text,cursor:"pointer",fontFamily:"inherit"}}>
+                    <option value="discount">Biggest % off</option>
+                    <option value="newest">Newest</option>
+                    <option value="lowest">Lowest price</option>
+                    <option value="highest">Highest price</option>
+                    <option value="brand">Brand A-Z</option>
+                  </select>
+                </div>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
                   {memberNames.map((m,i)=>{
