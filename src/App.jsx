@@ -625,6 +625,19 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
               <code style={{color:T.orange,fontSize:20,fontWeight:800,letterSpacing:"0.15em"}}>{deal.coupon}</code>
             </div>
           )}
+          <button
+            onClick={async()=>{
+              const url = window.location.origin + "/?deal=" + deal.id;
+              const shareData = { title: deal.brand + " " + deal.product, text: deal.brand + " " + deal.product + " - $" + deal.sale, url };
+              try {
+                if (navigator.share) await navigator.share(shareData);
+                else { await navigator.clipboard.writeText(url); window.alert("Link copied to clipboard"); }
+              } catch (e) { /* user cancelled or unsupported */ }
+            }}
+            style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:"100%",background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",color:T.textSub,marginBottom:10,fontFamily:"inherit"}}
+          >
+            <span style={{fontSize:16,lineHeight:1}}>↗</span> Share this deal
+          </button>
           {onWatch && (
             <button
               onClick={()=>onWatch(deal)}
@@ -1329,7 +1342,18 @@ export default function App() {
     const PAGE = 1000;
     sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:"100",offset:"0"})
       .then(rows=>{
-        if(rows&&rows.length) setDeals(rows.map(parseDeal));
+        if(rows&&rows.length) {
+          const mapped = rows.map(parseDeal);
+          setDeals(mapped);
+          try {
+            const params = new URLSearchParams(window.location.search);
+            const sharedId = params.get("deal");
+            if (sharedId) {
+              const m = mapped.find(x => String(x.id) === sharedId);
+              if (m) setModalDeal(m);
+            }
+          } catch { /* ignore */ }
+        }
         setDealsLoading(false);
         const loadMore = async (offset) => {
           const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc",limit:String(PAGE),offset:String(offset)});
