@@ -55,6 +55,40 @@ async function loadFamily(userId, token) {
   return r.json();
 }
 
+
+async function loadWishlist(token) {
+  try {
+    const r = await fetch(SB_URL+"/rest/v1/wishlist_searches?select=id,query,created_at&muted=eq.false&order=created_at.desc", {
+      headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
+    });
+    if (!r.ok) return [];
+    const rows = await r.json();
+    return rows.map(r => ({ id:r.id, query:r.query, addedAt:r.created_at }));
+  } catch { return []; }
+}
+
+async function saveWishlistItem(query, token) {
+  try {
+    const r = await fetch(SB_URL+"/rest/v1/wishlist_searches", {
+      method:"POST",
+      headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
+      body: JSON.stringify({ query }),
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return rows[0]?.id || null;
+  } catch { return null; }
+}
+
+async function deleteWishlistItem(id, token) {
+  try {
+    await fetch(SB_URL+"/rest/v1/wishlist_searches?id=eq."+id, {
+      method:"DELETE",
+      headers:{apikey:SB_KEY, Authorization:"Bearer "+token},
+    });
+  } catch { /* ignore */ }
+}
+
 async function saveFamily(members, userId) {
   if (!members.length) return;
   const rows = members.map((m,i) => ({
@@ -937,7 +971,7 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
   );
 }
 
-function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal}) {
+function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user}) {
   const [query,setQuery]=useState("");
   const trimmed = query.trim().toLowerCase();
 
@@ -959,10 +993,20 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal}) {
   }, [query, deals]);
 
   const inWishlist = (q) => wishlist.some(w => (w.query||w.productName||"") === q);
-  const toggleWishlist = () => {
+  const toggleWishlist = async () => {
     if (!trimmed) return;
-    if (inWishlist(trimmed)) setWishlist(w => w.filter(x => (x.query||x.productName) !== trimmed));
-    else setWishlist(p => [...p, { query: trimmed, addedAt: new Date().toISOString() }]);
+    if (inWishlist(trimmed)) {
+      const existing = wishlist.find(x => (x.query||x.productName) === trimmed);
+      setWishlist(w => w.filter(x => (x.query||x.productName) !== trimmed));
+      if (user?.token && existing?.id) deleteWishlistItem(existing.id, user.token);
+    } else {
+      const localItem = { query: trimmed, addedAt: new Date().toISOString() };
+      setWishlist(p => [...p, localItem]);
+      if (user?.token) {
+        const id = await saveWishlistItem(trimmed, user.token);
+        if (id) setWishlist(p => p.map(x => x.query === trimmed && !x.id ? { ...x, id } : x));
+      }
+    }
   };
 
   return (
@@ -1132,11 +1176,12 @@ export default function App() {
       if(session){
         const u=session.user;
         const firstName=(u.user_metadata?.full_name||u.email.split("@")[0]).split(" ")[0];
-        const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
+        const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id,verified:!!u.email_confirmed_at};
         setUser(userObj);
         loadFamily(u.id,session.access_token).then(rows=>{
           if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,lookingFor:r.looking_for||[]})));
         }).catch(()=>{});
+        loadWishlist(session.access_token).then(items=>{ if(items.length) setWishlist(items); }).catch(()=>{});
       }
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{
@@ -1145,11 +1190,12 @@ export default function App() {
       } else if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED"||event==="INITIAL_SESSION")&&session){
         const u=session.user;
         const firstName=(u.user_metadata?.full_name||u.email.split("@")[0]).split(" ")[0];
-        const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id};
+        const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id,verified:!!u.email_confirmed_at};
         setUser(userObj);
         loadFamily(u.id,session.access_token).then(rows=>{
           if(rows&&rows.length)setFamily(rows.map(r=>({name:r.name,gender:r.gender||"mens",jacket:r.jacket,shirt:r.shirt,base:r.base,pants:r.pants,boots:r.boots,lookingFor:r.looking_for||[]})));
         }).catch(()=>{});
+        loadWishlist(session.access_token).then(items=>{ if(items.length) setWishlist(items); }).catch(()=>{});
       }
     });
     return ()=>subscription.unsubscribe();
@@ -1209,7 +1255,7 @@ export default function App() {
   });
   const portalCoupons=dbCoupons;
   const BRANDS_LIST=liveBrands;
-  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Family"}]:[])];
+  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
@@ -1354,7 +1400,7 @@ export default function App() {
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
-              <PriceSearch T={T} P={P} wishlist={wishlist} setWishlist={setWishlist} deals={taggedDeals} family={family} onOpenDeal={setModalDeal}/>
+              <PriceSearch T={T} P={P} wishlist={wishlist} setWishlist={setWishlist} deals={taggedDeals} family={family} onOpenDeal={setModalDeal} user={user}/>
             </div>
           </div>
         )}
@@ -1387,7 +1433,7 @@ export default function App() {
             {!user?(
               <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
                 <div style={{marginTop:80}}/>
-                <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Family Profiles</h2>
+                <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Profile</h2>
                 <p style={{fontSize:15,color:T.textSub,maxWidth:440,lineHeight:1.7,marginBottom:32}}>Add everyone in your family with their sizes. Deals get automatically tagged to whoever they fit.</p>
                 <div style={{display:"flex",gap:10}}>
                   <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"13px 32px",fontWeight:700,fontSize:15,cursor:"pointer"}}>Create Free Account</button>
@@ -1398,7 +1444,7 @@ export default function App() {
               <>
                 <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
                   <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
-                    <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Family Profiles</h1>
+                    <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Profile</h1>
                     <p style={{color:T.panelSub,fontSize:14}}>Deals auto-tagged by size · AI gear advisor per member</p>
                   </div>
                 </div>
@@ -1451,6 +1497,21 @@ export default function App() {
                     );
                   })}
                   <AddMemberCard setFamily={setFamily} T={T}/>
+                </div>
+                <div style={{marginTop:48,padding:"24px",border:`1px solid ${T.redBorder}`,borderRadius:12,background:T.redLight}}>
+                  <div style={{fontSize:11,color:T.red,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:8}}>DANGER ZONE</div>
+                  <div style={{fontSize:14,color:T.text,fontWeight:600,marginBottom:6}}>Delete your account</div>
+                  <div style={{fontSize:12,color:T.textSub,marginBottom:14,lineHeight:1.6}}>Removes your login, family profiles, saved searches, and wishlist alerts. Cannot be undone.</div>
+                  <button onClick={async()=>{
+                    if(!window.confirm("Permanently delete your account and all data? This cannot be undone."))return;
+                    try {
+                      const { error } = await supabase.rpc("delete_my_account");
+                      if (error) { window.alert("Error: "+error.message); return; }
+                      await supabase.auth.signOut();
+                      setUser(null); setFamily([]);
+                      window.alert("Account deleted.");
+                    } catch (e) { window.alert("Error: "+e.message); }
+                  }} style={{background:T.red,color:"white",border:"none",borderRadius:9,padding:"10px 18px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Delete my account</button>
                 </div>
                 </div>
               </>
