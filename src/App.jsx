@@ -1074,9 +1074,6 @@ function PrefsModal({T,prefs,setPrefs,stores,setStores,brandList,shippingMap,onC
               </div>
             </div>
           )}
-          </div>
-            </div>
-          )}
           {sec==="stores"&&(
             <div>
               <p style={{fontSize:12,color:T.textMuted,marginBottom:20,lineHeight:1.6}}>Uncheck stores you do not want to see.</p>
