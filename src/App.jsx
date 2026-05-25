@@ -53,7 +53,7 @@ const BRAND_DOMAINS = {
   "Chota Outdoor":"chotaoutdoorgear.com","Goat Knives":"goatknives.com",
   "Darn Tough":"darntough.com","FHF Gear":"fhfgear.com",
   "Peax Equipment":"peaxequipment.com","On Glass":"onglassadapter.com",
-  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com",
+  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com",
 };
 
 function BrandLogo({brand, T, size=14}) {
@@ -290,6 +290,11 @@ const STORES = [
   {id:"fhfgear",name:"FHF Gear",brand:"FHF Gear",loyalty:null,cat:"boutique"},
   {id:"peax",name:"Peax Equipment",brand:"Peax Equipment",loyalty:null,cat:"boutique"},
   {id:"onglass",name:"On Glass Adapter",brand:"On Glass",loyalty:null,cat:"boutique"},
+  {id:"lonewolfcustomgear",name:"Lone Wolf Custom Gear",brand:"Lone Wolf Custom Gear",loyalty:null,cat:"boutique"},
+  {id:"trophyline",name:"Trophyline",brand:"Trophyline",loyalty:null,cat:"boutique"},
+  {id:"higdon",name:"Higdon Outdoors",brand:"Higdon Outdoors",loyalty:null,cat:"boutique"},
+  {id:"tanglefree",name:"Tanglefree",brand:"Tanglefree",loyalty:null,cat:"boutique"},
+  {id:"rigemright",name:"Rig Em Right",brand:"Rig Em Right",loyalty:null,cat:"boutique"},
   {
     id:"gohunt",name:"GoHunt Gear",brand:"GoHunt",cat:"specialty",
     loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
@@ -318,7 +323,7 @@ const PORTALS = {
   whitetail: {
     id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",domain:"treestandsaver.com",ogImage:"https://treestandsaver.com/og-treestand-saver.png",description:"Real whitetail hunting deals — treestand, saddle, scent control, and rut gear from every brand we trust. Updated every morning. No fake markdowns.",tagline:"Whitetail · Treestand · Rut",
     accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Active Deals",heroTagline:"Real whitetail gear sales — scraped fresh every morning across treestand, saddle, scent control, and rut hunting brands. No fake markdowns. No inflated MSRPs. Just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%237a4a2a\"/><g stroke=\"%23fffdf7\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M32 54 L32 34\"/><path d=\"M32 34 L20 22 L18 12\"/><path d=\"M32 34 L44 22 L46 12\"/><path d=\"M22 24 L14 18\"/><path d=\"M22 28 L13 28\"/><path d=\"M26 20 L22 12\"/><path d=\"M42 24 L50 18\"/><path d=\"M42 28 L51 28\"/><path d=\"M38 20 L42 12\"/></g></svg>`,
-    brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Bridger Watch","Aziak","Kapture","Bridger Boiler","Keen","Katabatic Gear","Zpacks","Magview","Mtn Tough","Mtn Ops","Crispi","Yeti","Outdoor Research","Kings Camo","Marsupial Gear","Blue Coolers","Hoyt","Maven","Mathews","Forloh","Kryptek","Montana Knife Company","Kenetrek","Primos","Canvas Cutter","Outdoor Edge","Badlands","Wilderness Athlete","Outdoor Vitals","Pnuma Outdoors","Thermarest","Helinox","Duckworth","Chota Outdoor","Goat Knives","Darn Tough","FHF Gear","Peax Equipment","On Glass","GoHunt","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","Sig Sauer","Schnees","SKRE Gear","TideWe","Mossy Oak","Bone Collector","Nomad Outdoor","XOP Outdoors","Novix Outdoors","Hunting Beast Gear"],
+    brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Bridger Watch","Aziak","Kapture","Bridger Boiler","Keen","Katabatic Gear","Zpacks","Magview","Mtn Tough","Mtn Ops","Crispi","Yeti","Outdoor Research","Kings Camo","Marsupial Gear","Blue Coolers","Hoyt","Maven","Mathews","Forloh","Kryptek","Montana Knife Company","Kenetrek","Primos","Canvas Cutter","Outdoor Edge","Badlands","Wilderness Athlete","Outdoor Vitals","Pnuma Outdoors","Thermarest","Helinox","Duckworth","Chota Outdoor","Goat Knives","Darn Tough","FHF Gear","Peax Equipment","On Glass","GoHunt","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","Sig Sauer","Schnees","SKRE Gear","TideWe","Mossy Oak","Bone Collector","Nomad Outdoor","XOP Outdoors","Novix Outdoors","Hunting Beast Gear","Lone Wolf Custom Gear","Trophyline"],
     searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
@@ -332,7 +337,7 @@ const PORTALS = {
   waterfowl: {
     id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",domain:"duckblinddeals.com",ogImage:"https://duckblinddeals.com/og-duck-blind-deals.png",description:"Real waterfowl gear deals — waders, blinds, decoys, and layout gear from Drake, Sitka Waterfowl, Banded and more. Updated every morning. No fake markdowns.",tagline:"Waterfowl · Waders · Blinds",
     accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Active Deals",heroTagline:"Real waterfowl gear sales — scraped fresh every morning from every blind, wader, and decoy brand we trust. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%233a5a78\"/><g fill=\"%23fffdf7\"><path d=\"M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z\"/><circle cx=\"30\" cy=\"30\" r=\"1.5\" fill=\"%233a5a78\"/></g></svg>`,
-    brands:["Drake Waterfowl","Sitka","Kings Camo","Yeti","Garmin","onX","Vortex","Leupold","Maven","Sig Sauer","Chota Outdoor","Helinox","Nemo Equipment","Mountain House","Peak Refuel","GSI Outdoors","Mtn Ops","Benchmade","Outdoor Edge","Goat Knives","Wilderness Athlete","Mathews","Hoyt","Marsupial Gear","Outdoorsmans","Blue Coolers","Darn Tough","Duckworth","Forloh","Kryptek"],
+    brands:["Drake Waterfowl","Sitka","Yeti","Garmin","onX","Vortex","Leupold","Sig Sauer","Chota Outdoor","Helinox","Mtn Ops","Benchmade","Outdoor Edge","Wilderness Athlete","Darn Tough","Forloh","Higdon Outdoors","Tanglefree","Rig Em Right"],
     searchHint:'Try "Drake LST" or "Chota waders"...',
     searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
   },
