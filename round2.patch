@@ -1,0 +1,171 @@
+From c3f80f8975676bc635d185986d72f14a5c22d7dc Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sun, 24 May 2026 21:16:37 +0000
+Subject: [PATCH] launch-prep round 2: newsletter, verify banner, back-to-top,
+ empty state
+
+- Newsletter capture in footer writes to newsletter_subscribers table
+- VerifyBanner prompts unverified users to verify email + resend link
+- BackToTop floating button appears after 700px scroll
+- "No deals match" empty state gains a Clear filters CTA
+- User object now carries email_confirmed_at as verified flag
+---
+ src/App.jsx | 103 +++++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 98 insertions(+), 5 deletions(-)
+
+diff --git a/src/App.jsx b/src/App.jsx
+index c235927..27704ce 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -606,14 +606,99 @@ function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
+   );
+ }
+ 
++function Newsletter({T}) {
++  const [email,setEmail]=useState("");
++  const [state,setState]=useState("idle");
++  const submit=async()=>{
++    const e=email.trim().toLowerCase();
++    if(!e.includes("@")||e.length<5){setState("invalid");return;}
++    setState("loading");
++    try {
++      const r=await fetch(SB_URL+"/rest/v1/newsletter_subscribers",{
++        method:"POST",
++        headers:{...SB_H,"Content-Type":"application/json","Prefer":"return=minimal"},
++        body:JSON.stringify({email:e,source:"site_footer",user_agent:navigator.userAgent.slice(0,200)}),
++      });
++      if(r.ok||r.status===409){setState("done");setEmail("");}
++      else setState("error");
++    } catch { setState("error"); }
++  };
++  return (
++    <div style={{maxWidth:340}}>
++      <div style={{fontSize:12,fontWeight:700,color:T.panelText,marginBottom:6,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>NEW SALES TO YOUR INBOX</div>
++      <div style={{fontSize:11,color:T.panelMuted,lineHeight:1.5,marginBottom:10}}>Occasional roundup when something good drops. No spam, unsubscribe anytime.</div>
++      {state==="done"?(
++        <div style={{fontSize:12,color:T.panelAccent,fontWeight:600}}>✓ You're on the list.</div>
++      ):(
++        <div style={{display:"flex",gap:6}}>
++          <input
++            value={email}
++            onChange={e=>{setEmail(e.target.value);setState("idle");}}
++            onKeyDown={e=>e.key==="Enter"&&submit()}
++            placeholder="you@email.com"
++            type="email"
++            style={{flex:1,minWidth:0,padding:"8px 12px",borderRadius:7,border:`1px solid ${T.panelBorder}`,background:T.panelBg,color:T.panelText,fontSize:12,outline:"none",fontFamily:"inherit"}}
++          />
++          <button onClick={submit} disabled={state==="loading"} style={{background:T.panelAccent,color:T.panelBg,border:"none",borderRadius:7,padding:"8px 14px",fontWeight:700,fontSize:12,cursor:state==="loading"?"not-allowed":"pointer",whiteSpace:"nowrap"}}>
++            {state==="loading"?"...":"Join"}
++          </button>
++        </div>
++      )}
++      {state==="invalid"&&<div style={{fontSize:11,color:T.red,marginTop:6}}>Enter a valid email.</div>}
++      {state==="error"&&<div style={{fontSize:11,color:T.red,marginTop:6}}>Something went wrong — try again.</div>}
++    </div>
++  );
++}
++
++function VerifyBanner({user,T}) {
++  const [sent,setSent]=useState(false);
++  const [dismissed,setDismissed]=useState(false);
++  if (!user || user.verified || dismissed) return null;
++  const resend=async()=>{
++    try {
++      await supabase.auth.resend({type:"signup",email:user.email});
++      setSent(true);
++    } catch { setSent(true); }
++  };
++  return (
++    <div style={{background:T.orangeLight,borderBottom:`1px solid ${T.orangeBorder}`,padding:"10px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:14,flexWrap:"wrap"}}>
++      <div style={{fontSize:12,color:T.orange,fontWeight:600}}>
++        {sent?"Verification email sent — check your inbox.":"Please verify your email to lock in your account. "}
++        {!sent&&<button onClick={resend} style={{background:"none",border:"none",color:T.orange,textDecoration:"underline",cursor:"pointer",fontWeight:700,fontSize:12,padding:0,fontFamily:"inherit"}}>Resend</button>}
++      </div>
++      <button onClick={()=>setDismissed(true)} style={{background:"none",border:"none",color:T.orange,fontSize:18,cursor:"pointer",padding:0,lineHeight:1}}>×</button>
++    </div>
++  );
++}
++
++function BackToTop({T}) {
++  const [show,setShow]=useState(false);
++  useEffect(()=>{
++    const onScroll=()=>setShow(window.scrollY>700);
++    window.addEventListener("scroll",onScroll,{passive:true});
++    return ()=>window.removeEventListener("scroll",onScroll);
++  },[]);
++  if (!show) return null;
++  return (
++    <button
++      onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}
++      aria-label="Back to top"
++      style={{position:"fixed",bottom:24,right:24,zIndex:900,width:44,height:44,borderRadius:"50%",background:T.text,color:T.bgSolid,border:"none",cursor:"pointer",fontSize:18,fontWeight:700,boxShadow:`0 6px 24px ${T.shadowHov}`,display:"flex",alignItems:"center",justifyContent:"center"}}
++    >
++      ↑
++    </button>
++  );
++}
++
+ function Footer({T,onOpenLegal}) {
+   return (
+     <footer style={{background:T.panelBg,borderTop:`1px solid ${T.panelBorder}`,padding:"32px 24px 24px",marginTop:48}}>
+-      <div style={{maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"flex-start",gap:24}}>
+-        <div style={{maxWidth:380}}>
++      <div style={{maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"flex-start",gap:32}}>
++        <div style={{maxWidth:340}}>
+           <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>Timberline Deal Tracker</div>
+           <div style={{fontSize:12,color:T.panelSub,lineHeight:1.6}}>Verified hunting gear sales from 30+ Western backcountry brands, refreshed daily. No fake prices, no fake savings.</div>
+         </div>
++        <Newsletter T={T}/>
+         <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
+           <button onClick={()=>onOpenLegal("about")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>About</button>
+           <button onClick={()=>onOpenLegal("affiliate")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>Affiliate Disclosure</button>
+@@ -681,13 +766,13 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
+         const {data,error}=await supabase.auth.signUp({email,password:pass,options:{data:{full_name:firstName}}});
+         if(error){setErr(error.message);setLoading(false);return;}
+         const u=data.user;
+-        onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id});
++        onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id,verified:!!u?.email_confirmed_at});
+       } else {
+         const {data,error}=await supabase.auth.signInWithPassword({email,password:pass});
+         if(error){setErr(error.message);setLoading(false);return;}
+         const u=data.user;
+         const firstName=(u.user_metadata?.full_name||email.split("@")[0]).split(" ")[0];
+-        onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id});
++        onSuccess({email,name:firstName,avatar:email[0].toUpperCase(),token:data.session?.access_token,id:u?.id,verified:!!u?.email_confirmed_at});
+       }
+     } catch {
+       setErr("Something went wrong. Try again.");
+@@ -1188,6 +1273,7 @@ export default function App() {
+           </div>
+         </div>
+       </div>
++      <VerifyBanner user={user} T={T}/>
+       {isGuest&&(
+         <div style={{background:T.accentLight,borderBottom:`1px solid ${T.accentBorder}`,padding:"10px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,flexWrap:"wrap",position:"relative",zIndex:1}}>
+           <div style={{display:"flex",alignItems:"center",gap:10}}>
+@@ -1245,7 +1331,13 @@ export default function App() {
+               ):dealsLoading&&deals.length===0?(
+                 <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>Loading deals...</div>
+               ):filtered.length===0?(
+-                <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>No deals match these filters.</div>
++                <div style={{padding:48,textAlign:"center",gridColumn:"1 / -1"}}>
++                  <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No deals match these filters</div>
++                  <div style={{fontSize:12,color:T.textMuted,marginBottom:18,fontFamily:"'JetBrains Mono',monospace"}}>Try clearing the brand or member filter to see more.</div>
++                  {(brandFilter!=="All"||memberFilter!=="All")&&(
++                    <button onClick={()=>{setBrandFilter("All");setMemberFilter("All");}} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Clear filters</button>
++                  )}
++                </div>
+               ):filtered.map(d=>(
+                 <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T}/>
+               ))}
+@@ -1386,6 +1478,7 @@ export default function App() {
+       {showPrefs&&<PrefsModal T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} brandList={liveBrands} shippingMap={shippingMap} onClose={()=>setShowPrefs(false)}/>}
+       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)}/>
+       <LegalModal which={showLegal} T={T} onClose={()=>setShowLegal(null)}/>
++      <BackToTop T={T}/>
+       <Footer T={T} onOpenLegal={setShowLegal}/>
+     </div>
+   );
+-- 
+2.43.0
+
