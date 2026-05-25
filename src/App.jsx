@@ -309,29 +309,29 @@ function formatShipping(s, shippingMap){
 
 const PORTALS = {
   timberline: {
-    id:"timberline",name:"Timberline Deal Tracker",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",
+    id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
+    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%232d5a3d\"/><path d=\"M6 52 L22 22 L32 36 L44 16 L58 52 Z\" fill=\"%23fffdf7\"/></svg>`,
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment"],
     searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
     searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
   },
   whitetail: {
-    id:"whitetail",name:"Whitetail Deal Tracker",tagline:"Treestand · Rut · Eastern Woods",
-    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Rut Drops",
+    id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",tagline:"Whitetail · Treestand · Rut",
+    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Rut Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%237a4a2a\"/><g stroke=\"%23fffdf7\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M32 54 L32 34\"/><path d=\"M32 34 L20 22 L18 12\"/><path d=\"M32 34 L44 22 L46 12\"/><path d=\"M22 24 L14 18\"/><path d=\"M22 28 L13 28\"/><path d=\"M26 20 L22 12\"/><path d=\"M42 24 L50 18\"/><path d=\"M42 28 L51 28\"/><path d=\"M38 20 L42 12\"/></g></svg>`,
     brands:["Sitka","First Lite","Kings Camo","Drake Waterfowl","Hoyt","Mathews","Yeti","Mountain House","Peak Refuel","GSI Outdoors","Garmin","onX","Vortex","Leupold","Sig Sauer","Maven","Kenetrek","Crispi","Schnees","Outdoor Research","Mtn Ops","Wilderness Athlete","Phelps Game Calls","Primos","Montana Knife Company","Outdoor Edge","Goat Knives","Benchmade","Helinox","Thermarest","Nemo Equipment","Forloh","Kryptek","Badlands","Wildtech Gear","Marsupial Gear","Darn Tough","Duckworth"],
     searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
   turkey: {
-    id:"turkey",name:"Turkey Deal Tracker",tagline:"Calls · Decoys · Spring Gobbler",
-    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Gobbler Drops",
+    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",tagline:"Calls · Decoys · Spring Gobbler",
+    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Gobbler Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%238a6a2e\"/><g fill=\"%23fffdf7\"><circle cx=\"32\" cy=\"22\" r=\"6\"/><path d=\"M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z\"/><path d=\"M14 38 Q8 40 10 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/><path d=\"M50 38 Q56 40 54 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/></g></svg>`,
     brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
     searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
     searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
   },
   waterfowl: {
-    id:"waterfowl",name:"Duck Blind Deals",tagline:"Waterfowl · Waders · Blinds",
-    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Splash Drops",
+    id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",tagline:"Waterfowl · Waders · Blinds",
+    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Splash Drops",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%233a5a78\"/><g fill=\"%23fffdf7\"><path d=\"M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z\"/><circle cx=\"30\" cy=\"30\" r=\"1.5\" fill=\"%233a5a78\"/></g></svg>`,
     brands:["Drake Waterfowl","Sitka","Kings Camo","Yeti","Garmin","onX","Vortex","Leupold","Maven","Sig Sauer","Chota Outdoor","Helinox","Nemo Equipment","Mountain House","Peak Refuel","GSI Outdoors","Mtn Ops","Benchmade","Outdoor Edge","Goat Knives","Wilderness Athlete","Mathews","Hoyt","Marsupial Gear","Outdoorsmans","Blue Coolers","Darn Tough","Duckworth","Forloh","Kryptek"],
     searchHint:'Try "Drake LST" or "Chota waders"...',
     searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
@@ -343,7 +343,7 @@ function detectPortalId() {
     const env = import.meta.env?.VITE_PORTAL;
     if (env && PORTALS[env]) return env;
     const host = (typeof window !== "undefined" ? window.location.hostname : "").toLowerCase();
-    if (host.includes("whitetail")) return "whitetail";
+    if (host.includes("whitetail") || host.includes("treestandsaver")) return "whitetail";
     if (host.includes("turkey")) return "turkey";
     if (host.includes("waterfowl") || host.includes("duckblind")) return "waterfowl";
   } catch { /* ignore */ }
@@ -691,7 +691,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             {deal.fake?"View on "+deal.brand+" (proceed with caution)":"Shop "+deal.brand+" -- $"+deal.sale}
           </a>
           <p style={{textAlign:"center",color:T.textMuted,fontSize:10,marginTop:8,fontFamily:"'JetBrains Mono',monospace"}}>
-            Timberline earns a small commission -- never affects your price
+            {PORTAL.shortName} earns a small commission -- never affects your price
           </p>
         </div>
       </div>
@@ -882,7 +882,7 @@ function Footer({T,onOpenLegal}) {
     <footer style={{background:T.panelBg,borderTop:`1px solid ${T.panelBorder}`,padding:"32px 24px 24px",marginTop:48}}>
       <div style={{maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"flex-start",gap:32}}>
         <div style={{maxWidth:340}}>
-          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>Timberline Deal Tracker</div>
+          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>{PORTAL.name}</div>
           <div style={{fontSize:12,color:T.panelSub,lineHeight:1.6}}>Verified hunting gear sales from 30+ Western backcountry brands, refreshed daily. No fake prices, no fake savings.</div>
         </div>
         <Newsletter T={T}/>
@@ -894,7 +894,7 @@ function Footer({T,onOpenLegal}) {
         </div>
       </div>
       <div style={{maxWidth:1200,margin:"24px auto 0",paddingTop:16,borderTop:`1px solid ${T.panelBorder}`,fontSize:11,color:T.panelMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em"}}>
-        © {new Date().getFullYear()} Timberline Deal Tracker · We may earn a commission when you buy through links on this site — your price never changes.
+        © {new Date().getFullYear()} {PORTAL.name} · We may earn a commission when you buy through links on this site — your price never changes.
       </div>
     </footer>
   );
@@ -1428,7 +1428,13 @@ export default function App() {
   const P=PORTAL;
   useEffect(() => {
     try {
-      document.title = PORTAL.name + " — " + PORTAL.tagline.replace(/ ./g, "");
+      document.title = PORTAL.name;
+      if (PORTAL.favicon) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+        link.type = "image/svg+xml";
+        link.href = PORTAL.favicon;
+      }
     } catch { /* ignore */ }
   }, []);
   const isGuest=!user;
@@ -1507,7 +1513,7 @@ export default function App() {
       <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`,position:"sticky",top:0,zIndex:100}}>
         <div className="tl-header-inner" style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em"}}>Timberline</div>
+            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em"}}>{PORTAL.shortName || "Timberline"}</div>
             <div className="tl-header-brand-sub" style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
           </div>
           <nav className="tl-header-nav" style={{display:"flex",gap:2}}>
