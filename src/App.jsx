@@ -307,15 +307,51 @@ function formatShipping(s, shippingMap){
   return "Shipping varies — see policy";
 }
 
-const PORTAL = {
-  name:"Timberline Deal Tracker",tagline:"Western - Elk - Backcountry",
-  accent:"#2d6a4f",icon:"🏔",
-  brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Spartan Precision","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Yeti"],
-  stores:["sitka","firstlite","kuiu","stoneglacier","eberlestock","exomtn","bridgerwatch","aziak","wiserprecision","kapturegear","grakksaw","obigear","bridgerboiler","javelinbipod","sneektec","keen","katabatic","zpacks","flextail","ollin","magview","mtntough","mtnops","crispi","yeti","gohunt"],
-  searchHint:'Try "Sitka Kelvin Down" or "Vortex Razor HD 10x42"...',
-  dealCats:["Insulation","Base Layer","Wind Layer","Pants","Bibs","Packs","Optics","Boots"],
-  searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
+const PORTALS = {
+  timberline: {
+    id:"timberline",name:"Timberline Deal Tracker",tagline:"Western · Elk · Backcountry",
+    accent:"#2d6a4f",
+    brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment"],
+    searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
+    searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
+  },
+  whitetail: {
+    id:"whitetail",name:"Whitetail Deal Tracker",tagline:"Treestand · Rut · Eastern Woods",
+    accent:"#7a4a2a",
+    brands:["Sitka","First Lite","Kings Camo","Drake Waterfowl","Hoyt","Mathews","Yeti","Mountain House","Peak Refuel","GSI Outdoors","Garmin","onX","Vortex","Leupold","Sig Sauer","Maven","Kenetrek","Crispi","Schnees","Outdoor Research","Mtn Ops","Wilderness Athlete","Phelps Game Calls","Primos","Montana Knife Company","Outdoor Edge","Goat Knives","Benchmade","Helinox","Thermarest","Nemo Equipment","Forloh","Kryptek","Badlands","Wildtech Gear","Marsupial Gear","Darn Tough","Duckworth"],
+    searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
+    searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
+  },
+  turkey: {
+    id:"turkey",name:"Turkey Deal Tracker",tagline:"Calls · Decoys · Spring Gobbler",
+    accent:"#8a6a2e",
+    brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
+    searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
+    searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
+  },
+  waterfowl: {
+    id:"waterfowl",name:"Duck Blind Deals",tagline:"Waterfowl · Waders · Blinds",
+    accent:"#3a5a78",
+    brands:["Drake Waterfowl","Sitka","Kings Camo","Yeti","Garmin","onX","Vortex","Leupold","Maven","Sig Sauer","Chota Outdoor","Helinox","Nemo Equipment","Mountain House","Peak Refuel","GSI Outdoors","Mtn Ops","Benchmade","Outdoor Edge","Goat Knives","Wilderness Athlete","Mathews","Hoyt","Marsupial Gear","Outdoorsmans","Blue Coolers","Darn Tough","Duckworth","Forloh","Kryptek"],
+    searchHint:'Try "Drake LST" or "Chota waders"...',
+    searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
+  },
 };
+
+function detectPortalId() {
+  try {
+    const env = import.meta.env?.VITE_PORTAL;
+    if (env && PORTALS[env]) return env;
+    const host = (typeof window !== "undefined" ? window.location.hostname : "").toLowerCase();
+    if (host.includes("whitetail")) return "whitetail";
+    if (host.includes("turkey")) return "turkey";
+    if (host.includes("waterfowl") || host.includes("duckblind")) return "waterfowl";
+  } catch { /* ignore */ }
+  return "timberline";
+}
+
+const ACTIVE_PORTAL_ID = detectPortalId();
+const PORTAL = PORTALS[ACTIVE_PORTAL_ID];
 
 // Single brand palette — Sitka cinematic black panels + First Lite cream content + Kuiu orange CTA
 const PALETTE = {
@@ -1395,7 +1431,9 @@ export default function App() {
     [deals,family]
   );
   const sortedDeals=taggedDeals;
+  const portalBrandSet = useMemo(() => new Set(PORTAL.brands || []), []);
   const filtered=sortedDeals.filter(d=>{
+    if (portalBrandSet.size && !portalBrandSet.has(d.brand)) return false;
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;
     if(memberFilter!=="All"&&!d.tags.includes(memberFilter))return false;
     return true;
