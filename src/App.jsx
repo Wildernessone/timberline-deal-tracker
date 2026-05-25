@@ -1439,7 +1439,12 @@ export default function App() {
   }, []);
   const isGuest=!user;
   const liveBrands=useMemo(
-    ()=>[...new Set(deals.map(d=>d.brand))].sort(),
+    () => {
+      const portalSet = new Set(PORTAL.brands || []);
+      return [...new Set(deals.map(d=>d.brand))]
+        .filter(b => !portalSet.size || portalSet.has(b))
+        .sort();
+    },
     [deals]
   );
 
