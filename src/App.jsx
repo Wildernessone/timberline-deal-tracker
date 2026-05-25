@@ -20,6 +20,53 @@ const supabase = createClient(SB_URL, SB_KEY, {
 });
 const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
 
+const BRAND_DOMAINS = {
+  "Sitka":"sitkagear.com","First Lite":"firstlite.com","Kuiu":"kuiu.com",
+  "Stone Glacier":"stoneglacier.com","Eberlestock":"eberlestock.com",
+  "Exo Mtn Gear":"exomtngear.com","Kings Camo":"kingscamo.com",
+  "Kifaru":"kifaru.net","Mystery Ranch":"mysteryranch.com",
+  "Vortex":"vortexoptics.com","Leupold":"leupold.com","Swarovski":"swarovskioptik.com",
+  "Garmin":"garmin.com","onX":"onxmaps.com","GoHunt":"gohunt.com",
+  "Bridger Watch":"bridgerwatch.com","Aziak":"aziak.com",
+  "Wiser Precision":"wiserprecision.com","Kapture":"kapturegear.com",
+  "Grakksaw":"grakksaw.com","OBI":"obigear.com","Bridger Boiler":"bridgerboiler.com",
+  "Javelin Bipod":"javelinbipod.com","Sneek Tec":"sneektec.com",
+  "Keen":"keenfootwear.com","Katabatic Gear":"katabaticgear.com",
+  "Zpacks":"zpacks.com","Flextail":"flextail.com","Ollin":"ollin.co",
+  "Magview":"magview.com","Mtn Tough":"mtntough.com","Mtn Ops":"mtnops.com",
+  "Sig Sauer":"sigsauer.com","Crispi":"crispiusa.com","Yeti":"yeti.com",
+  "Drake Waterfowl":"drakewaterfowl.com","Outdoor Research":"outdoorresearch.com",
+  "Marsupial Gear":"marsupialgear.com","Outdoorsmans":"outdoorsmans.com",
+  "GSI Outdoors":"gsioutdoors.com","Blue Coolers":"bluecoolers.com",
+  "Hoyt":"hoyt.com","Mathews":"mathewsinc.com","Maven":"mavenbuilt.com",
+  "Forloh":"forloh.com","Kryptek":"kryptek.com",
+  "Montana Knife Company":"montanaknifecompany.com","Kenetrek":"kenetrek.com",
+  "Primos":"primos.com","Canvas Cutter":"canvascutter.com",
+  "Outdoor Edge":"outdooredge.com","Nemo Equipment":"nemoequipment.com",
+  "Badlands":"badlandspacks.com","Wilderness Athlete":"wildernessathlete.com",
+  "Mountain House":"mountainhouse.com","Beyond Clothing":"beyondclothing.com",
+  "Outdoor Vitals":"outdoorvitals.com","Tricer":"tricer.com",
+  "Initial Ascent":"initialascent.com","Peak Refuel":"peakrefuel.com",
+  "Sheep Feet":"sheepfeetoutdoors.com","Pnuma Outdoors":"pnumaoutdoors.com",
+  "Wildtech Gear":"wildtechgear.com","Thermarest":"thermarest.com",
+  "Helinox":"helinox.com","Duckworth":"duckworthco.com",
+  "Chota Outdoor":"chotaoutdoorgear.com","Goat Knives":"goatknives.com",
+  "Darn Tough":"darntough.com","FHF Gear":"fhfgear.com",
+  "Peax Equipment":"peaxequipment.com","On Glass":"onglassadapter.com",
+  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com",
+};
+
+function BrandLogo({brand, T, size=14}) {
+  const dom = BRAND_DOMAINS[brand];
+  const [fail, setFail] = useState(false);
+  if (!dom || fail) {
+    return <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
+  }
+  return <img src={`https://logo.clearbit.com/${dom}`} alt={brand} style={{height:size,width:"auto",maxWidth:90,objectFit:"contain",verticalAlign:"middle"}} onError={()=>setFail(true)}/>;
+}
+
+
+
 function sbGet(table,params){
   const url=new URL(SB_URL+"/rest/v1/"+table);
   if(params)Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
@@ -435,7 +482,7 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched}) {
       <div style={{padding:"22px 22px 0"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{d.brand.toUpperCase()}</span>
+            <BrandLogo brand={d.brand} T={T} size={16}/>
             <span style={{width:3,height:3,borderRadius:"50%",background:T.borderHov}}/>
             <span style={{fontSize:10,color:T.textMuted,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>{d.cat.toUpperCase()}</span>
           </div>
@@ -526,8 +573,9 @@ function DealModal({deal,family,T,onClose}) {
         <div style={{padding:"24px 28px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
             <div>
-              <div style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",marginBottom:6}}>
-                {deal.brand.toUpperCase()} | {deal.cat.toUpperCase()}
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                <BrandLogo brand={deal.brand} T={T} size={20}/>
+                <span style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em"}}>| {deal.cat.toUpperCase()}</span>
               </div>
               <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:26,color:T.text,lineHeight:1.2}}>{deal.product}</div>
             </div>
