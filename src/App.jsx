@@ -114,12 +114,12 @@ async function loadWishlist(token) {
   } catch { return []; }
 }
 
-async function saveWishlistItem(query, token) {
+async function saveWishlistItem(query, token, portal) {
   try {
     const r = await fetch(SB_URL+"/rest/v1/wishlist_searches", {
       method:"POST",
       headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, portal: portal || "timberline" }),
     });
     if (!r.ok) return null;
     const rows = await r.json();
@@ -1167,7 +1167,7 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user,onWa
       const localItem = { query: trimmed, addedAt: new Date().toISOString() };
       setWishlist(p => [...p, localItem]);
       if (user?.token) {
-        const id = await saveWishlistItem(trimmed, user.token);
+        const id = await saveWishlistItem(trimmed, user.token, PORTAL.id);
         if (id) setWishlist(p => p.map(x => x.query === trimmed && !x.id ? { ...x, id } : x));
       }
     }
@@ -1513,7 +1513,7 @@ export default function App() {
     } else {
       setWishlist(p => [...p, { query: q, addedAt: new Date().toISOString() }]);
       if (user?.token) {
-        const id = await saveWishlistItem(q, user.token);
+        const id = await saveWishlistItem(q, user.token, PORTAL.id);
         if (id) setWishlist(p => p.map(x => x.query === q && !x.id ? { ...x, id } : x));
       }
     }
