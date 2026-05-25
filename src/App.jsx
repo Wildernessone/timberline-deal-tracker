@@ -318,6 +318,7 @@ function formatShipping(s, shippingMap){
   return "Shipping varies — see policy";
 }
 
+const brandSlug = b => (b||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 const PORTALS = {
   timberline: {
     id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
@@ -1306,7 +1307,12 @@ export default function App() {
   const [tab,setTab]=useState("deals");
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
-  const [brandFilter,setBrandFilter]=useState("All");
+  const [brandFilter,setBrandFilter]=useState(()=>{
+    try {
+      const m = window.location.pathname.match(/^\/brand\/([^/]+)/);
+      return m ? "PENDING:" + decodeURIComponent(m[1]) : "All";
+    } catch { return "All"; }
+  });
   const [sortBy,setSortBy]=useState("discount");
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
@@ -1483,6 +1489,25 @@ export default function App() {
     },
     [deals]
   );
+
+  
+  useEffect(() => {
+    if (!brandFilter.startsWith("PENDING:")) return;
+    const targetSlug = brandFilter.slice(8);
+    if (!liveBrands.length) return;
+    const hit = liveBrands.find(b => brandSlug(b) === targetSlug);
+    setBrandFilter(hit || "All");
+  }, [brandFilter, liveBrands]);
+
+  useEffect(() => {
+    if (brandFilter.startsWith("PENDING:")) return;
+    try {
+      const desired = brandFilter === "All" ? "/" : "/brand/" + brandSlug(brandFilter);
+      if (window.location.pathname !== desired) {
+        window.history.replaceState(null, "", desired);
+      }
+    } catch { /* ignore */ }
+  }, [brandFilter]);
 
   const taggedDeals=useMemo(
     ()=>deals.map(d=>({...d,tags:computeTags(d,family)})),
