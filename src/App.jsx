@@ -1639,7 +1639,27 @@ export default function App() {
                   })}
                   <AddMemberCard setFamily={setFamily} T={T}/>
                 </div>
-                <div style={{marginTop:48,padding:"24px",border:`1px solid ${T.redBorder}`,borderRadius:12,background:T.redLight}}>
+                <div style={{marginTop:48,padding:"24px",border:`1px solid ${T.border}`,borderRadius:12,background:T.bgCard}}>
+                  <div style={{fontSize:11,color:T.textMuted,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:12}}>WATCHING & SAVED SEARCHES</div>
+                  <div style={{fontSize:12,color:T.textSub,marginBottom:14,lineHeight:1.6}}>We email you when matching deals appear. Click the X to stop watching.</div>
+                  {wishlist.length === 0 ? (
+                    <div style={{fontSize:13,color:T.textMuted,fontStyle:"italic"}}>Nothing watched yet. Click the ☆ on any deal to start.</div>
+                  ) : (
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                      {wishlist.map((w, i) => (
+                        <span key={w.id || i} style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:999,padding:"6px 8px 6px 14px",fontSize:13,fontWeight:600,display:"inline-flex",alignItems:"center",gap:8}}>
+                          {w.query || w.productName}
+                          <button onClick={() => {
+                            const q = w.query || w.productName;
+                            setWishlist(prev => prev.filter(x => (x.query||x.productName) !== q));
+                            if (user?.token && w.id) deleteWishlistItem(w.id, user.token);
+                          }} style={{background:"none",border:"none",cursor:"pointer",color:T.accent,fontSize:16,lineHeight:1,padding:"0 4px",opacity:0.7}}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{marginTop:32,padding:"24px",border:`1px solid ${T.redBorder}`,borderRadius:12,background:T.redLight}}>
                   <div style={{fontSize:11,color:T.red,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:8}}>DANGER ZONE</div>
                   <div style={{fontSize:14,color:T.text,fontWeight:600,marginBottom:6}}>Delete your account</div>
                   <div style={{fontSize:12,color:T.textSub,marginBottom:14,lineHeight:1.6}}>Removes your login, family profiles, saved searches, and wishlist alerts. Cannot be undone.</div>
