@@ -62,7 +62,7 @@ function BrandLogo({brand, T, size=14}) {
   if (!dom || fail) {
     return <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
   }
-  return <img src={`https://logo.clearbit.com/${dom}`} alt={brand} style={{height:size,width:"auto",maxWidth:90,objectFit:"contain",verticalAlign:"middle"}} onError={()=>setFail(true)}/>;
+  return <img src={`https://www.google.com/s2/favicons?domain=${dom}&sz=64`} alt={brand} style={{height:size,width:"auto",maxWidth:90,objectFit:"contain",verticalAlign:"middle"}} onError={()=>setFail(true)}/>;
 }
 
 
