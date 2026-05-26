@@ -1303,6 +1303,89 @@ function AddMemberCard({setFamily, T}) {
 }
 
 
+
+const ADMIN_EMAILS = ["jamesreed@tutamail.com"];
+const SEASON_MULT = {1:0.7,2:0.7,3:0.6,4:0.6,5:0.5,6:0.7,7:0.7,8:1.2,9:1.5,10:1.8,11:2.0,12:1.4};
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function AdminDashboard({T, user}) {
+  const [clicks, setClicks] = useState(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => {
+    if (!user?.token) return;
+    const since = new Date(Date.now() - 30*86400000).toISOString();
+    fetch(SB_URL + "/rest/v1/clicks?select=created_at,brand,session_id,deal_id&created_at=gte." + since + "&limit=10000", {
+      headers: { apikey: SB_KEY, Authorization: "Bearer " + user.token }
+    })
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(setClicks)
+      .catch(e => setErr(String(e)));
+  }, [user]);
+  if (err) return <div style={{color:T.red,padding:32}}>Failed to load: {err}</div>;
+  if (!clicks) return <div style={{padding:32,color:T.textMuted}}>Loading admin stats...</div>;
+  const EST_CR = 0.04, EST_AOV = 110, COMMISSION = 0.07, MAU_RATIO = 0.10;
+  const now = Date.now();
+  const stats = new Map();
+  for (const cl of clicks) {
+    const b = cl.brand || "(unknown)";
+    const age = now - new Date(cl.created_at).getTime();
+    if (!stats.has(b)) stats.set(b, { c1:0, c7:0, c30:0, sessions:new Set() });
+    const s = stats.get(b);
+    s.c30++;
+    if (age < 7*86400000) s.c7++;
+    if (age < 86400000) s.c1++;
+    s.sessions.add(cl.session_id);
+  }
+  const totalClicks = clicks.length;
+  const totalSessions = new Set(clicks.map(c=>c.session_id)).size;
+  const cps = totalSessions ? totalClicks/totalSessions : 0;
+  const rows = [...stats.entries()].map(([brand,s])=>({brand, c1:s.c1, c7:s.c7, c30:s.c30, sessions:s.sessions.size, rev: s.c30*EST_CR*EST_AOV*COMMISSION})).sort((a,b)=>b.c30-a.c30);
+  const projAt = u => (u * MAU_RATIO * 30) * cps * EST_CR * EST_AOV * COMMISSION;
+  const proj10k = projAt(10000);
+  const cell = (text, align="left") => <td style={{padding:"8px 12px",fontSize:12,color:T.text,textAlign:align,borderBottom:`1px solid ${T.border}`}}>{text}</td>;
+  const head = (text, align="left") => <th style={{padding:"10px 12px",fontSize:10,color:T.textMuted,textAlign:align,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em",borderBottom:`1px solid ${T.border}`,fontWeight:700}}>{text}</th>;
+  const card = (title, value) => (
+    <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:"18px 22px",flex:"1 1 180px"}}>
+      <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:6}}>{title}</div>
+      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text}}>{value}</div>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:24}}>
+        {card("CLICKS · 30D", totalClicks)}
+        {card("UNIQUE SESSIONS", totalSessions)}
+        {card("CLICKS/SESSION", cps.toFixed(2))}
+        {card("EST REVENUE · 30D", "$" + rows.reduce((a,b)=>a+b.rev,0).toFixed(2))}
+      </div>
+      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:22,color:T.text,marginBottom:12}}>Per-brand (30d)</div>
+      <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden",marginBottom:32}}>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead><tr>{head("BRAND")}{head("24H","right")}{head("7D","right")}{head("30D","right")}{head("SESS","right")}{head("EST $","right")}</tr></thead>
+          <tbody>{rows.length === 0 ? <tr><td colSpan="6" style={{padding:24,textAlign:"center",color:T.textMuted}}>No clicks yet</td></tr> : rows.map(r=>(<tr key={r.brand}>{cell(r.brand)}{cell(r.c1,"right")}{cell(r.c7,"right")}{cell(r.c30,"right")}{cell(r.sessions,"right")}{cell("$"+r.rev.toFixed(2),"right")}</tr>))}</tbody>
+        </table>
+      </div>
+      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:22,color:T.text,marginBottom:12}}>Projections</div>
+      <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden",marginBottom:32}}>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead><tr>{head("USERS")}{head("MONTHLY","right")}{head("ANNUAL","right")}</tr></thead>
+          <tbody>{[1000,5000,10000,25000,100000].map(n=>{const m=projAt(n);return(<tr key={n}>{cell(n.toLocaleString())}{cell("$"+m.toFixed(0),"right")}{cell("$"+(m*12).toFixed(0),"right")}</tr>);})}</tbody>
+        </table>
+      </div>
+      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:22,color:T.text,marginBottom:12}}>Seasonal forecast @ 10k users</div>
+      <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
+        <table style={{width:"100%",borderCollapse:"collapse"}}>
+          <thead><tr>{head("MONTH")}{head("MULTIPLIER","right")}{head("EST REVENUE","right")}</tr></thead>
+          <tbody>{MONTH_NAMES.map((m,i)=>{const mult=SEASON_MULT[i+1];const rev=proj10k*mult;return(<tr key={m}>{cell(m)}{cell(mult.toFixed(1)+"x","right")}{cell("$"+rev.toFixed(0),"right")}</tr>);})}
+          <tr><td style={{padding:"12px",fontSize:13,fontWeight:700,color:T.text,borderTop:`2px solid ${T.border}`}}>ANNUAL</td><td/><td style={{padding:"12px",fontSize:13,fontWeight:800,color:T.accent,textAlign:"right",borderTop:`2px solid ${T.border}`}}>${MONTH_NAMES.reduce((a,_,i)=>a+proj10k*SEASON_MULT[i+1],0).toFixed(0)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style={{fontSize:11,color:T.textMuted,marginTop:18,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em"}}>Assumes 10% MAU/total · 4% conversion · $110 AOV · 7% avg commission</div>
+    </div>
+  );
+}
+
 export default function App() {
   const [tab,setTab]=useState("deals");
   const [family,setFamily]=useState(INIT_FAMILY);
@@ -1553,7 +1636,8 @@ export default function App() {
     }
   };
 
-  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[]),...(isAdmin?[{id:"admin",label:"Admin"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
