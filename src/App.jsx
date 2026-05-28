@@ -1397,6 +1397,10 @@ export default function App() {
     } catch { return "All"; }
   });
   const [sortBy,setSortBy]=useState("discount");
+  const [familyOnly,setFamilyOnly]=useState(()=>{
+    try { const v = localStorage.getItem("tl_family_only"); return v === null ? true : v === "true"; } catch { return true; }
+  });
+  useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch {} }, [familyOnly]);
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
   const [wishlist,setWishlist]=useState([]);
@@ -1614,6 +1618,7 @@ export default function App() {
     if (portalBrandSet.size && !portalBrandSet.has(d.brand)) return false;
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;
     if(memberFilter!=="All"&&!d.tags.includes(memberFilter))return false;
+    if(familyOnly && user && family.length && memberFilter==="All" && d.tags.length===0) return false;
     return true;
   });
   const portalCoupons=dbCoupons;
@@ -1735,6 +1740,12 @@ export default function App() {
                     <option value="highest">Highest price</option>
                     <option value="brand">Brand A-Z</option>
                   </select>
+                  {user && family.length > 0 && (
+                    <label style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:999,fontSize:12,fontWeight:600,border:`1px solid ${familyOnly?T.accent:T.border}`,background:familyOnly?T.accentLight:T.bgCard,color:familyOnly?T.accent:T.textMuted,cursor:"pointer"}}>
+                      <input type="checkbox" checked={familyOnly} onChange={e=>setFamilyOnly(e.target.checked)} style={{margin:0,accentColor:T.accent}}/>
+                      Fits my family
+                    </label>
+                  )}
                 </div>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
