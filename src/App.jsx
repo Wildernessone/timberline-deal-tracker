@@ -1401,6 +1401,17 @@ export default function App() {
     try { const v = localStorage.getItem("tl_family_only"); return v === null ? true : v === "true"; } catch { return true; }
   });
   useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch {} }, [familyOnly]);
+  useEffect(() => {
+    fetch(SB_URL + "/rest/v1/deal_click_counts?select=deal_id,clicks_7d", { headers: SB_H })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => {
+        const m = {};
+        for (const r of rows) m[r.deal_id] = r.clicks_7d;
+        setClickCounts(m);
+      })
+      .catch(()=>{});
+  }, []);
+
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
   const [wishlist,setWishlist]=useState([]);
@@ -1410,6 +1421,7 @@ export default function App() {
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
+  const [clickCounts,setClickCounts]=useState({});
   const [dealsLoading,setDealsLoading]=useState(true);
   const [dealsError,setDealsError]=useState(false);
   const [dbCoupons,setDbCoupons]=useState([]);
@@ -1597,8 +1609,8 @@ export default function App() {
   }, [brandFilter]);
 
   const taggedDeals=useMemo(
-    ()=>deals.map(d=>({...d,tags:computeTags(d,family)})),
-    [deals,family]
+    ()=>deals.map(d=>({...d,tags:computeTags(d,family),clicks7d:clickCounts[d.id]||0})),
+    [deals,family,clickCounts]
   );
   const sortedDeals=useMemo(()=>{
     const arr=[...taggedDeals];
@@ -1611,6 +1623,7 @@ export default function App() {
     else if(sortBy==="lowest") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || a.sale-b.sale);
     else if(sortBy==="highest") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || b.sale-a.sale);
     else if(sortBy==="brand") arr.sort((a,b)=>(a.brand||"").localeCompare(b.brand||""));
+    else if(sortBy==="trending") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || (b.clicks7d||0)-(a.clicks7d||0));
     return arr;
   },[taggedDeals,sortBy]);
   const portalBrandSet = useMemo(() => new Set(PORTAL.brands || []), []);
@@ -1735,6 +1748,7 @@ export default function App() {
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>SORT</span>
                   <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"5px 10px",borderRadius:999,fontSize:12,fontWeight:600,border:`1px solid ${T.border}`,background:T.bgCard,color:T.text,cursor:"pointer",fontFamily:"inherit"}}>
                     <option value="discount">Biggest % off</option>
+                    <option value="trending">🔥 Trending</option>
                     <option value="newest">Newest</option>
                     <option value="lowest">Lowest price</option>
                     <option value="highest">Highest price</option>
