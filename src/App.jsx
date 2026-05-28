@@ -499,7 +499,7 @@ function SizePicker({field, value, onChange, T, col}) {
 }
 
 
-function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched}) {
+function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,inCompare}) {
   const [hov,setHov]=useState(false);
   const disc=Math.round((1-d.sale/d.orig)*100);
   const save=Math.round((d.orig-d.sale)*100)/100;
@@ -585,6 +585,13 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched}) {
             aria-label="Watch product"
             style={{background:isWatched?T.accentLight:T.bgSolid,border:`1px solid ${isWatched?T.accent:T.border}`,borderRadius:9,padding:"8px 10px",fontSize:14,cursor:"pointer",color:isWatched?T.accent:T.textMuted,fontWeight:700,lineHeight:1}}
           >{isWatched?"★":"☆"}</button>
+        )}
+        {onCompare && (
+          <button
+            onClick={e=>{e.stopPropagation();onCompare(d);}}
+            title={inCompare?"Remove from compare":"Add to compare (up to 3)"}
+            style={{background:inCompare?T.accentLight:T.bgSolid,border:`1px solid ${inCompare?T.accent:T.border}`,borderRadius:9,padding:"8px 10px",fontSize:11,cursor:"pointer",color:inCompare?T.accent:T.textMuted,fontWeight:700,lineHeight:1}}
+          >⇄</button>
         )}
         <a
           href={d.url} target="_blank" rel="noopener noreferrer"
@@ -1422,6 +1429,9 @@ export default function App() {
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
   const [clickCounts,setClickCounts]=useState({});
+  const [compareList,setCompareList]=useState([]);
+  const [showCompare,setShowCompare]=useState(false);
+  const toggleCompare = d => setCompareList(p => p.find(x=>x.id===d.id) ? p.filter(x=>x.id!==d.id) : (p.length>=3 ? p : [...p, d]));
   const [dealsLoading,setDealsLoading]=useState(true);
   const [dealsError,setDealsError]=useState(false);
   const [dbCoupons,setDbCoupons]=useState([]);
@@ -1800,7 +1810,7 @@ export default function App() {
                   )}
                 </div>
               ):filtered.map(d=>(
-                <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T} onWatch={handleWatch} isWatched={isWatched(d)}/>
+                <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T} onWatch={handleWatch} isWatched={isWatched(d)} onCompare={toggleCompare} inCompare={compareList.some(x=>x.id===d.id)}/>
               ))}
               </div>
             </div>
