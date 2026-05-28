@@ -1884,6 +1884,19 @@ export default function App() {
             </div>
           </div>
         )}
+                {tab==="admin"&&isAdmin&&(
+          <div style={{animation:"fadeUp 0.3s ease"}}>
+            <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Admin</h1>
+                <p style={{color:T.panelSub,fontSize:14}}>Click traffic · projections · seasonal forecast</p>
+              </div>
+            </div>
+            <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
+              <AdminDashboard T={T} user={user}/>
+            </div>
+          </div>
+        )}
         {tab==="family"&&(
           <div style={{animation:"fadeUp 0.25s ease"}}>
             {!user?(
