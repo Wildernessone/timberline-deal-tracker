@@ -701,6 +701,10 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
               <span style={{fontSize:18,lineHeight:1}}>{isWatched?"★":"☆"}</span>
               {isWatched?"Watching - we'll email when it drops":"Watch this product - email me when on sale"}
             </button>
+            <details style={{marginTop:8,fontSize:12,color:"#6b6b5a"}}>
+              <summary style={{cursor:"pointer",padding:"6px 0",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",fontSize:11}}>Embed this deal on your site</summary>
+              <input readOnly value={`<iframe src="https://${(typeof window!=="undefined"?window.location.hostname:"timberlinedeals.com")}/embed/deal/${deal.id}" width="400" height="120" frameborder="0" style="border:0;border-radius:12px;"></iframe>`} onClick={e=>e.target.select()} style={{width:"100%",fontFamily:"'JetBrains Mono',monospace",fontSize:10,padding:"8px 10px",border:"1px solid #e6e1d4",borderRadius:6,marginTop:6,background:"#fbfaf6"}}/>
+            </details>
           )}
           <a
             href={deal.url} target="_blank" rel="noopener noreferrer"
@@ -1393,7 +1397,34 @@ function AdminDashboard({T, user}) {
   );
 }
 
+
+function EmbedCard({dealId}) {
+  const [d, setD] = useState(null);
+  useEffect(() => {
+    fetch(SB_URL + "/rest/v1/deals?id=eq." + dealId + "&select=id,brand,product,sale_price,orig_price,url,image_url&limit=1", { headers: SB_H })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => setD(rows[0] || null))
+      .catch(()=>{});
+  }, [dealId]);
+  if (!d) return <div style={{padding:20,fontFamily:"Inter,system-ui,sans-serif",fontSize:13,color:"#666"}}>Loading...</div>;
+  const orig = parseFloat(d.orig_price), sale = parseFloat(d.sale_price);
+  const disc = orig > sale ? Math.round((1-sale/orig)*100) : 0;
+  return (
+    <a href={d.url + "?ref=embed"} target="_top" style={{display:"flex",gap:12,padding:14,background:"#fbfaf6",border:"1px solid #e6e1d4",borderRadius:12,textDecoration:"none",color:"#1a1815",fontFamily:"Inter,system-ui,sans-serif",maxWidth:380,margin:0,boxSizing:"border-box"}}>
+      {d.image_url && <img src={d.image_url} alt={d.product} style={{width:80,height:80,objectFit:"cover",borderRadius:8,flexShrink:0}}/>}
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:9,color:"#2d5a3d",letterSpacing:"0.12em",fontFamily:"'Courier New',monospace",fontWeight:700,marginBottom:3}}>{(d.brand||"").toUpperCase()}</div>
+        <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:14,lineHeight:1.2,marginBottom:6,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{d.product}</div>
+        <div style={{fontSize:15,fontWeight:800}}>${sale}{disc > 0 && <span style={{textDecoration:"line-through",color:"#9a968c",fontWeight:400,marginLeft:8,fontSize:12}}>${orig}</span>}{disc > 0 && <span style={{color:"#c4501e",fontWeight:700,marginLeft:8,fontSize:12}}>-{disc}%</span>}</div>
+        <div style={{fontSize:9,color:"#9a968c",marginTop:6,fontFamily:"'Courier New',monospace",letterSpacing:"0.08em"}}>via {PORTAL.shortName||"TIMBERLINE"}</div>
+      </div>
+    </a>
+  );
+}
+
 export default function App() {
+  const embedMatch = (typeof window !== "undefined") ? window.location.pathname.match(/^\/embed\/deal\/([0-9a-f-]+)/i) : null;
+  if (embedMatch) return <EmbedCard dealId={embedMatch[1]}/>;
   const [tab,setTab]=useState("deals");
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
