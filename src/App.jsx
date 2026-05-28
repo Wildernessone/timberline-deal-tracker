@@ -701,11 +701,11 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
               <span style={{fontSize:18,lineHeight:1}}>{isWatched?"★":"☆"}</span>
               {isWatched?"Watching - we'll email when it drops":"Watch this product - email me when on sale"}
             </button>
-            <details style={{marginTop:8,fontSize:12,color:"#6b6b5a"}}>
-              <summary style={{cursor:"pointer",padding:"6px 0",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",fontSize:11}}>Embed this deal on your site</summary>
-              <input readOnly value={`<iframe src="https://${(typeof window!=="undefined"?window.location.hostname:"timberlinedeals.com")}/embed/deal/${deal.id}" width="400" height="120" frameborder="0" style="border:0;border-radius:12px;"></iframe>`} onClick={e=>e.target.select()} style={{width:"100%",fontFamily:"'JetBrains Mono',monospace",fontSize:10,padding:"8px 10px",border:"1px solid #e6e1d4",borderRadius:6,marginTop:6,background:"#fbfaf6"}}/>
-            </details>
           )}
+          <details style={{marginTop:8,fontSize:12,color:"#6b6b5a",marginBottom:10}}>
+            <summary style={{cursor:"pointer",padding:"6px 0",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",fontSize:11}}>Embed this deal on your site</summary>
+            <input readOnly value={`<iframe src="https://${(typeof window!=="undefined"?window.location.hostname:"timberlinedeals.com")}/embed/deal/${deal.id}" width="400" height="120" frameborder="0" style="border:0;border-radius:12px;"></iframe>`} onClick={e=>e.target.select()} style={{width:"100%",fontFamily:"'JetBrains Mono',monospace",fontSize:10,padding:"8px 10px",border:"1px solid #e6e1d4",borderRadius:6,marginTop:6,background:"#fbfaf6"}}/>
+          </details>
           <a
             href={deal.url} target="_blank" rel="noopener noreferrer"
             onClick={()=>logClick(deal)}
