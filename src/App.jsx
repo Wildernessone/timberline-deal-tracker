@@ -1987,6 +1987,42 @@ export default function App() {
             }} onClose={()=>setShowAuth(false)}/>}
       
       <DealModal deal={modalDeal} family={family} T={T} onClose={()=>setModalDeal(null)} onWatch={handleWatch} isWatched={modalDeal?isWatched(modalDeal):false}/>
+      {compareList.length > 0 && (
+        <div onClick={()=>setShowCompare(true)} style={{position:"fixed",bottom:24,right:24,zIndex:1500,background:T.accent,color:"white",border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow:"0 8px 24px rgba(0,0,0,0.25)",display:"flex",alignItems:"center",gap:10}}>
+          ⇄ Compare ({compareList.length})
+        </div>
+      )}
+      {showCompare && (
+        <div onClick={()=>setShowCompare(false)} style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(6px)"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:T.bgSolid,borderRadius:20,maxWidth:1100,width:"100%",maxHeight:"92vh",overflow:"auto",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`,padding:"24px 28px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text}}>Compare ({compareList.length})</div>
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={()=>setCompareList([])} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,color:T.textSub,fontWeight:600}}>Clear all</button>
+                <button onClick={()=>setShowCompare(false)} style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub}}>x</button>
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:`repeat(${compareList.length},1fr)`,gap:16}}>
+              {compareList.map(d => {
+                const disc = d.orig > d.sale ? Math.round((1 - d.sale/d.orig)*100) : 0;
+                return (
+                  <div key={d.id} style={{border:`1px solid ${T.border}`,borderRadius:12,padding:16,background:T.bgCard,position:"relative"}}>
+                    <button onClick={()=>toggleCompare(d)} style={{position:"absolute",top:8,right:8,background:T.border,border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:T.textSub,lineHeight:1}}>x</button>
+                    {d.image && <div style={{width:"100%",paddingBottom:"66%",background:T.bgSolid,borderRadius:8,marginBottom:12,position:"relative",overflow:"hidden"}}><img src={d.image} alt={d.product} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/></div>}
+                    <div style={{fontSize:10,color:T.accent,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,marginBottom:4}}>{(d.brand||"").toUpperCase()}</div>
+                    <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:10,lineHeight:1.25}}>{d.product}</div>
+                    <div style={{fontSize:22,fontWeight:800,color:T.text}}>${d.sale}</div>
+                    {disc > 0 && <div style={{fontSize:12,color:T.textMuted,marginBottom:6}}><span style={{textDecoration:"line-through"}}>${d.orig}</span> <span style={{color:"#c4501e",fontWeight:700,marginLeft:6}}>-{disc}%</span></div>}
+                    <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em",marginTop:10,marginBottom:4}}>SIZES</div>
+                    <div style={{fontSize:11,color:T.textSub,marginBottom:14,lineHeight:1.5}}>{[...(d.sizes?.mens||[]),...(d.sizes?.womens||[]),...(d.sizes?.youth||[])].join(" · ")||"—"}</div>
+                    <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={()=>logClick(d)} style={{display:"block",textAlign:"center",background:T.accent,color:"white",borderRadius:8,padding:"10px 0",textDecoration:"none",fontSize:12,fontWeight:700}}>Shop {d.brand}</a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
       <LegalModal which={showLegal} T={T} onClose={()=>setShowLegal(null)}/>
       <BackToTop T={T}/>
       <Footer T={T} onOpenLegal={setShowLegal}/>
