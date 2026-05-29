@@ -906,7 +906,7 @@ function Footer({T,onOpenLegal}) {
       <div style={{maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"flex-start",gap:32}}>
         <div style={{maxWidth:340}}>
           <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>{PORTAL.name}</div>
-          <div style={{fontSize:12,color:T.panelSub,lineHeight:1.6}}>Verified hunting gear sales from 30+ Western backcountry brands, refreshed daily. No fake prices, no fake savings.</div>
+          <div style={{fontSize:12,color:T.panelSub,lineHeight:1.6}}>Verified hunting gear sales from 70+ Western backcountry brands, refreshed daily. No fake prices, no fake savings.</div>
         </div>
         <Newsletter T={T}/>
         <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
@@ -1874,7 +1874,7 @@ export default function App() {
                   <div style={{background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,cursor:"pointer",boxShadow:`0 2px 12px ${T.shadow}`,border:`1px solid ${c.verified?T.border:T.redBorder}`}}>
                     <div>
                       <div style={{fontSize:11,fontWeight:700,color:T.accent,letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:5}}>{c.brand.toUpperCase()}</div>
-                      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:5}}>{c.discount}</div>
+                      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:5,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden",lineHeight:1.25}}>{c.discount}</div>
                       <div style={{fontSize:12,color:T.textMuted}}>Expires {c.expires} | {c.verified?"Verified today":"Unverified"}</div>
                     </div>
                     <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:10,padding:"10px 22px",fontSize:22,fontWeight:800,letterSpacing:"0.15em"}}>{c.code}</code>
