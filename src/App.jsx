@@ -1782,7 +1782,7 @@ export default function App() {
                     <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>{PORTAL.heroTitle || "Active Deals"}</h1>
                     <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em",margin:0}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
                   </div>
-                  {PORTAL.heroTagline && <p style={{color:T.panelText,opacity:0.85,fontSize:14,lineHeight:1.5,maxWidth:440,fontFamily:"'Fraunces',Georgia,serif",fontWeight:400,fontStyle:"italic",margin:0,textAlign:"right",flex:"0 1 440px",alignSelf:"center"}}>{PORTAL.heroTagline}</p>}
+                  {PORTAL.heroTagline && <p style={{color:T.panelText,opacity:0.85,fontSize:14,lineHeight:1.5,maxWidth:620,fontFamily:"'Fraunces',Georgia,serif",fontWeight:400,fontStyle:"italic",margin:0,textAlign:"right",flex:"0 1 620px",alignSelf:"center"}}>{PORTAL.heroTagline}</p>}
                 </div>
               </div>
             </div>
