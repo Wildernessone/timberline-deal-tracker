@@ -1774,7 +1774,7 @@ export default function App() {
         {tab==="deals"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"40px 32px 36px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:14,letterSpacing:"-0.02em",lineHeight:1.05}}>{PORTAL.heroTitle || "Active Deals"}</h1>
                 {PORTAL.heroTagline && <p style={{color:T.panelText,opacity:0.85,fontSize:16,lineHeight:1.55,marginBottom:14,maxWidth:780,fontFamily:"'Fraunces',Georgia,serif",fontWeight:400}}>{PORTAL.heroTagline}</p>}
                 <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em"}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
@@ -1850,7 +1850,7 @@ export default function App() {
         {tab==="search"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"40px 32px 36px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
               </div>
@@ -1863,7 +1863,7 @@ export default function App() {
         {tab==="coupons"&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"40px 32px 36px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Verified today. Click any card to visit the brand.</p>
               </div>
@@ -1887,7 +1887,7 @@ export default function App() {
                 {tab==="admin"&&isAdmin&&(
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"40px 32px 36px"}}>
                 <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Admin</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Click traffic · projections · seasonal forecast</p>
               </div>
@@ -1912,7 +1912,7 @@ export default function App() {
             ):(
               <>
                 <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-                  <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"56px 32px 48px"}}>
+                  <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"40px 32px 36px"}}>
                     <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Profile</h1>
                     <p style={{color:T.panelSub,fontSize:14}}>Deals auto-tagged by size · AI gear advisor per member</p>
                   </div>
