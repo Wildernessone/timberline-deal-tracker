@@ -26,3 +26,10 @@ dist-ssr
 
 public/sitemap.xml
 public/feed.xml
+
+# SSH keys / secrets — never commit these
+id_rsa
+id_ed25519
+*.pem
+*.key
+ssh root@*
