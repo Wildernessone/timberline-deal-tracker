@@ -59,10 +59,14 @@ const BRAND_DOMAINS = {
 function BrandLogo({brand, T, size=14}) {
   const dom = BRAND_DOMAINS[brand];
   const [fail, setFail] = useState(false);
-  if (!dom || fail) {
-    return <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
-  }
-  return <img src={`https://www.google.com/s2/favicons?domain=${dom}&sz=64`} alt={brand} style={{height:size,width:"auto",maxWidth:90,objectFit:"contain",verticalAlign:"middle"}} onError={()=>setFail(true)}/>;
+  const txt = <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
+  if (!dom || fail) return txt;
+  return (
+    <span style={{display:"inline-flex",alignItems:"center",gap:6,verticalAlign:"middle"}}>
+      <img src={`https://www.google.com/s2/favicons?domain=${dom}&sz=64`} alt="" style={{height:size,width:size,objectFit:"contain",borderRadius:3}} onError={()=>setFail(true)}/>
+      {txt}
+    </span>
+  );
 }
 
 
