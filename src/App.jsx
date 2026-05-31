@@ -177,12 +177,24 @@ function fieldsForCat(cat){
   for(const k in CAT_TO_FIELDS){if(c===k||c.includes(k))return CAT_TO_FIELDS[k];}
   return null;
 }
+function productGender(deal){
+  const n=(deal.product||"").toLowerCase();
+  if(/\b(kids?|kid'?s|youth|toddler|junior|jr|infant|baby|boys?|girls?)\b/.test(n)) return "youth";
+  if(/\bwomen|woman'?s|womens|ladies|female|wmn/.test(n)) return "womens";
+  if(/\bmen'?s\b|\bmens\b|\bmale\b/.test(n)) return "mens";
+  return null;
+}
 function computeTags(deal, family){
+  // A product whose name explicitly states a gender/age (women's, youth, men's) is only
+  // ever relevant to family members of that gender -- regardless of whether size data parsed.
+  const pg=productGender(deal);
+  const elig=pg?family.filter(m=>m.gender===pg):family;
+  if(!elig.length) return [];
   const fields=fieldsForCat(deal.cat);
-  if(!fields) return family.map(m=>m.name);
+  if(!fields) return elig.map(m=>m.name);
   const noSizeData = !deal.sizes.mens.length && !deal.sizes.womens.length && !deal.sizes.youth.length;
-  if(noSizeData) return family.map(m=>m.name);
-  return family.filter(m=>{
+  if(noSizeData) return elig.map(m=>m.name);
+  return elig.filter(m=>{
     const ds=deal.sizes[m.gender]||[];
     if(!ds.length) return false;
     return fields.some(f=>m[f]&&ds.includes(m[f]));
