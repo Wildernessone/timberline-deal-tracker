@@ -96,6 +96,7 @@ function logClick(d) {
       }),
       keepalive: true,
     }).catch(()=>{});
+    track("click", { brand: d.brand, deal_product: d.product });
   } catch { /* never block the click */ }
 }
 
@@ -380,6 +381,36 @@ function detectPortalId() {
 
 const ACTIVE_PORTAL_ID = detectPortalId();
 const PORTAL = PORTALS[ACTIVE_PORTAL_ID];
+
+// ── Command Center analytics beacon → hub analytics_events ──
+// Fire-and-forget product-level signals so the standalone Command Center can
+// show per-portal traffic / logins / clicks. Each portal reports as its own
+// product. Uses the hub anon key (public by design); writes only, RLS-gated.
+const PORTAL_TO_PRODUCT = { timberline:"timberline", whitetail:"treesaddle", turkey:"gobbler", waterfowl:"duckblind" };
+let TRACK_USER_ID = null;
+function setTrackUser(id){ TRACK_USER_ID = id || null; }
+function track(eventType, props={}) {
+  try {
+    const body = {
+      product: PORTAL_TO_PRODUCT[ACTIVE_PORTAL_ID] || "timberline",
+      event_type: eventType,
+      anon_id: getSessionId(),
+      session_id: getSessionId(),
+      path: (typeof location!=="undefined" ? location.pathname : null),
+      props,
+      ua: (typeof navigator!=="undefined" ? navigator.userAgent : null),
+    };
+    if (TRACK_USER_ID) body.user_id = TRACK_USER_ID;
+    fetch(SB_URL+"/rest/v1/analytics_events", {
+      method:"POST",
+      headers:{ ...SB_H, "Content-Type":"application/json", "Prefer":"return=minimal" },
+      body: JSON.stringify(body),
+      keepalive: true,
+    }).catch(()=>{});
+  } catch { /* analytics must never break the app */ }
+}
+function trackSessionStart(){ try{ if(sessionStorage.getItem("cc_session_started"))return; sessionStorage.setItem("cc_session_started","1"); }catch{ /* ignore */ } track("session_start"); }
+function trackLogin(){ try{ if(sessionStorage.getItem("cc_logged_in"))return; sessionStorage.setItem("cc_logged_in","1"); }catch{ /* ignore */ } track("login"); }
 
 // Single brand palette — Sitka cinematic black panels + First Lite cream content + Kuiu orange CTA
 const PALETTE = {
@@ -1335,6 +1366,10 @@ const ADMIN_EMAILS = ["jamesreed@tutamail.com"];
 const SEASON_MULT = {1:0.7,2:0.7,3:0.6,4:0.6,5:0.5,6:0.7,7:0.7,8:1.2,9:1.5,10:1.8,11:2.0,12:1.4};
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
+// RETIRED 2026-05-31: replaced by the standalone Command Center. No longer
+// routed in the UI (the Admin tab was removed). Kept for reference and
+// tree-shaken from the production build — it holds the revenue projections and
+// seasonal-forecast tables that are not yet ported to the Command Center.
 function AdminDashboard({T, user}) {
   const [clicks, setClicks] = useState(null);
   const [err, setErr] = useState(null);
@@ -1499,9 +1534,11 @@ function MainApp() {
   },[family]);
 
   useEffect(()=>{
+    trackSessionStart();
     supabase.auth.getSession().then(({data:{session}})=>{
       if(session){
         const u=session.user;
+        setTrackUser(u.id);
         const firstName=(u.user_metadata?.full_name||u.email.split("@")[0]).split(" ")[0];
         const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id,verified:!!u.email_confirmed_at};
         setUser(userObj);
@@ -1513,9 +1550,11 @@ function MainApp() {
     });
     const {data:{subscription}}=supabase.auth.onAuthStateChange((event,session)=>{
       if(event==="SIGNED_OUT"){
-        setUser(null);setFamily([]);
+        setUser(null);setFamily([]);setTrackUser(null);
       } else if((event==="SIGNED_IN"||event==="TOKEN_REFRESHED"||event==="INITIAL_SESSION")&&session){
         const u=session.user;
+        setTrackUser(u.id);
+        if(event==="SIGNED_IN") trackLogin();
         const firstName=(u.user_metadata?.full_name||u.email.split("@")[0]).split(" ")[0];
         const userObj={email:u.email,name:firstName,avatar:u.email[0].toUpperCase(),token:session.access_token,id:u.id,verified:!!u.email_confirmed_at};
         setUser(userObj);
@@ -1714,8 +1753,7 @@ function MainApp() {
     }
   };
 
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
-  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[]),...(isAdmin?[{id:"admin",label:"Admin"}]:[])];
+  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
@@ -1906,19 +1944,6 @@ function MainApp() {
                   </div>
                 </a>
               ))}
-            </div>
-          </div>
-        )}
-                {tab==="admin"&&isAdmin&&(
-          <div style={{animation:"fadeUp 0.3s ease"}}>
-            <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
-                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Admin</h1>
-                <p style={{color:T.panelSub,fontSize:14}}>Click traffic · projections · seasonal forecast</p>
-              </div>
-            </div>
-            <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
-              <AdminDashboard T={T} user={user}/>
             </div>
           </div>
         )}
