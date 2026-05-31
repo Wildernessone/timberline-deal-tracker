@@ -59,10 +59,14 @@ const BRAND_DOMAINS = {
 function BrandLogo({brand, T, size=14}) {
   const dom = BRAND_DOMAINS[brand];
   const [fail, setFail] = useState(false);
-  if (!dom || fail) {
-    return <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
-  }
-  return <img src={`https://www.google.com/s2/favicons?domain=${dom}&sz=64`} alt={brand} style={{height:size,width:"auto",maxWidth:90,objectFit:"contain",verticalAlign:"middle"}} onError={()=>setFail(true)}/>;
+  const txt = <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
+  if (!dom || fail) return txt;
+  return (
+    <span style={{display:"inline-flex",alignItems:"center",gap:6,verticalAlign:"middle"}}>
+      <img src={`https://www.google.com/s2/favicons?domain=${dom}&sz=64`} alt="" style={{height:size,width:size,objectFit:"contain",borderRadius:3}} onError={()=>setFail(true)}/>
+      {txt}
+    </span>
+  );
 }
 
 
@@ -322,28 +326,28 @@ const brandSlug = b => (b||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(
 const PORTALS = {
   timberline: {
     id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Deals",heroBg:"#1f2a1f",heroTagline:"Real Western hunting sales — tracked fresh every morning from 70+ backcountry brands. No fake markdowns, no inflated MSRPs, no padded discounts. Just the actual cheapest price online, right now.",domain:"timberlinedeals.com",ogImage:"https://timberlinedeals.com/og-timberline.png",description:"Real Western hunting deals updated every morning. Sitka, Kuiu, Stone Glacier, First Lite, Mystery Ranch, and 60+ backcountry brands — no fake markdowns, just the actual cheapest price online.",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%232d5a3d\"/><path d=\"M6 52 L22 22 L32 36 L44 16 L58 52 Z\" fill=\"%23fffdf7\"/></svg>`,
+    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Deals",heroBg:"#1f2a1f",heroTagline:"Real Western hunting sales — tracked fresh every morning from 70+ backcountry brands. No fake markdowns, no inflated MSRPs, no padded discounts. Just the actual cheapest price online, right now.",domain:"timberlinedeals.com",ogImage:"https://timberlinedeals.com/og-timberline.png",description:"Real Western hunting deals updated every morning. Sitka, Kuiu, Stone Glacier, First Lite, Mystery Ranch, and 60+ backcountry brands — no fake markdowns, just the actual cheapest price online.",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%232d5a3d"/><path d="M6 52 L22 22 L32 36 L44 16 L58 52 Z" fill="%23fffdf7"/></svg>`,
     brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment","Filson","SKRE Gear","Mathews","Badlands","Outdoor Edge","Outdoor Vitals","Beyond Clothing","Canvas Cutter","Stio","Ridgemont","Smartwool","Leatherman","Spyderco"],
     searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
     searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
   },
   whitetail: {
     id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",domain:"treestandsaver.com",ogImage:"https://treestandsaver.com/og-treestand-saver.png",description:"Real whitetail hunting deals — treestand, saddle, scent control, and rut gear from every brand we trust. Updated every morning. No fake markdowns.",tagline:"Whitetail · Treestand · Rut",
-    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Active Deals",heroBg:"#262420",heroTagline:"Real whitetail gear sales — tracked fresh every morning across treestand, saddle, scent control, and rut hunting brands. No fake markdowns. No inflated MSRPs. Just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%237a4a2a\"/><g stroke=\"%23fffdf7\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\"><path d=\"M32 54 L32 34\"/><path d=\"M32 34 L20 22 L18 12\"/><path d=\"M32 34 L44 22 L46 12\"/><path d=\"M22 24 L14 18\"/><path d=\"M22 28 L13 28\"/><path d=\"M26 20 L22 12\"/><path d=\"M42 24 L50 18\"/><path d=\"M42 28 L51 28\"/><path d=\"M38 20 L42 12\"/></g></svg>`,
+    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Active Deals",heroBg:"#262420",heroTagline:"Real whitetail gear sales — tracked fresh every morning across treestand, saddle, scent control, and rut hunting brands. No fake markdowns. No inflated MSRPs. Just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%237a4a2a"/><g stroke="%23fffdf7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M32 54 L32 34"/><path d="M32 34 L20 22 L18 12"/><path d="M32 34 L44 22 L46 12"/><path d="M22 24 L14 18"/><path d="M22 28 L13 28"/><path d="M26 20 L22 12"/><path d="M42 24 L50 18"/><path d="M42 28 L51 28"/><path d="M38 20 L42 12"/></g></svg>`,
     brands:["Sitka","First Lite","Keen","Katabatic Gear","Zpacks","Mtn Ops","Crispi","Yeti","Outdoor Research","Kings Camo","Marsupial Gear","Blue Coolers","Hoyt","Maven","Mathews","Forloh","Kryptek","Montana Knife Company","Kenetrek","Primos","Canvas Cutter","Outdoor Edge","Badlands","Wilderness Athlete","Pnuma Outdoors","Thermarest","Helinox","Duckworth","Chota Outdoor","Goat Knives","Darn Tough","FHF Gear","On Glass","GoHunt","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","Sig Sauer","Schnees","SKRE Gear","TideWe","Mossy Oak","Bone Collector","Nomad Outdoor","XOP Outdoors","Novix Outdoors","Hunting Beast Gear","Lone Wolf Custom Gear","Trophyline","Filson","Drake Waterfowl","Buck Gardner","Latitude Outdoors","Ridgemont","Smartwool","Leatherman","Spyderco"],
     searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
     searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
   },
   turkey: {
     id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",ogImage:"/og-gobbler-deals.png",description:"Real spring turkey gear deals — calls, decoys, vests, and gobbler gear. Updated every morning. No fake markdowns.",tagline:"Calls · Decoys · Spring Gobbler",
-    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Active Deals",heroBg:"#211a10",heroTagline:"Real turkey hunting sales — tracked fresh every morning across calls, decoys, and spring gobbler gear. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%238a6a2e\"/><g fill=\"%23fffdf7\"><circle cx=\"32\" cy=\"22\" r=\"6\"/><path d=\"M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z\"/><path d=\"M14 38 Q8 40 10 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/><path d=\"M50 38 Q56 40 54 46\" stroke=\"%23fffdf7\" stroke-width=\"2\" fill=\"none\"/></g></svg>`,
+    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Active Deals",heroBg:"#211a10",heroTagline:"Real turkey hunting sales — tracked fresh every morning across calls, decoys, and spring gobbler gear. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%238a6a2e"/><g fill="%23fffdf7"><circle cx="32" cy="22" r="6"/><path d="M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z"/><path d="M14 38 Q8 40 10 46" stroke="%23fffdf7" stroke-width="2" fill="none"/><path d="M50 38 Q56 40 54 46" stroke="%23fffdf7" stroke-width="2" fill="none"/></g></svg>`,
     brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
     searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
     searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
   },
   waterfowl: {
     id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",domain:"duckblinddeals.com",ogImage:"https://duckblinddeals.com/og-duck-blind-deals.png",description:"Real waterfowl gear deals — waders, blinds, decoys, and layout gear from Drake, Sitka Waterfowl, Banded and more. Updated every morning. No fake markdowns.",tagline:"Waterfowl · Waders · Blinds",
-    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Active Deals",heroBg:"#241a10",heroTagline:"Real waterfowl gear sales — tracked fresh every morning from every blind, wader, and decoy brand we trust. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\"><rect width=\"64\" height=\"64\" rx=\"12\" fill=\"%233a5a78\"/><g fill=\"%23fffdf7\"><path d=\"M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z\"/><circle cx=\"30\" cy=\"30\" r=\"1.5\" fill=\"%233a5a78\"/></g></svg>`,
+    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Active Deals",heroBg:"#241a10",heroTagline:"Real waterfowl gear sales — tracked fresh every morning from every blind, wader, and decoy brand we trust. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%233a5a78"/><g fill="%23fffdf7"><path d="M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z"/><circle cx="30" cy="30" r="1.5" fill="%233a5a78"/></g></svg>`,
     brands:["Drake Waterfowl","Sitka","Yeti","Garmin","onX","Vortex","Leupold","Sig Sauer","Chota Outdoor","Helinox","Mtn Ops","Benchmade","Outdoor Edge","Wilderness Athlete","Darn Tough","Higdon Outdoors","Tanglefree","Rig Em Right","MotionDucks","Buck Gardner","Duck Creek Decoys","Chenegear","Quickcoys","Mossy Oak","Filson","Sillosocks","Smartwool","Leatherman","Spyderco"],
     searchHint:'Try "Drake LST" or "Chota waders"...',
     searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
@@ -687,7 +691,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
               try {
                 if (navigator.share) await navigator.share(shareData);
                 else { await navigator.clipboard.writeText(url); window.alert("Link copied to clipboard"); }
-              } catch (e) { /* user cancelled or unsupported */ }
+              } catch { /* user cancelled or unsupported */ }
             }}
             style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,width:"100%",background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",color:T.textSub,marginBottom:10,fontFamily:"inherit"}}
           >
@@ -1425,6 +1429,10 @@ function EmbedCard({dealId}) {
 export default function App() {
   const embedMatch = (typeof window !== "undefined") ? window.location.pathname.match(/^\/embed\/deal\/([0-9a-f-]+)/i) : null;
   if (embedMatch) return <EmbedCard dealId={embedMatch[1]}/>;
+  return <MainApp/>;
+}
+
+function MainApp() {
   const [tab,setTab]=useState("deals");
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
@@ -1438,17 +1446,7 @@ export default function App() {
   const [familyOnly,setFamilyOnly]=useState(()=>{
     try { const v = localStorage.getItem("tl_family_only"); return v === null ? true : v === "true"; } catch { return true; }
   });
-  useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch {} }, [familyOnly]);
-  useEffect(() => {
-    fetch(SB_URL + "/rest/v1/deal_click_counts?select=deal_id,clicks_7d", { headers: SB_H })
-      .then(r => r.ok ? r.json() : [])
-      .then(rows => {
-        const m = {};
-        for (const r of rows) m[r.deal_id] = r.clicks_7d;
-        setClickCounts(m);
-      })
-      .catch(()=>{});
-  }, []);
+  useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch { /* ignore */ } }, [familyOnly]);
 
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
@@ -1460,6 +1458,16 @@ export default function App() {
   const [user,setUser]=useState(null);
   const [deals,setDeals]=useState([]);
   const [clickCounts,setClickCounts]=useState({});
+  useEffect(() => {
+    fetch(SB_URL + "/rest/v1/deal_click_counts?select=deal_id,clicks_7d", { headers: SB_H })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => {
+        const m = {};
+        for (const r of rows) m[r.deal_id] = r.clicks_7d;
+        setClickCounts(m);
+      })
+      .catch(()=>{});
+  }, []);
   const [compareList,setCompareList]=useState([]);
   const [showCompare,setShowCompare]=useState(false);
   const toggleCompare = d => setCompareList(p => p.find(x=>x.id===d.id) ? p.filter(x=>x.id!==d.id) : (p.length>=3 ? p : [...p, d]));
@@ -1579,7 +1587,7 @@ export default function App() {
         let el = document.querySelector(sel);
         if (!el) {
           el = document.createElement("meta");
-          const [type, name] = sel.replace(/[\[\]"=]/g, " ").trim().split(/\s+/);
+          const [type, name] = sel.replace(/[[\]"=]/g, " ").trim().split(/\s+/);
           el.setAttribute(type, name);
           document.head.appendChild(el);
         }
@@ -1619,7 +1627,6 @@ export default function App() {
       }
     } catch { /* ignore */ }
   }, []);
-  const isGuest=!user;
   const liveBrands=useMemo(
     () => {
       const portalSet = new Set(PORTAL.brands || []);
@@ -1937,7 +1944,7 @@ export default function App() {
                             <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{m.name}</div>
                             <div style={{display:"flex",gap:6}}>
                               <button onClick={()=>setEditIdx(editIdx===idx?null:idx)} style={{background:T.border,border:"none",borderRadius:7,padding:"4px 12px",cursor:"pointer",fontSize:11,color:T.textSub,fontWeight:600}}>{editIdx===idx?"Done":"Edit"}</button>
-                              <button onClick={async()=>{ if(!window.confirm("Remove "+m.name+" from family?"))return; const nm=m.name; setFamily(prev=>prev.filter((_,i)=>i!==idx)); if(user){ try{ await supabase.from("family_members").delete().eq("user_id",user.id).eq("name",nm); }catch{} } if(editIdx===idx)setEditIdx(null); }} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:11,color:T.red||"#cc4444",fontWeight:600}} title={"Remove "+m.name}>Remove</button>
+                              <button onClick={async()=>{ if(!window.confirm("Remove "+m.name+" from family?"))return; const nm=m.name; setFamily(prev=>prev.filter((_,i)=>i!==idx)); if(user){ try{ await supabase.from("family_members").delete().eq("user_id",user.id).eq("name",nm); }catch{ /* ignore */ } } if(editIdx===idx)setEditIdx(null); }} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:11,color:T.red||"#cc4444",fontWeight:600}} title={"Remove "+m.name}>Remove</button>
                             </div>
                           </div>
                           {editIdx===idx?(
