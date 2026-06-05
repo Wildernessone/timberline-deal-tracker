@@ -53,7 +53,7 @@ const BRAND_DOMAINS = {
   "Chota Outdoor":"chotaoutdoorgear.com","Goat Knives":"goatknives.com",
   "Darn Tough":"darntough.com","FHF Gear":"fhfgear.com",
   "Peax Equipment":"peaxequipment.com","On Glass":"onglassadapter.com",
-  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Filson":"filson.com","Latitude Outdoors":"latitudeoutdoors.com","Sillosocks":"sillosocks.com","Smartwool":"smartwool.com","Leatherman":"leatherman.com","Spyderco":"spyderco.com","Beyond Clothing":"beyondclothing.com","SKRE Gear":"skregear.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com","MotionDucks":"motionducks.com","Buck Gardner":"buckgardner.com","Duck Creek Decoys":"duckcreekdecoys.com","Chenegear":"chenegear.com","Quickcoys":"quickcoys.com",
+  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Filson":"filson.com","Latitude Outdoors":"latitudeoutdoors.com","Sillosocks":"sillosocks.com","Smartwool":"smartwool.com","Leatherman":"leatherman.com","Spyderco":"spyderco.com","SKRE Gear":"skregear.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com","MotionDucks":"motionducks.com","Buck Gardner":"buckgardner.com","Duck Creek Decoys":"duckcreekdecoys.com","Chenegear":"chenegear.com","Quickcoys":"quickcoys.com",
 };
 
 function BrandLogo({brand, T, size=14}) {
@@ -448,8 +448,10 @@ const SIZE_OPTIONS = {
 
 
 function Spark({history,fake,T}) {
-  const max=Math.max(...history);
-  const min=Math.min(...history);
+  // reduce instead of Math.max(...history) — Price Search feeds ~2000-point
+  // arrays here, and spreading those into Math.max risks a call-stack overflow.
+  const max=history.reduce((m,v)=>v>m?v:m,-Infinity);
+  const min=history.reduce((m,v)=>v<m?v:m,Infinity);
   const W=150,H=42,P=5;
   const pts=history.map((v,i)=>[
     P+(i/(history.length-1))*(W-P*2),
@@ -681,7 +683,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
               </div>
               <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:26,color:T.text,lineHeight:1.2}}>{deal.product}</div>
             </div>
-            <button onClick={onClose} style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub,flexShrink:0}}>x</button>
+            <button onClick={onClose} aria-label="Close" style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub,flexShrink:0}}>×</button>
           </div>
           {deal.fake&&(
             <div style={{background:T.redLight,border:`1px solid ${T.redBorder}`,borderRadius:10,padding:"12px 16px",marginBottom:20}}>
@@ -998,7 +1000,7 @@ function LegalModal({which,T,onClose}) {
       <div style={{background:T.bgSolid,borderRadius:16,maxWidth:560,width:"100%",maxHeight:"86vh",overflowY:"auto",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`}} onClick={e=>e.stopPropagation()}>
         <div style={{padding:"22px 26px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{content.title}</div>
-          <button onClick={onClose} style={{background:T.border,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:14,color:T.textSub}}>x</button>
+          <button onClick={onClose} aria-label="Close" style={{background:T.border,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:14,color:T.textSub}}>×</button>
         </div>
         <div style={{padding:"22px 26px",fontSize:14,color:T.textSub,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{content.body}</div>
         <div style={{padding:"0 26px 22px",fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>Last updated: {new Date().toISOString().slice(0,10)}</div>
@@ -1640,13 +1642,13 @@ function MainApp() {
     return arr;
   },[taggedDeals,sortBy]);
   const portalBrandSet = useMemo(() => new Set(PORTAL.brands || []), []);
-  const filtered=sortedDeals.filter(d=>{
+  const filtered=useMemo(()=>sortedDeals.filter(d=>{
     if (portalBrandSet.size && !portalBrandSet.has(d.brand)) return false;
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;
     if(memberFilter!=="All"&&!d.tags.includes(memberFilter))return false;
     if(familyOnly && user && family.length && memberFilter==="All" && d.tags.length===0) return false;
     return true;
-  });
+  }),[sortedDeals,portalBrandSet,brandFilter,memberFilter,familyOnly,user,family.length]);
   const portalCoupons=dbCoupons;
   const BRANDS_LIST=liveBrands;
   const watchQueryFor = d => ((d.brand||"")+" "+(d.product||"")).trim().toLowerCase();
@@ -1846,8 +1848,14 @@ function MainApp() {
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"grid",gap:14}}>
-              {portalCoupons.map((c,i)=>(
-                <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
+              {portalCoupons.length===0&&(
+                <div style={{textAlign:"center",padding:"48px 0"}}>
+                  <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No active codes right now</div>
+                  <div style={{color:T.textMuted,fontSize:14}}>Check back soon — we verify new codes daily.</div>
+                </div>
+              )}
+              {portalCoupons.map((c)=>(
+                <a key={c.code||c.url} href={c.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
                   <div style={{background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,cursor:"pointer",boxShadow:`0 2px 12px ${T.shadow}`,border:`1px solid ${c.verified?T.border:T.redBorder}`}}>
                     <div>
                       <div style={{fontSize:11,fontWeight:700,color:T.accent,letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:5}}>{c.brand.toUpperCase()}</div>
@@ -2007,7 +2015,7 @@ function MainApp() {
               <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text}}>Compare ({compareList.length})</div>
               <div style={{display:"flex",gap:10}}>
                 <button onClick={()=>setCompareList([])} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,color:T.textSub,fontWeight:600}}>Clear all</button>
-                <button onClick={()=>setShowCompare(false)} style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub}}>x</button>
+                <button onClick={()=>setShowCompare(false)} aria-label="Close" style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub}}>×</button>
               </div>
             </div>
             <div style={{display:"grid",gridTemplateColumns:`repeat(${compareList.length},1fr)`,gap:16}}>
@@ -2015,7 +2023,7 @@ function MainApp() {
                 const disc = d.orig > d.sale ? Math.round((1 - d.sale/d.orig)*100) : 0;
                 return (
                   <div key={d.id} style={{border:`1px solid ${T.border}`,borderRadius:12,padding:16,background:T.bgCard,position:"relative"}}>
-                    <button onClick={()=>toggleCompare(d)} style={{position:"absolute",top:8,right:8,background:T.border,border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:T.textSub,lineHeight:1}}>x</button>
+                    <button onClick={()=>toggleCompare(d)} aria-label="Remove from compare" style={{position:"absolute",top:8,right:8,background:T.border,border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:T.textSub,lineHeight:1}}>×</button>
                     {d.image && <div style={{width:"100%",paddingBottom:"66%",background:T.bgSolid,borderRadius:8,marginBottom:12,position:"relative",overflow:"hidden"}}><img src={d.image} alt={d.product} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/></div>}
                     <div style={{fontSize:10,color:T.accent,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,marginBottom:4}}>{(d.brand||"").toUpperCase()}</div>
                     <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:10,lineHeight:1.25}}>{d.product}</div>
