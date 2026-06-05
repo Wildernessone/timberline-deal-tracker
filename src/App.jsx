@@ -326,7 +326,7 @@ const STORES = [
 
 function formatShipping(s, shippingMap){
   const row = s.brand && shippingMap ? shippingMap[s.brand] : null;
-  if (!row) return "Shipping: not verified yet";
+  if (!row) return "Shipping: unknown";
   const { free_at, flat_rate } = row;
   if (free_at === 0 && flat_rate === 0) return "Free shipping on all orders";
   if (free_at != null && flat_rate != null) return "Free over $" + free_at + " · $" + flat_rate + " flat";
