@@ -19,7 +19,6 @@ const supabase = createClient(SB_URL, SB_KEY, {
   }
 });
 const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
-const ADMIN_EMAILS = ["jamesreed@tutamail.com"];
 
 const BRAND_DOMAINS = {
   "Sitka":"sitkagear.com","First Lite":"firstlite.com","Kuiu":"kuiu.com",
@@ -1462,127 +1461,6 @@ function SuggestBrandModal({T,user,onClose}) {
   );
 }
 
-function AdminDashboard({T,user}) {
-  const [clicks,setClicks]=useState([]);
-  const [recs,setRecs]=useState([]);
-  const [loading,setLoading]=useState(true);
-  useEffect(()=>{
-    if(!user?.token) return;
-    let done=0;
-    const finish=()=>{done++;if(done>=2)setLoading(false);};
-    fetch(SB_URL+"/rest/v1/clicks?select=*&order=created_at.desc&limit=200",{
-      headers:{apikey:SB_KEY,Authorization:"Bearer "+user.token},
-    }).then(r=>r.ok?r.json():[]).then(rows=>setClicks(Array.isArray(rows)?rows:[])).catch(()=>{}).finally(finish);
-    fetch(SB_URL+"/rest/v1/brand_recommendations?select=*&order=created_at.desc&limit=200",{
-      headers:{apikey:SB_KEY,Authorization:"Bearer "+user.token},
-    }).then(r=>r.ok?r.json():[]).then(rows=>setRecs(Array.isArray(rows)?rows:[])).catch(()=>{}).finally(finish);
-  },[user]);
-
-  const groupedRecs = useMemo(()=>{
-    const map=new Map();
-    for(const r of recs){
-      const key=(r.brand_name||"").trim().toLowerCase();
-      if(!key) continue;
-      const prev=map.get(key);
-      if(prev){
-        prev.count++;
-        if(new Date(r.created_at) > new Date(prev.created_at)){
-          prev.created_at=r.created_at;
-        }
-        prev.rows.push(r);
-      } else {
-        map.set(key,{...r,count:1,rows:[r]});
-      }
-    }
-    return [...map.values()].sort((a,b)=>{
-      if(b.count!==a.count) return b.count-a.count;
-      return new Date(b.created_at)-new Date(a.created_at);
-    });
-  },[recs]);
-
-  const daysAgo = (ts)=>{
-    if(!ts) return "—";
-    const ms = Date.now()-new Date(ts).getTime();
-    const d = Math.floor(ms/86400000);
-    if(d<=0){
-      const h=Math.floor(ms/3600000);
-      if(h<=0) return "just now";
-      return h+"h ago";
-    }
-    if(d===1) return "1 day ago";
-    return d+" days ago";
-  };
-
-  const cell={padding:"10px 12px",fontSize:12,color:T.textSub,borderBottom:`1px solid ${T.border}`,textAlign:"left",verticalAlign:"top"};
-  const head={padding:"10px 12px",fontSize:10,color:T.textMuted,borderBottom:`1px solid ${T.border}`,textAlign:"left",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:700,background:T.bgCard};
-
-  return (
-    <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
-      <div style={{marginBottom:20}}>
-        <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text}}>Admin</div>
-        <div style={{fontSize:12,color:T.textMuted,marginTop:2}}>Command center for {PORTAL.shortName}</div>
-      </div>
-
-      <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden",marginBottom:24}}>
-        <div style={{padding:"18px 22px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:18,color:T.text}}>Brand requests</div>
-            <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>User-submitted brand suggestions, grouped by name</div>
-          </div>
-          <div style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>{groupedRecs.length} unique · {recs.length} total</div>
-        </div>
-        {loading?(
-          <div style={{padding:32,textAlign:"center",fontSize:12,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>Loading...</div>
-        ):groupedRecs.length===0?(
-          <div style={{padding:32,textAlign:"center",fontSize:13,color:T.textMuted}}>No brand requests yet.</div>
-        ):(
-          <div style={{overflowX:"auto"}}>
-            <table style={{width:"100%",borderCollapse:"collapse"}}>
-              <thead>
-                <tr>
-                  <th style={head}>Brand</th>
-                  <th style={head}>Count</th>
-                  <th style={head}>URL</th>
-                  <th style={head}>Portal</th>
-                  <th style={head}>Requester</th>
-                  <th style={head}>When</th>
-                  <th style={head}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {groupedRecs.map((g,i)=>(
-                  <tr key={i}>
-                    <td style={{...cell,fontWeight:700,color:T.text}}>{g.brand_name}</td>
-                    <td style={cell}>
-                      <span style={{display:"inline-block",padding:"2px 8px",borderRadius:999,background:g.count>1?T.accentLight:T.border,color:g.count>1?T.accent:T.textSub,fontSize:11,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>×{g.count}</span>
-                    </td>
-                    <td style={cell}>{g.url?<a href={g.url} target="_blank" rel="noopener noreferrer" style={{color:T.accent,textDecoration:"none"}}>{g.url.replace(/^https?:\/\//,"").slice(0,32)}</a>:<span style={{color:T.textMuted}}>—</span>}</td>
-                    <td style={cell}><span style={{display:"inline-block",padding:"2px 8px",borderRadius:6,background:T.border,fontSize:10,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",textTransform:"uppercase",color:T.textSub,fontWeight:700}}>{g.portal||"—"}</span></td>
-                    <td style={cell}>{g.recommended_by_email||<span style={{color:T.textMuted,fontStyle:"italic"}}>anonymous</span>}</td>
-                    <td style={cell}>{daysAgo(g.created_at)}</td>
-                    <td style={cell}>{g.status||"pending"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:24}}>
-        <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px 18px"}}>
-          <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:700,marginBottom:6}}>Recent clicks</div>
-          <div style={{fontSize:24,fontWeight:800,color:T.text}}>{clicks.length}</div>
-        </div>
-        <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px 18px"}}>
-          <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:700,marginBottom:6}}>Brand requests</div>
-          <div style={{fontSize:24,fontWeight:800,color:T.text}}>{recs.length}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const embedMatch = (typeof window !== "undefined") ? window.location.pathname.match(/^\/embed\/deal\/([0-9a-f-]+)/i) : null;
   if (embedMatch) return <EmbedCard dealId={embedMatch[1]}/>;
@@ -1864,8 +1742,7 @@ function MainApp() {
     }
   };
 
-  const isAdmin = !!(user && user.email && ADMIN_EMAILS.includes(user.email));
-  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[]),...(isAdmin?[{id:"admin",label:"Admin"}]:[])];
+  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
@@ -2178,17 +2055,6 @@ function MainApp() {
                 </div>
               </>
             )}
-          </div>
-        )}
-        {tab==="admin"&&isAdmin&&(
-          <div style={{animation:"fadeUp 0.25s ease"}}>
-            <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
-              <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
-                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Admin</h1>
-                <p style={{color:T.panelSub,fontSize:14}}>Command center · {PORTAL.shortName}</p>
-              </div>
-            </div>
-            <AdminDashboard T={T} user={user}/>
           </div>
         )}
       </div>
