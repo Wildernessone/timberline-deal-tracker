@@ -1,60 +1,20 @@
+"use client";
 import { useState, useEffect, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
+import {
+  SB_URL, SB_KEY, SB_H, BRAND_DOMAINS, MC, HUNT_TYPES, GEAR_CATS, ALL_BRANDS,
+  STORES, PORTALS, ACTIVE_PORTAL_ID, PORTAL, PORTAL_TO_PRODUCT, PALETTE,
+  INIT_FAMILY, SIZE_OPTIONS,
+} from "@/lib/constants";
+import {
+  parseDeal, fieldsForCat, productGender, computeTags, parseCoupon,
+  formatShipping, brandSlug, isApparel, matchDealsForItem,
+} from "@/lib/parse";
+import { supabase } from "@/lib/supabaseClient";
+import {
+  sbGet, getSessionId, logClick, track, setTrackUser, trackSessionStart,
+  trackLogin, loadFamily, loadWishlist, saveWishlistItem, deleteWishlistItem, saveFamily,
+} from "@/lib/analytics";
 
-const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
-const timberlineStorage = {
-  getItem: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
-  setItem: (key, value) => { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
-  removeItem: (key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } },
-};
-const supabase = createClient(SB_URL, SB_KEY, {
-  auth: {
-    persistSession: true,
-    storageKey: "timberline-auth",
-    storage: timberlineStorage,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,
-    flowType: "implicit",
-  }
-});
-const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
-
-const BRAND_DOMAINS = {
-  "Sitka":"sitkagear.com","First Lite":"firstlite.com","Kuiu":"kuiu.com",
-  "Stone Glacier":"stoneglacier.com","Eberlestock":"eberlestock.com",
-  "Exo Mtn Gear":"exomtngear.com","Kings Camo":"kingscamo.com",
-  "Kifaru":"kifaru.net","Mystery Ranch":"mysteryranch.com",
-  "Vortex":"vortexoptics.com","Leupold":"leupold.com","Swarovski":"swarovskioptik.com",
-  "Garmin":"garmin.com","onX":"onxmaps.com","GoHunt":"gohunt.com",
-  "Bridger Watch":"bridgerwatch.com","Aziak":"aziak.com",
-  "Wiser Precision":"wiserprecision.com","Kapture":"kapturegear.com",
-  "Grakksaw":"grakksaw.com","OBI":"obigear.com","Bridger Boiler":"bridgerboiler.com",
-  "Javelin Bipod":"javelinbipod.com","Sneek Tec":"sneektec.com",
-  "Keen":"keenfootwear.com","Katabatic Gear":"katabaticgear.com",
-  "Zpacks":"zpacks.com","Flextail":"flextail.com","Ollin":"ollin.co",
-  "Magview":"magview.com","Mtn Tough":"mtntough.com","Mtn Ops":"mtnops.com",
-  "Sig Sauer":"sigsauer.com","Crispi":"crispiusa.com","Yeti":"yeti.com",
-  "Drake Waterfowl":"drakewaterfowl.com","Outdoor Research":"outdoorresearch.com",
-  "Marsupial Gear":"marsupialgear.com","Outdoorsmans":"outdoorsmans.com",
-  "GSI Outdoors":"gsioutdoors.com","Blue Coolers":"bluecoolers.com",
-  "Hoyt":"hoyt.com","Mathews":"mathewsinc.com","Maven":"mavenbuilt.com",
-  "Forloh":"forloh.com","Kryptek":"kryptek.com",
-  "Montana Knife Company":"montanaknifecompany.com","Kenetrek":"kenetrek.com",
-  "Primos":"primos.com","Canvas Cutter":"canvascutter.com",
-  "Outdoor Edge":"outdooredge.com","Nemo Equipment":"nemoequipment.com",
-  "Badlands":"badlandspacks.com","Wilderness Athlete":"wildernessathlete.com",
-  "Mountain House":"mountainhouse.com","Beyond Clothing":"beyondclothing.com",
-  "Outdoor Vitals":"outdoorvitals.com","Tricer":"tricer.com",
-  "Initial Ascent":"initialascent.com","Peak Refuel":"peakrefuel.com",
-  "Sheep Feet":"sheepfeetoutdoors.com","Pnuma Outdoors":"pnumaoutdoors.com",
-  "Wildtech Gear":"wildtechgear.com","Thermarest":"thermarest.com",
-  "Helinox":"helinox.com","Duckworth":"duckworthco.com",
-  "Chota Outdoor":"chotaoutdoorgear.com","Goat Knives":"goatknives.com",
-  "Darn Tough":"darntough.com","FHF Gear":"fhfgear.com",
-  "Peax Equipment":"peaxequipment.com","On Glass":"onglassadapter.com",
-  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Filson":"filson.com","Latitude Outdoors":"latitudeoutdoors.com","Sillosocks":"sillosocks.com","Smartwool":"smartwool.com","Leatherman":"leatherman.com","Spyderco":"spyderco.com","SKRE Gear":"skregear.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com","MotionDucks":"motionducks.com","Buck Gardner":"buckgardner.com","Duck Creek Decoys":"duckcreekdecoys.com","Chenegear":"chenegear.com","Quickcoys":"quickcoys.com",
-};
 
 function BrandLogo({brand, T, size=14}) {
   const dom = BRAND_DOMAINS[brand];
@@ -69,382 +29,6 @@ function BrandLogo({brand, T, size=14}) {
   );
 }
 
-
-
-function sbGet(table,params){
-  const url=new URL(SB_URL+"/rest/v1/"+table);
-  if(params)Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
-  return fetch(url,{headers:SB_H}).then(r=>r.json());
-}
-
-function getSessionId() {
-  try {
-    let s = localStorage.getItem("timberline-sid");
-    if (!s) { s = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("timberline-sid", s); }
-    return s;
-  } catch { return null; }
-}
-
-function logClick(d) {
-  try {
-    fetch(SB_URL+"/rest/v1/clicks", {
-      method: "POST",
-      headers: { ...SB_H, "Content-Type": "application/json", "Prefer": "return=minimal" },
-      body: JSON.stringify({
-        deal_id: d.id, brand: d.brand, product: d.product, url: d.url,
-        session_id: getSessionId(),
-      }),
-      keepalive: true,
-    }).catch(()=>{});
-    track("click", { brand: d.brand, deal_product: d.product });
-  } catch { /* never block the click */ }
-}
-
-async function loadFamily(userId, token) {
-  const r = await fetch(SB_URL+"/rest/v1/family_members?user_id=eq."+userId+"&order=sort_order.asc", {
-    headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
-  });
-  return r.json();
-}
-
-
-async function loadWishlist(token) {
-  try {
-    const r = await fetch(SB_URL+"/rest/v1/wishlist_searches?select=id,query,created_at&muted=eq.false&order=created_at.desc", {
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
-    });
-    if (!r.ok) return [];
-    const rows = await r.json();
-    return rows.map(r => ({ id:r.id, query:r.query, addedAt:r.created_at }));
-  } catch { return []; }
-}
-
-async function saveWishlistItem(query, token, portal) {
-  try {
-    const r = await fetch(SB_URL+"/rest/v1/wishlist_searches", {
-      method:"POST",
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
-      body: JSON.stringify({ query, portal: portal || "timberline" }),
-    });
-    if (!r.ok) return null;
-    const rows = await r.json();
-    return rows[0]?.id || null;
-  } catch { return null; }
-}
-
-async function deleteWishlistItem(id, token) {
-  try {
-    await fetch(SB_URL+"/rest/v1/wishlist_searches?id=eq."+id, {
-      method:"DELETE",
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token},
-    });
-  } catch { /* ignore */ }
-}
-
-async function saveFamily(members, userId) {
-  if (!members.length) return;
-  const rows = members.map((m,i) => ({
-    user_id:userId, name:m.name, gender:m.gender||"mens",
-    jacket:m.jacket||"L", shirt:m.shirt||"L", base:m.base||"L", pants:m.pants||"34x32",
-    boots:m.boots||"10",
-    looking_for: m.lookingFor || [],
-    sort_order:i,
-  }));
-  await supabase.from("family_members").upsert(rows, {onConflict:"user_id,name"});
-}
-function parseDeal(row){
-  const orig=Math.round(parseFloat(row.orig_price)*100)/100;
-  const sale=Math.round(parseFloat(row.sale_price)*100)/100;
-  return {
-    id:row.id,brand:row.brand,product:row.product,portal:row.portal,
-    cat:row.cat,orig:orig,sale:sale,
-    coupon:row.coupon,fake:row.fake_sale,fakeNote:row.fake_note,
-    url:row.url,blurb:row.blurb,tags:[],
-    image:row.image_url,
-    sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
-    history:[orig,sale],
-    createdAt:row.created_at,
-  };
-}
-const CAT_TO_FIELDS = {
-  insulation:["jacket"], jacket:["jacket"], windlayer:["jacket"],
-  clothing:["jacket","shirt"], shirt:["shirt"],
-  baselayer:["base"], base:["base"],
-  pants:["pants"], bibs:["pants"], waders:["pants"],
-  boots:["boots"],
-};
-function fieldsForCat(cat){
-  const c=(cat||"").toLowerCase().replace(/[^a-z]/g,"");
-  for(const k in CAT_TO_FIELDS){if(c===k||c.includes(k))return CAT_TO_FIELDS[k];}
-  return null;
-}
-function productGender(deal){
-  const n=(deal.product||"").toLowerCase();
-  if(/\b(kids?|kid'?s|youth|toddler|junior|jr|infant|baby|boys?|girls?)\b/.test(n)) return "youth";
-  if(/\bwomen|woman'?s|womens|ladies|female|wmn/.test(n)) return "womens";
-  if(/\bmen'?s\b|\bmens\b|\bmale\b/.test(n)) return "mens";
-  return null;
-}
-function computeTags(deal, family){
-  // A product whose name explicitly states a gender/age (women's, youth, men's) is only
-  // ever relevant to family members of that gender -- regardless of whether size data parsed.
-  const pg=productGender(deal);
-  const elig=pg?family.filter(m=>m.gender===pg):family;
-  if(!elig.length) return [];
-  const fields=fieldsForCat(deal.cat);
-  if(!fields) return elig.map(m=>m.name);
-  const noSizeData = !deal.sizes.mens.length && !deal.sizes.womens.length && !deal.sizes.youth.length;
-  if(noSizeData) return elig.map(m=>m.name);
-  return elig.filter(m=>{
-    const ds=deal.sizes[m.gender]||[];
-    if(!ds.length) return false;
-    return fields.some(f=>m[f]&&ds.includes(m[f]));
-  }).map(m=>m.name);
-}
-function parseCoupon(row){
-  return {
-    id:row.id,brand:row.brand,code:row.code,discount:row.discount,
-    portal:row.portal,url:row.url,verified:row.verified,
-    expires:row.expires_at?new Date(row.expires_at).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"Soon",
-  };
-}
-
-const MC = ["#cc5500"];
-
-const HUNT_TYPES = [
-  {id:"whitetail",label:"Whitetail",icon:"🌳"},
-  {id:"elk",label:"Elk",icon:"🦌"},
-  {id:"muledeer",label:"Mule Deer",icon:"🏔"},
-  {id:"waterfowl",label:"Waterfowl",icon:"🦆"},
-  {id:"turkey",label:"Turkey",icon:"🦃"},
-  {id:"archery",label:"Archery",icon:"🏹"},
-  {id:"predator",label:"Predator",icon:"🐺"},
-  {id:"upland",label:"Upland",icon:"🐦"},
-];
-
-const GEAR_CATS = [
-  {id:"clothing",label:"Clothing",icon:"🧥"},
-  {id:"optics",label:"Optics",icon:"🔭"},
-  {id:"trailcams",label:"Trail Cams",icon:"📷"},
-  {id:"boots",label:"Boots",icon:"🥾"},
-  {id:"packs",label:"Packs",icon:"🎒"},
-  {id:"electronics",label:"Electronics",icon:"📡"},
-  {id:"knives",label:"Knives",icon:"🔪"},
-];
-
-const ALL_BRANDS = [
-  "Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock",
-  "Kings Camo","Drake","Avery","Banded","Browning",
-  "Vortex","Leupold","Bushnell",
-  "Stealth Cam","Reconyx","Tactacam",
-  "Hoyt","Mathews",
-  "Danner","LaCrosse","Muck",
-  "Kifaru","Mystery Ranch",
-  "Garmin","onX","GoHunt",
-];
-
-const STORES = [
-  {id:"sitka",name:"Sitka",brand:"Sitka",loyalty:null,cat:"boutique"},
-  {id:"firstlite",name:"First Lite",brand:"First Lite",loyalty:null,cat:"boutique"},
-  {id:"kuiu",name:"Kuiu",brand:"Kuiu",loyalty:null,cat:"boutique"},
-  {id:"stoneglacier",name:"Stone Glacier",brand:"Stone Glacier",cat:"boutique",loyalty:null},
-  {id:"eberlestock",name:"Eberlestock",brand:"Eberlestock",loyalty:null,cat:"boutique"},
-  {id:"exomtn",name:"Exo Mtn Gear",brand:"Exo Mtn Gear",loyalty:null,cat:"boutique"},
-  {id:"bridgerwatch",name:"Bridger Watch",brand:"Bridger Watch",loyalty:null,cat:"boutique"},
-  {id:"aziak",name:"Aziak Equipment",brand:"Aziak",loyalty:null,cat:"boutique"},
-  {id:"wiserprecision",name:"Wiser Precision",brand:"Wiser Precision",loyalty:null,cat:"boutique"},
-  {id:"kapturegear",name:"Kapture Gear",brand:"Kapture",loyalty:null,cat:"boutique"},
-  {id:"grakksaw",name:"Grakksaw",brand:"Grakksaw",loyalty:null,cat:"boutique"},
-  {id:"obigear",name:"OBI Gear",brand:"OBI",loyalty:null,cat:"boutique"},
-  {id:"bridgerboiler",name:"Bridger Boiler",brand:"Bridger Boiler",loyalty:null,cat:"boutique"},
-  {id:"javelinbipod",name:"Javelin Bipod",brand:"Javelin Bipod",loyalty:null,cat:"boutique"},
-  {id:"sneektec",name:"Sneek Tec",brand:"Sneek Tec",loyalty:null,cat:"boutique"},
-  {id:"keen",name:"Keen",brand:"Keen",loyalty:null,cat:"boutique"},
-  {id:"katabatic",name:"Katabatic Gear",brand:"Katabatic Gear",loyalty:null,cat:"boutique"},
-  {id:"zpacks",name:"Zpacks",brand:"Zpacks",loyalty:null,cat:"boutique"},
-  {id:"flextail",name:"Flextail",brand:"Flextail",loyalty:null,cat:"boutique"},
-  {id:"ollin",name:"Ollin",brand:"Ollin",loyalty:null,cat:"boutique"},
-  {id:"magview",name:"Magview",brand:"Magview",loyalty:null,cat:"boutique"},
-  {id:"mtntough",name:"Mtn Tough",brand:"Mtn Tough",loyalty:null,cat:"boutique"},
-  {id:"mtnops",name:"Mtn Ops",brand:"Mtn Ops",loyalty:null,cat:"boutique"},
-  {id:"crispi",name:"Crispi",brand:"Crispi",loyalty:null,cat:"boutique"},
-  {id:"yeti",name:"Yeti",brand:"Yeti",loyalty:null,cat:"boutique"},
-  {id:"drake",name:"Drake Waterfowl",brand:"Drake Waterfowl",loyalty:null,cat:"boutique"},
-  {id:"outdoorresearch",name:"Outdoor Research",brand:"Outdoor Research",loyalty:null,cat:"boutique"},
-  {id:"kingscamo",name:"Kings Camo",brand:"Kings Camo",loyalty:null,cat:"boutique"},
-  {id:"marsupialgear",name:"Marsupial Gear",brand:"Marsupial Gear",loyalty:null,cat:"boutique"},
-  {id:"outdoorsmans",name:"Outdoorsmans",brand:"Outdoorsmans",loyalty:null,cat:"specialty"},
-  {id:"gsioutdoors",name:"GSI Outdoors",brand:"GSI Outdoors",loyalty:null,cat:"boutique"},
-  {id:"bluecoolers",name:"Blue Coolers",brand:"Blue Coolers",loyalty:null,cat:"boutique"},
-  {id:"hoyt",name:"Hoyt",brand:"Hoyt",loyalty:null,cat:"boutique"},
-  {id:"maven",name:"Maven",brand:"Maven",loyalty:null,cat:"boutique"},
-  {id:"mathews",name:"Mathews",brand:"Mathews",loyalty:null,cat:"boutique"},
-  {id:"forloh",name:"Forloh",brand:"Forloh",loyalty:null,cat:"boutique"},
-  {id:"kryptek",name:"Kryptek",brand:"Kryptek",loyalty:null,cat:"boutique"},
-  {id:"mkc",name:"Montana Knife Company",brand:"Montana Knife Company",loyalty:null,cat:"boutique"},
-  {id:"kenetrek",name:"Kenetrek",brand:"Kenetrek",loyalty:null,cat:"boutique"},
-  {id:"primos",name:"Primos",brand:"Primos",loyalty:null,cat:"boutique"},
-  {id:"canvascutter",name:"Canvas Cutter",brand:"Canvas Cutter",loyalty:null,cat:"boutique"},
-  {id:"outdooredge",name:"Outdoor Edge",brand:"Outdoor Edge",loyalty:null,cat:"boutique"},
-  {id:"nemo",name:"Nemo Equipment",brand:"Nemo Equipment",loyalty:null,cat:"boutique"},
-  {id:"kifaru",name:"Kifaru",brand:"Kifaru",loyalty:null,cat:"boutique"},
-  {id:"badlands",name:"Badlands",brand:"Badlands",loyalty:null,cat:"boutique"},
-  {id:"wildernessathlete",name:"Wilderness Athlete",brand:"Wilderness Athlete",loyalty:null,cat:"boutique"},
-  {id:"mountainhouse",name:"Mountain House",brand:"Mountain House",loyalty:null,cat:"boutique"},
-  {id:"beyondclothing",name:"Beyond Clothing",brand:"Beyond Clothing",loyalty:null,cat:"boutique"},
-  {id:"outdoorvitals",name:"Outdoor Vitals",brand:"Outdoor Vitals",loyalty:null,cat:"boutique"},
-  {id:"tricer",name:"Tricer",brand:"Tricer",loyalty:null,cat:"boutique"},
-  {id:"initialascent",name:"Initial Ascent",brand:"Initial Ascent",loyalty:null,cat:"boutique"},
-  {id:"peakrefuel",name:"Peak Refuel",brand:"Peak Refuel",loyalty:null,cat:"boutique"},
-  {id:"sheepfeet",name:"Sheep Feet",brand:"Sheep Feet",loyalty:null,cat:"boutique"},
-  {id:"pnuma",name:"Pnuma Outdoors",brand:"Pnuma Outdoors",loyalty:null,cat:"boutique"},
-  {id:"wildtech",name:"Wildtech Gear",brand:"Wildtech Gear",loyalty:null,cat:"boutique"},
-  {id:"thermarest",name:"Thermarest",brand:"Thermarest",loyalty:null,cat:"boutique"},
-  {id:"helinox",name:"Helinox",brand:"Helinox",loyalty:null,cat:"boutique"},
-  {id:"duckworth",name:"Duckworth",brand:"Duckworth",loyalty:null,cat:"boutique"},
-  {id:"chota",name:"Chota Outdoor",brand:"Chota Outdoor",loyalty:null,cat:"boutique"},
-  {id:"goatknives",name:"Goat Knives",brand:"Goat Knives",loyalty:null,cat:"boutique"},
-  {id:"darntough",name:"Darn Tough",brand:"Darn Tough",loyalty:null,cat:"boutique"},
-  {id:"fhfgear",name:"FHF Gear",brand:"FHF Gear",loyalty:null,cat:"boutique"},
-  {id:"peax",name:"Peax Equipment",brand:"Peax Equipment",loyalty:null,cat:"boutique"},
-  {id:"onglass",name:"On Glass Adapter",brand:"On Glass",loyalty:null,cat:"boutique"},
-  {id:"lonewolfcustomgear",name:"Lone Wolf Custom Gear",brand:"Lone Wolf Custom Gear",loyalty:null,cat:"boutique"},
-  {id:"trophyline",name:"Trophyline",brand:"Trophyline",loyalty:null,cat:"boutique"},
-  {id:"higdon",name:"Higdon Outdoors",brand:"Higdon Outdoors",loyalty:null,cat:"boutique"},
-  {id:"tanglefree",name:"Tanglefree",brand:"Tanglefree",loyalty:null,cat:"boutique"},
-  {id:"rigemright",name:"Rig Em Right",brand:"Rig Em Right",loyalty:null,cat:"boutique"},
-  {id:"motionducks",name:"MotionDucks",brand:"MotionDucks",loyalty:null,cat:"boutique"},
-  {id:"buckgardner",name:"Buck Gardner",brand:"Buck Gardner",loyalty:null,cat:"boutique"},
-  {id:"duckcreekdecoys",name:"Duck Creek Decoys",brand:"Duck Creek Decoys",loyalty:null,cat:"boutique"},
-  {id:"chenegear",name:"Chenegear",brand:"Chenegear",loyalty:null,cat:"boutique"},
-  {id:"quickcoys",name:"Quickcoys",brand:"Quickcoys",loyalty:null,cat:"boutique"},
-  {
-    id:"gohunt",name:"GoHunt Gear",brand:"GoHunt",cat:"specialty",
-    loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
-  },
-];
-
-function formatShipping(s, shippingMap){
-  const row = s.brand && shippingMap ? shippingMap[s.brand] : null;
-  if (!row) return "Shipping: unknown";
-  const { free_at, flat_rate } = row;
-  if (free_at === 0 && flat_rate === 0) return "Free shipping on all orders";
-  if (free_at != null && flat_rate != null) return "Free over $" + free_at + " · $" + flat_rate + " flat";
-  if (free_at != null) return "Free shipping over $" + free_at;
-  if (flat_rate != null) return "$" + flat_rate + " flat shipping";
-  return "Shipping varies — see policy";
-}
-
-const brandSlug = b => (b||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-const PORTALS = {
-  timberline: {
-    id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Deals",heroBg:"#1f2a1f",heroTagline:"Real Western hunting sales — tracked fresh every morning from 70+ backcountry brands. No fake markdowns, no inflated MSRPs, no padded discounts. Just the actual cheapest price online, right now.",domain:"timberlinedeals.com",ogImage:"https://timberlinedeals.com/og-timberline.png",description:"Real Western hunting deals updated every morning. Sitka, Kuiu, Stone Glacier, First Lite, Mystery Ranch, and 60+ backcountry brands — no fake markdowns, just the actual cheapest price online.",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%232d5a3d"/><path d="M6 52 L22 22 L32 36 L44 16 L58 52 Z" fill="%23fffdf7"/></svg>`,
-    brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment","Filson","SKRE Gear","Mathews","Badlands","Outdoor Edge","Outdoor Vitals","Beyond Clothing","Canvas Cutter","Smartwool","Leatherman","Spyderco"],
-    searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
-    searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
-  },
-  whitetail: {
-    id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",domain:"treestandsaver.com",ogImage:"https://treestandsaver.com/og-treestand-saver.png",description:"Real whitetail hunting deals — treestand, saddle, scent control, and rut gear from every brand we trust. Updated every morning. No fake markdowns.",tagline:"Whitetail · Treestand · Rut",
-    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Active Deals",heroBg:"#262420",heroTagline:"Real whitetail gear sales — tracked fresh every morning across treestand, saddle, scent control, and rut hunting brands. No fake markdowns. No inflated MSRPs. Just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%237a4a2a"/><g stroke="%23fffdf7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M32 54 L32 34"/><path d="M32 34 L20 22 L18 12"/><path d="M32 34 L44 22 L46 12"/><path d="M22 24 L14 18"/><path d="M22 28 L13 28"/><path d="M26 20 L22 12"/><path d="M42 24 L50 18"/><path d="M42 28 L51 28"/><path d="M38 20 L42 12"/></g></svg>`,
-    brands:["Sitka","First Lite","Keen","Katabatic Gear","Zpacks","Mtn Ops","Crispi","Yeti","Outdoor Research","Kings Camo","Marsupial Gear","Blue Coolers","Hoyt","Maven","Mathews","Forloh","Kryptek","Montana Knife Company","Kenetrek","Primos","Canvas Cutter","Outdoor Edge","Badlands","Wilderness Athlete","Pnuma Outdoors","Thermarest","Helinox","Duckworth","Chota Outdoor","Goat Knives","Darn Tough","FHF Gear","On Glass","GoHunt","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","Sig Sauer","Schnees","SKRE Gear","TideWe","Mossy Oak","Bone Collector","Nomad Outdoor","XOP Outdoors","Novix Outdoors","Hunting Beast Gear","Lone Wolf Custom Gear","Trophyline","Filson","Drake Waterfowl","Buck Gardner","Latitude Outdoors","Smartwool","Leatherman","Spyderco"],
-    searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
-    searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
-  },
-  turkey: {
-    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",ogImage:"/og-gobbler-deals.png",description:"Real spring turkey gear deals — calls, decoys, vests, and gobbler gear. Updated every morning. No fake markdowns.",tagline:"Calls · Decoys · Spring Gobbler",
-    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Active Deals",heroBg:"#211a10",heroTagline:"Real turkey hunting sales — tracked fresh every morning across calls, decoys, and spring gobbler gear. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%238a6a2e"/><g fill="%23fffdf7"><circle cx="32" cy="22" r="6"/><path d="M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z"/><path d="M14 38 Q8 40 10 46" stroke="%23fffdf7" stroke-width="2" fill="none"/><path d="M50 38 Q56 40 54 46" stroke="%23fffdf7" stroke-width="2" fill="none"/></g></svg>`,
-    brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
-    searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
-    searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
-  },
-  waterfowl: {
-    id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",domain:"duckblinddeals.com",ogImage:"https://duckblinddeals.com/og-duck-blind-deals.png",description:"Real waterfowl gear deals — waders, blinds, decoys, and layout gear from Drake, Sitka Waterfowl, Banded and more. Updated every morning. No fake markdowns.",tagline:"Waterfowl · Waders · Blinds",
-    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Active Deals",heroBg:"#241a10",heroTagline:"Real waterfowl gear sales — tracked fresh every morning from every blind, wader, and decoy brand we trust. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%233a5a78"/><g fill="%23fffdf7"><path d="M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z"/><circle cx="30" cy="30" r="1.5" fill="%233a5a78"/></g></svg>`,
-    brands:["Drake Waterfowl","Sitka","Yeti","Garmin","onX","Vortex","Leupold","Sig Sauer","Chota Outdoor","Helinox","Mtn Ops","Benchmade","Outdoor Edge","Wilderness Athlete","Darn Tough","Higdon Outdoors","Tanglefree","Rig Em Right","MotionDucks","Buck Gardner","Duck Creek Decoys","Chenegear","Quickcoys","Mossy Oak","Filson","Sillosocks","Smartwool","Leatherman","Spyderco"],
-    searchHint:'Try "Drake LST" or "Chota waders"...',
-    searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
-  },
-};
-
-function detectPortalId() {
-  try {
-    const env = import.meta.env?.VITE_PORTAL;
-    if (env && PORTALS[env]) return env;
-    const host = (typeof window !== "undefined" ? window.location.hostname : "").toLowerCase();
-    if (host.includes("whitetail") || host.includes("treestandsaver")) return "whitetail";
-    if (host.includes("turkey")) return "turkey";
-    if (host.includes("waterfowl") || host.includes("duckblind")) return "waterfowl";
-  } catch { /* ignore */ }
-  return "timberline";
-}
-
-const ACTIVE_PORTAL_ID = detectPortalId();
-const PORTAL = PORTALS[ACTIVE_PORTAL_ID];
-
-// ── Command Center analytics beacon → hub analytics_events ──
-// Fire-and-forget product-level signals so the standalone Command Center can
-// show per-portal traffic / logins / clicks. Each portal reports as its own
-// product. Uses the hub anon key (public by design); writes only, RLS-gated.
-const PORTAL_TO_PRODUCT = { timberline:"timberline", whitetail:"treesaddle", turkey:"gobbler", waterfowl:"duckblind" };
-let TRACK_USER_ID = null;
-function setTrackUser(id){ TRACK_USER_ID = id || null; }
-function track(eventType, props={}) {
-  try {
-    const body = {
-      product: PORTAL_TO_PRODUCT[ACTIVE_PORTAL_ID] || "timberline",
-      event_type: eventType,
-      anon_id: getSessionId(),
-      session_id: getSessionId(),
-      path: (typeof location!=="undefined" ? location.pathname : null),
-      props,
-      ua: (typeof navigator!=="undefined" ? navigator.userAgent : null),
-    };
-    if (TRACK_USER_ID) body.user_id = TRACK_USER_ID;
-    fetch(SB_URL+"/rest/v1/analytics_events", {
-      method:"POST",
-      headers:{ ...SB_H, "Content-Type":"application/json", "Prefer":"return=minimal" },
-      body: JSON.stringify(body),
-      keepalive: true,
-    }).catch(()=>{});
-  } catch { /* analytics must never break the app */ }
-}
-function trackSessionStart(){ try{ if(sessionStorage.getItem("cc_session_started"))return; sessionStorage.setItem("cc_session_started","1"); }catch{ /* ignore */ } track("session_start"); }
-function trackLogin(){ try{ if(sessionStorage.getItem("cc_logged_in"))return; sessionStorage.setItem("cc_logged_in","1"); }catch{ /* ignore */ } track("login"); }
-
-// Single brand palette — Sitka cinematic black panels + First Lite cream content + Kuiu orange CTA
-const PALETTE = {
-  bg:"#fbfaf6",bgCard:"#ffffff",bgSolid:"#ffffff",
-  bgHeader:"#15140f",border:"#e6e1d4",borderHov:"#1a1815",
-  text:"#1a1815",textSub:"#57544c",textMuted:"#9a968c",
-  accent:"#2d5a3d",accentLight:"#eef3ee",accentBorder:"#b8cdbc",
-  orange:"#c4501e",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
-  red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  navActive:"#eef3ee",
-  shadow:"rgba(20,18,12,0.05)",shadowHov:"rgba(20,18,12,0.14)",
-  // Cinematic dark panels for header + page hero
-  panelBg:"#15140f",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#2a2823",panelAccent:"#a8d4b0",
-};
-
-const INIT_FAMILY = [];
-
-const SIZE_OPTIONS = {
-  jacket: ["XS","S","M","L","XL","2XL","3XL","YXS","YS","YM","YL","YXL"],
-  shirt:  ["XS","S","M","L","XL","2XL","3XL","YXS","YS","YM","YL","YXL"],
-  base:   ["XS","S","M","L","XL","2XL","3XL","YXS","YS","YM","YL","YXL"],
-  pants: [
-    "28x28","28x30","28x32",
-    "30x28","30x30","30x32","30x34",
-    "32x28","32x30","32x32","32x34","32x36",
-    "34x28","34x30","34x32","34x34","34x36",
-    "36x30","36x32","36x34","36x36",
-    "38x30","38x32","38x34","38x36",
-    "40x30","40x32","40x34","40x36",
-    "0","2","4","6","8","10","12","14","16","18",
-    "YXS","YS","YM","YL","YXL",
-  ],
-  boots: ["4","4.5","5","5.5","6","6.5","7","7.5","8","8.5","9","9.5","10","10.5","11","11.5","12","12.5","13","14","15"],
-};
 
 
 function Spark({history,fake,T}) {
@@ -477,8 +61,6 @@ function Spark({history,fake,T}) {
   );
 }
 
-const APPAREL_RX=/\b(t-?shirt|tee|hoodie|sweatshirt|long\s*sleeve|crew|pullover|hat|cap|beanie|trucker|sticker|decal|patch|koozie|mug|tumbler|lanyard|keychain|flag|poster|logo)\b/i;
-const isApparel=(...parts)=>APPAREL_RX.test(parts.filter(Boolean).join(" "));
 
 function VideoPanel({deal,T}) {
   if(!deal)return null;
@@ -570,7 +152,7 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
     >
       {d.image&&(
         <div style={{position:"relative",width:"100%",paddingBottom:"66%",background:T.bgSolid,overflow:"hidden"}}>
-          <img src={d.image} alt={d.product} loading="lazy" decoding="async" fetchpriority="low"
+          <img src={d.image} alt={d.product} loading="lazy" decoding="async" fetchPriority="low"
             style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"transform 0.4s",transform:hov?"scale(1.04)":"none"}}
             onError={e=>{const p=e.currentTarget.parentElement; if(p)p.style.display="none";}}
           />
@@ -771,21 +353,6 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
   );
 }
 
-function matchDealsForItem(item, deals, member) {
-  const words = item.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-  if (!words.length) return [];
-  return deals
-    .map(d => {
-      const text = (d.product+" "+d.cat+" "+d.brand).toLowerCase();
-      const wordScore = words.reduce((s, w) => s + (text.includes(w) ? 1 : 0), 0);
-      const memberMatch = d.tags.includes(member.name) ? 0.5 : 0;
-      return { deal: d, score: wordScore + memberMatch };
-    })
-    .filter(x => x.score >= 1)
-    .sort((a, b) => b.score - a.score || a.deal.sale - b.deal.sale)
-    .slice(0, 3)
-    .map(x => x.deal);
-}
 
 function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
   const [input, setInput] = useState("");
@@ -1365,29 +932,7 @@ function AddMemberCard({setFamily, T}) {
 
 
 
-function EmbedCard({dealId}) {
-  const [d, setD] = useState(null);
-  useEffect(() => {
-    fetch(SB_URL + "/rest/v1/deals?id=eq." + dealId + "&select=id,brand,product,sale_price,orig_price,url,image_url&limit=1", { headers: SB_H })
-      .then(r => r.ok ? r.json() : [])
-      .then(rows => setD(rows[0] || null))
-      .catch(()=>{});
-  }, [dealId]);
-  if (!d) return <div style={{padding:20,fontFamily:"Inter,system-ui,sans-serif",fontSize:13,color:"#666"}}>Loading...</div>;
-  const orig = parseFloat(d.orig_price), sale = parseFloat(d.sale_price);
-  const disc = orig > sale ? Math.round((1-sale/orig)*100) : 0;
-  return (
-    <a href={d.url + "?ref=embed"} target="_top" style={{display:"flex",gap:12,padding:14,background:"#fbfaf6",border:"1px solid #e6e1d4",borderRadius:12,textDecoration:"none",color:"#1a1815",fontFamily:"Inter,system-ui,sans-serif",maxWidth:380,margin:0,boxSizing:"border-box"}}>
-      {d.image_url && <img src={d.image_url} alt={d.product} style={{width:80,height:80,objectFit:"cover",borderRadius:8,flexShrink:0}}/>}
-      <div style={{flex:1,minWidth:0}}>
-        <div style={{fontSize:9,color:"#2d5a3d",letterSpacing:"0.12em",fontFamily:"'Courier New',monospace",fontWeight:700,marginBottom:3}}>{(d.brand||"").toUpperCase()}</div>
-        <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:14,lineHeight:1.2,marginBottom:6,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{d.product}</div>
-        <div style={{fontSize:15,fontWeight:800}}>${sale}{disc > 0 && <span style={{textDecoration:"line-through",color:"#9a968c",fontWeight:400,marginLeft:8,fontSize:12}}>${orig}</span>}{disc > 0 && <span style={{color:"#c4501e",fontWeight:700,marginLeft:8,fontSize:12}}>-{disc}%</span>}</div>
-        <div style={{fontSize:9,color:"#9a968c",marginTop:6,fontFamily:"'Courier New',monospace",letterSpacing:"0.08em"}}>via {PORTAL.shortName||"TIMBERLINE"}</div>
-      </div>
-    </a>
-  );
-}
+// EmbedCard moved to the server-rendered route app/embed/deal/[id]/page.js.
 
 function SuggestBrandModal({T,user,onClose}) {
   const [brand,setBrand]=useState("");
@@ -1461,26 +1006,25 @@ function SuggestBrandModal({T,user,onClose}) {
   );
 }
 
-export default function App() {
-  const embedMatch = (typeof window !== "undefined") ? window.location.pathname.match(/^\/embed\/deal\/([0-9a-f-]+)/i) : null;
-  if (embedMatch) return <EmbedCard dealId={embedMatch[1]}/>;
-  return <MainApp/>;
-}
-
-function MainApp() {
-  const [tab,setTab]=useState("deals");
+export default function MainApp({
+  initialDeals = [],
+  initialCoupons = [],
+  initialShipping = {},
+  initialClickCounts = {},
+  initialBrandFilter = "All",
+  initialDealId = null,
+  initialTab = "deals",
+}) {
+  const [tab,setTab]=useState(initialTab);
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
-  const [brandFilter,setBrandFilter]=useState(()=>{
-    try {
-      const m = window.location.pathname.match(/^\/brand\/([^/]+)/);
-      return m ? "PENDING:" + decodeURIComponent(m[1]) : "All";
-    } catch { return "All"; }
-  });
+  // Brand route is resolved server-side and passed in — no window read at init (SSR-safe).
+  const [brandFilter,setBrandFilter]=useState(initialBrandFilter || "All");
   const [sortBy,setSortBy]=useState("discount");
-  const [familyOnly,setFamilyOnly]=useState(()=>{
-    try { const v = localStorage.getItem("tl_family_only"); return v === null ? true : v === "true"; } catch { return true; }
-  });
+  // Constant default on server and client; the real preference is hydrated from
+  // localStorage in the mount effect below to avoid a hydration mismatch.
+  const [familyOnly,setFamilyOnly]=useState(true);
+  useEffect(()=>{ try { const v = localStorage.getItem("tl_family_only"); if (v !== null) setFamilyOnly(v === "true"); } catch { /* ignore */ } }, []);
   useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch { /* ignore */ } }, [familyOnly]);
 
   const [modalDeal,setModalDeal]=useState(null);
@@ -1491,27 +1035,17 @@ function MainApp() {
   const [authMode,setAuthMode]=useState("login");
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
-  const [deals,setDeals]=useState([]);
-  const [clickCounts,setClickCounts]=useState({});
-  useEffect(() => {
-    fetch(SB_URL + "/rest/v1/deal_click_counts?select=deal_id,clicks_7d", { headers: SB_H })
-      .then(r => r.ok ? r.json() : [])
-      .then(rows => {
-        const m = {};
-        for (const r of rows) m[r.deal_id] = r.clicks_7d;
-        setClickCounts(m);
-      })
-      .catch(()=>{});
-  }, []);
+  const [deals,setDeals]=useState(initialDeals);
+  const [clickCounts,setClickCounts]=useState(initialClickCounts);
   const [compareList,setCompareList]=useState([]);
   const [showCompare,setShowCompare]=useState(false);
   const toggleCompare = d => setCompareList(p => p.find(x=>x.id===d.id) ? p.filter(x=>x.id!==d.id) : (p.length>=3 ? p : [...p, d]));
-  const [dealsLoading,setDealsLoading]=useState(true);
+  const [dealsLoading,setDealsLoading]=useState(false);
   const [dealsError,setDealsError]=useState(false);
-  const [dbCoupons,setDbCoupons]=useState([]);
+  const [dbCoupons,setDbCoupons]=useState(initialCoupons);
   const [showLegal,setShowLegal]=useState(null);
   const [showSuggest,setShowSuggest]=useState(false);
-  const [shippingMap,setShippingMap]=useState({});
+  const [shippingMap,setShippingMap]=useState(initialShipping);
 
   useEffect(()=>{
     if(user && user.id && family.length){
@@ -1556,54 +1090,30 @@ function MainApp() {
     return ()=>subscription.unsubscribe();
   },[]);
 
+  // Deals/coupons/shipping/clicks are seeded from server props (in first-byte HTML).
+  // On mount: open any shared deal, then lazy-load the remaining deals client-side.
   useEffect(()=>{
-    // Initial fast fetch (100 for snappy first paint), then page through the rest in 1000-row chunks
+    try {
+      const sharedId = initialDealId || new URLSearchParams(window.location.search).get("deal");
+      if (sharedId) {
+        const m = deals.find(x => String(x.id) === String(sharedId));
+        if (m) setModalDeal(m);
+      }
+    } catch { /* ignore */ }
     const PAGE = 1000;
-    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:"100",offset:"0"})
-      .then(rows=>{
-        if(rows&&rows.length) {
-          const mapped = rows.map(parseDeal);
-          setDeals(mapped);
-          try {
-            const params = new URLSearchParams(window.location.search);
-            const sharedId = params.get("deal");
-            if (sharedId) {
-              const m = mapped.find(x => String(x.id) === sharedId);
-              if (m) setModalDeal(m);
-            }
-          } catch { /* ignore */ }
-        }
-        setDealsLoading(false);
-        const loadMore = async (offset) => {
-          const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:String(PAGE),offset:String(offset)});
-          if (more && more.length) {
-            setDeals(prev => {
-              const seen = new Set(prev.map(d => d.id));
-              const fresh = more.map(parseDeal).filter(d => !seen.has(d.id));
-              return [...prev, ...fresh];
-            });
-            if (more.length === PAGE) await loadMore(offset + PAGE);
-          }
-        };
-        return loadMore(100);
-      })
-      .catch(()=>{setDealsError(true);setDealsLoading(false);});
-    sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
-      .then(rows=>{
-        if(!rows||!rows.length)return;
-        const now=Date.now();
-        const valid=rows.filter(r=>!r.expires_at||new Date(r.expires_at).getTime()>now);
-        setDbCoupons(valid.map(parseCoupon));
-      })
-      .catch(()=>{});
-    sbGet("brand_shipping",{select:"brand,free_at,flat_rate,scraped_at,policy_url"})
-      .then(rows=>{
-        if(!rows||!rows.length)return;
-        const m={};
-        rows.forEach(r=>{m[r.brand]={free_at:r.free_at,flat_rate:r.flat_rate,scraped_at:r.scraped_at,policy_url:r.policy_url};});
-        setShippingMap(m);
-      })
-      .catch(()=>{});
+    const loadMore = async (offset) => {
+      const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:String(PAGE),offset:String(offset)});
+      if (more && more.length) {
+        setDeals(prev => {
+          const seen = new Set(prev.map(d => d.id));
+          const fresh = more.map(parseDeal).filter(d => !seen.has(d.id));
+          return [...prev, ...fresh];
+        });
+        if (more.length === PAGE) await loadMore(offset + PAGE);
+      }
+    };
+    loadMore(0).catch(()=>{});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
   const T = useMemo(() => ({
     ...PALETTE,
@@ -1613,60 +1123,8 @@ function MainApp() {
     panelAccent: PORTAL.panelAccent || PALETTE.panelAccent,
   }), []);
   const P=PORTAL;
-  useEffect(() => {
-    try {
-      document.title = PORTAL.name;
-      if (PORTAL.favicon) {
-        let link = document.querySelector("link[rel~='icon']");
-        if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
-        link.type = "image/svg+xml";
-        link.href = PORTAL.favicon;
-      }
-      const setMeta = (sel, attr, val) => {
-        if (!val) return;
-        let el = document.querySelector(sel);
-        if (!el) {
-          el = document.createElement("meta");
-          const [type, name] = sel.replace(/[[\]"=]/g, " ").trim().split(/\s+/);
-          el.setAttribute(type, name);
-          document.head.appendChild(el);
-        }
-        el.setAttribute(attr, val);
-      };
-      const desc = PORTAL.description || PORTAL.heroTagline || PORTAL.tagline;
-      const url = "https://" + (PORTAL.domain || "timberlinedeals.com");
-      setMeta('meta[name="description"]', "content", desc);
-      setMeta('meta[property="og:title"]', "content", PORTAL.name);
-      setMeta('meta[property="og:description"]', "content", desc);
-      setMeta('meta[property="og:url"]', "content", url);
-      setMeta('meta[property="og:type"]', "content", "website");
-      setMeta('meta[property="og:image"]', "content", PORTAL.ogImage || "");
-      setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
-      setMeta('meta[name="twitter:title"]', "content", PORTAL.name);
-      setMeta('meta[name="twitter:description"]', "content", desc);
-      setMeta('meta[name="twitter:image"]', "content", PORTAL.ogImage || "");
-      let canonical = document.querySelector("link[rel='canonical']");
-      if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
-      canonical.href = url;
-      const gsc = import.meta.env.VITE_GSC_TOKEN;
-      if (gsc) {
-        let v = document.querySelector('meta[name="google-site-verification"]');
-        if (!v) { v = document.createElement("meta"); v.setAttribute("name","google-site-verification"); document.head.appendChild(v); }
-        v.setAttribute("content", gsc);
-      }
-      const gaId = import.meta.env.VITE_GA_ID;
-      if (gaId && !window.__gaLoaded) {
-        window.__gaLoaded = true;
-        const s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
-        document.head.appendChild(s);
-        const inline = document.createElement("script");
-        inline.text = "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','" + gaId + "');";
-        document.head.appendChild(inline);
-      }
-    } catch { /* ignore */ }
-  }, []);
+  // Title / meta / canonical / OG / favicon / GA are handled by the Next.js
+  // root layout + per-route generateMetadata (server-rendered into first-byte HTML).
   const liveBrands=useMemo(
     () => {
       const portalSet = new Set(PORTAL.brands || []);
@@ -1689,8 +1147,12 @@ function MainApp() {
   useEffect(() => {
     if (brandFilter.startsWith("PENDING:")) return;
     try {
+      // Only manage the URL while browsing the deals view at the root or a brand
+      // path; never clobber dedicated routes (/deal, /coupons, /search, /embed).
+      const path = window.location.pathname;
+      if (path !== "/" && !path.startsWith("/brand/")) return;
       const desired = brandFilter === "All" ? "/" : "/brand/" + brandSlug(brandFilter);
-      if (window.location.pathname !== desired) {
+      if (path !== desired) {
         window.history.replaceState(null, "", desired);
       }
     } catch { /* ignore */ }
@@ -1746,39 +1208,8 @@ function MainApp() {
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0;}
-        body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-        ::-webkit-scrollbar{width:6px;height:6px;}
-        ::-webkit-scrollbar-track{background:transparent;}
-        ::-webkit-scrollbar-thumb{background:${T.border};border-radius:3px;}
-        ::-webkit-scrollbar-thumb:hover{background:${T.borderHov};}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-        a{color:inherit;text-decoration:none;}
-        button{font-family:inherit;}
-        input,select,textarea{font-family:inherit;}
-        @media (max-width:768px){
-          .tl-header-inner{padding:10px 14px !important;height:auto !important;flex-wrap:wrap !important;gap:10px !important;}
-          .tl-header-brand-sub{display:none !important;}
-          .tl-sister-sites{display:none !important;}
-          .tl-header-nav{order:3 !important;width:100% !important;justify-content:center !important;overflow-x:auto !important;flex-wrap:wrap !important;}
-          .tl-header-pref{display:none !important;}
-          .tl-sister-sites{display:none !important;}
-          .tl-page-hero{padding:28px 16px 24px !important;}
-          .tl-page-hero h1{font-size:32px !important;line-height:1.1 !important;}
-          .tl-hero-split{flex-direction:column !important;gap:12px !important;}
-          .tl-hero-split p{text-align:left !important;max-width:none !important;flex:none !important;}
-          .tl-page-hero p{font-size:14px !important;line-height:1.5 !important;}
-          .tl-page-body{padding:18px 14px 32px !important;}
-          .tl-deal-grid{grid-template-columns:1fr !important;gap:14px !important;}
-          .tl-deal-grid > *{content-visibility:auto;contain-intrinsic-size:auto 380px;}
-        }
-        @media (max-width:480px){
-          .tl-page-hero h1{font-size:28px !important;}
-        }
-      `}</style>
+      {/* Global resets, scrollbar, keyframes, and responsive rules live in app/global.css.
+          Fonts are loaded in the root layout. */}
       <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:"multiply"}} aria-hidden="true">
         <filter id="paperNoise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter>
         <rect width="100%" height="100%" filter="url(#paperNoise)"/>
