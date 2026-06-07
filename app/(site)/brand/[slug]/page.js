@@ -1,7 +1,8 @@
+// Brand page — UI rendered by the (site) shell (brand filter derived from the URL).
+// This page contributes per-brand metadata + ItemList/Breadcrumb JSON-LD.
 import { notFound } from "next/navigation";
-import TimberlineApp from "@/components/TimberlineApp";
 import { PORTAL } from "@/lib/constants";
-import { resolveBrandSlug, getDealsByBrand, getCoupons, getBrandShipping, getClickCounts } from "@/lib/data";
+import { resolveBrandSlug, getDealsByBrand } from "@/lib/data";
 import { brandSlug } from "@/lib/parse";
 import { itemListJsonLd, breadcrumbJsonLd, JsonLd, SITE_URL, brandUrl } from "@/lib/seo";
 
@@ -38,12 +39,6 @@ export default async function BrandPage({ params }) {
   const { brand, deals } = await getDealsByBrand(PORTAL.id, slug);
   if (!brand) notFound();
 
-  const [coupons, shipping, clickCounts] = await Promise.all([
-    getCoupons(),
-    getBrandShipping(),
-    getClickCounts(),
-  ]);
-
   const jsonLd = [
     itemListJsonLd(deals, { name: `${brand} deals` }),
     breadcrumbJsonLd([
@@ -52,16 +47,5 @@ export default async function BrandPage({ params }) {
     ]),
   ];
 
-  return (
-    <>
-      <JsonLd data={jsonLd} />
-      <TimberlineApp
-        initialDeals={deals}
-        initialCoupons={coupons}
-        initialShipping={shipping}
-        initialClickCounts={clickCounts}
-        initialBrandFilter={brand}
-      />
-    </>
-  );
+  return <JsonLd data={jsonLd} />;
 }

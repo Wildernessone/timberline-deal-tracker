@@ -1,6 +1,5 @@
-import TimberlineApp from "@/components/TimberlineApp";
+// Coupons — UI rendered by the (site) shell (view derived from the /coupons URL).
 import { PORTAL } from "@/lib/constants";
-import { getAppData } from "@/lib/data";
 
 export const revalidate = 3600;
 
@@ -16,15 +15,6 @@ export async function generateMetadata() {
   };
 }
 
-export default async function CouponsPage() {
-  const { deals, coupons, shipping, clickCounts } = await getAppData(PORTAL.id);
-  return (
-    <TimberlineApp
-      initialDeals={deals}
-      initialCoupons={coupons}
-      initialShipping={shipping}
-      initialClickCounts={clickCounts}
-      initialTab="coupons"
-    />
-  );
+export default function CouponsPage() {
+  return null;
 }

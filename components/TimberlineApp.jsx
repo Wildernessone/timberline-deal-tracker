@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   SB_URL, SB_KEY, SB_H, BRAND_DOMAINS, MC, HUNT_TYPES, GEAR_CATS, ALL_BRANDS,
   STORES, PORTALS, ACTIVE_PORTAL_ID, PORTAL, PORTAL_TO_PRODUCT, PALETTE,
@@ -1006,20 +1008,32 @@ function SuggestBrandModal({T,user,onClose}) {
   );
 }
 
+// Derive the active view from the URL so routed <Link> navigation drives the app
+// (the shell stays mounted via the (site) layout — state is preserved across nav).
+function tabForPath(p) {
+  return p === "/search" ? "search" : p === "/coupons" ? "coupons" : p === "/profile" ? "family" : "deals";
+}
+function brandForPath(p) {
+  const m = (p || "").match(/^\/brand\/([^/]+)/);
+  if (!m) return "All";
+  const slug = decodeURIComponent(m[1]);
+  return (PORTAL.brands || []).find(b => brandSlug(b) === slug) || "All";
+}
+
 export default function MainApp({
   initialDeals = [],
   initialCoupons = [],
   initialShipping = {},
   initialClickCounts = {},
-  initialBrandFilter = "All",
   initialDealId = null,
-  initialTab = "deals",
 }) {
-  const [tab,setTab]=useState(initialTab);
+  const pathname = usePathname() || "/";
+  const [tab,setTab]=useState(() => tabForPath(pathname));
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
-  // Brand route is resolved server-side and passed in — no window read at init (SSR-safe).
-  const [brandFilter,setBrandFilter]=useState(initialBrandFilter || "All");
+  const [brandFilter,setBrandFilter]=useState(() => brandForPath(pathname));
+  // Keep tab + brand in sync with the URL on client-side navigation.
+  useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname)); }, [pathname]);
   const [sortBy,setSortBy]=useState("discount");
   // Constant default on server and client; the real preference is hydrated from
   // localStorage in the mount effect below to avoid a hydration mismatch.
@@ -1137,29 +1151,6 @@ export default function MainApp({
     [deals]
   );
 
-  
-  useEffect(() => {
-    if (!brandFilter.startsWith("PENDING:")) return;
-    const targetSlug = brandFilter.slice(8);
-    if (!liveBrands.length) return;
-    const hit = liveBrands.find(b => brandSlug(b) === targetSlug);
-    setBrandFilter(hit || "All");
-  }, [brandFilter, liveBrands]);
-
-  useEffect(() => {
-    if (brandFilter.startsWith("PENDING:")) return;
-    try {
-      // Only manage the URL while browsing the deals view at the root or a brand
-      // path; never clobber dedicated routes (/deal, /coupons, /search, /embed).
-      const path = window.location.pathname;
-      if (path !== "/" && !path.startsWith("/brand/")) return;
-      const desired = brandFilter === "All" ? "/" : "/brand/" + brandSlug(brandFilter);
-      if (path !== desired) {
-        window.history.replaceState(null, "", desired);
-      }
-    } catch { /* ignore */ }
-  }, [brandFilter]);
-
   const taggedDeals=useMemo(
     ()=>deals.map(d=>({...d,tags:computeTags(d,family),clicks7d:clickCounts[d.id]||0})),
     [deals,family,clickCounts]
@@ -1206,7 +1197,7 @@ export default function MainApp({
     }
   };
 
-  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
+  const TABS=[{id:"deals",label:"Deals",href:"/"},{id:"search",label:"Price Search",href:"/search"},{id:"coupons",label:"Coupon Codes",href:"/coupons"},...(user?[{id:"family",label:"Profile",href:"/profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"var(--font-inter),system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
@@ -1219,7 +1210,7 @@ export default function MainApp({
       <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`,position:"sticky",top:0,zIndex:100}}>
         <div className="tl-header-inner" style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
-            <div onClick={()=>{setTab("deals");setBrandFilter("All");setMemberFilter("All");window.scrollTo(0,0);}} style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em",cursor:"pointer"}}>{PORTAL.shortName || "Timberline"}</div>
+            <Link href="/" onClick={()=>setMemberFilter("All")} style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em",cursor:"pointer",textDecoration:"none"}}>{PORTAL.shortName || "Timberline"}</Link>
             <div className="tl-header-brand-sub" style={{fontFamily:"var(--font-jetbrains),monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
             <div className="tl-sister-sites" style={{display:"flex",gap:8,marginLeft:14,paddingLeft:14,borderLeft:`1px solid ${T.panelBorder}`,alignItems:"center"}}>
               {Object.values(PORTALS).filter(x=>x.id!==PORTAL.id&&x.domain).map(x=>(
@@ -1229,9 +1220,9 @@ export default function MainApp({
           </div>
           <nav className="tl-header-nav" style={{display:"flex",gap:2}}>
             {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"7px 14px",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500,transition:"color 0.18s",background:"transparent",color:tab===t.id?T.panelText:T.panelMuted}}>
+              <Link key={t.id} href={t.href} style={{padding:"7px 14px",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500,transition:"color 0.18s",background:"transparent",textDecoration:"none",color:tab===t.id?T.panelText:T.panelMuted}}>
                 {t.label}
-              </button>
+              </Link>
             ))}
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -1302,9 +1293,9 @@ export default function MainApp({
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>BRAND</span>
                   {["All",...BRANDS_LIST].map(b=>(
-                    <button key={b} onClick={()=>setBrandFilter(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
+                    <Link key={b} href={b==="All"?"/":"/brand/"+brandSlug(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",textDecoration:"none",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
                       {b}
-                    </button>
+                    </Link>
                   ))}
                   <button onClick={()=>setShowSuggest(true)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,border:`1px dashed ${T.border}`,background:"transparent",color:T.textMuted,fontStyle:"italic"}}>Don&apos;t see your brand? Suggest one →</button>
                 </div>
@@ -1323,7 +1314,7 @@ export default function MainApp({
                   <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No deals match these filters</div>
                   <div style={{fontSize:12,color:T.textMuted,marginBottom:18,fontFamily:"var(--font-jetbrains),monospace"}}>Try clearing the brand or member filter to see more.</div>
                   {(brandFilter!=="All"||memberFilter!=="All")&&(
-                    <button onClick={()=>{setBrandFilter("All");setMemberFilter("All");}} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Clear filters</button>
+                    <Link href="/" onClick={()=>setMemberFilter("All")} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer",textDecoration:"none",display:"inline-block"}}>Clear filters</Link>
                   )}
                 </div>
               ):filtered.map(d=>(

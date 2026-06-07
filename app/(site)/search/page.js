@@ -1,6 +1,5 @@
-import TimberlineApp from "@/components/TimberlineApp";
+// Price search — UI rendered by the (site) shell (view derived from the /search URL).
 import { PORTAL } from "@/lib/constants";
-import { getAppData } from "@/lib/data";
 
 export const revalidate = 3600;
 
@@ -16,15 +15,6 @@ export async function generateMetadata() {
   };
 }
 
-export default async function SearchPage() {
-  const { deals, coupons, shipping, clickCounts } = await getAppData(PORTAL.id);
-  return (
-    <TimberlineApp
-      initialDeals={deals}
-      initialCoupons={coupons}
-      initialShipping={shipping}
-      initialClickCounts={clickCounts}
-      initialTab="search"
-    />
-  );
+export default function SearchPage() {
+  return null;
 }
