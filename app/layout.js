@@ -1,7 +1,7 @@
 import "./global.css";
 import Script from "next/script";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
-import { PORTAL, PORTALS } from "@/lib/constants";
+import { PORTAL } from "@/lib/constants";
 
 // Self-hosted via next/font — automatic fallback size-adjust metrics eliminate
 // the font-swap layout shift (CLS) the external <link> caused. Exposed as CSS
@@ -57,7 +57,7 @@ const orgJsonLd = {
       name: PORTAL.name,
       url: SITE_URL,
       logo: PORTAL.ogImage || undefined,
-      sameAs: Object.values(PORTALS).filter(p => p.domain && p.id !== PORTAL.id).map(p => "https://" + p.domain),
+      sameAs: [],
     },
     {
       "@type": "WebSite",
