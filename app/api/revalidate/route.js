@@ -14,7 +14,7 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
-const ALL_TAGS = ["deals", "coupons", "shipping", "clicks"];
+const ALL_TAGS = ["deals", "coupons", "shipping", "clicks", "portal_brands"];
 
 export async function POST(request) {
   const secret =

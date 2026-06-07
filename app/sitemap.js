@@ -1,12 +1,15 @@
 import { PORTAL } from "@/lib/constants";
-import { getDeals } from "@/lib/data";
+import { getDeals, getEffectiveBrands } from "@/lib/data";
 import { brandSlug } from "@/lib/parse";
 import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 3600;
 
 export default async function sitemap() {
-  const deals = await getDeals(PORTAL.id, { limit: 1000 });
+  const [deals, brands] = await Promise.all([
+    getDeals(PORTAL.id, { limit: 1000 }),
+    getEffectiveBrands(PORTAL.id),
+  ]);
 
   const staticRoutes = [
     { url: SITE_URL + "/", changeFrequency: "daily", priority: 1.0 },
@@ -14,7 +17,7 @@ export default async function sitemap() {
     { url: SITE_URL + "/search", changeFrequency: "weekly", priority: 0.6 },
   ];
 
-  const brandRoutes = (PORTAL.brands || []).map(b => ({
+  const brandRoutes = brands.map(b => ({
     url: SITE_URL + "/brand/" + brandSlug(b),
     changeFrequency: "daily",
     priority: 0.6,

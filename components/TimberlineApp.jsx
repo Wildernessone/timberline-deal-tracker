@@ -1013,11 +1013,11 @@ function SuggestBrandModal({T,user,onClose}) {
 function tabForPath(p) {
   return p === "/search" ? "search" : p === "/coupons" ? "coupons" : p === "/profile" ? "family" : "deals";
 }
-function brandForPath(p) {
+function brandForPath(p, brands) {
   const m = (p || "").match(/^\/brand\/([^/]+)/);
   if (!m) return "All";
   const slug = decodeURIComponent(m[1]);
-  return (PORTAL.brands || []).find(b => brandSlug(b) === slug) || "All";
+  return (brands || []).find(b => brandSlug(b) === slug) || "All";
 }
 
 export default function MainApp({
@@ -1026,14 +1026,18 @@ export default function MainApp({
   initialShipping = {},
   initialClickCounts = {},
   initialDealId = null,
+  initialBrands = null,
 }) {
   const pathname = usePathname() || "/";
+  // Effective brand universe: server-provided (hardcoded ∪ DB portal_brands) or
+  // the hardcoded fallback. Drives the chips, the brand filter, and slug resolution.
+  const brandUniverse = useMemo(() => (initialBrands && initialBrands.length) ? initialBrands : (PORTAL.brands || []), [initialBrands]);
   const [tab,setTab]=useState(() => tabForPath(pathname));
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
-  const [brandFilter,setBrandFilter]=useState(() => brandForPath(pathname));
+  const [brandFilter,setBrandFilter]=useState(() => brandForPath(pathname, brandUniverse));
   // Keep tab + brand in sync with the URL on client-side navigation.
-  useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname)); }, [pathname]);
+  useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname, brandUniverse)); }, [pathname, brandUniverse]);
   const [sortBy,setSortBy]=useState("discount");
   // Constant default on server and client; the real preference is hydrated from
   // localStorage in the mount effect below to avoid a hydration mismatch.
@@ -1141,14 +1145,13 @@ export default function MainApp({
   // root layout + per-route generateMetadata (server-rendered into first-byte HTML).
   const liveBrands=useMemo(
     () => {
-      // Use the portal's known brand universe so the brand-filter chip row is
-      // stable between SSR and after client lazy-loading — prevents the row from
-      // growing several lines and shoving the grid down (a big CLS source).
-      // Fall back to deriving from loaded deals only if the portal has no list.
-      if (PORTAL.brands && PORTAL.brands.length) return [...PORTAL.brands].sort();
+      // Use the effective brand universe (hardcoded ∪ DB portal_brands) so the
+      // chip row is stable between SSR and client lazy-loading (avoids CLS) and
+      // includes newly-onboarded brands. Fall back to deals only if empty.
+      if (brandUniverse.length) return [...brandUniverse].sort();
       return [...new Set(deals.map(d=>d.brand))].sort();
     },
-    [deals]
+    [deals, brandUniverse]
   );
 
   const taggedDeals=useMemo(
@@ -1169,7 +1172,7 @@ export default function MainApp({
     else if(sortBy==="trending") arr.sort((a,b)=>(a.fake?1:0)-(b.fake?1:0) || (b.clicks7d||0)-(a.clicks7d||0));
     return arr;
   },[taggedDeals,sortBy]);
-  const portalBrandSet = useMemo(() => new Set(PORTAL.brands || []), []);
+  const portalBrandSet = useMemo(() => new Set(brandUniverse), [brandUniverse]);
   const filtered=useMemo(()=>sortedDeals.filter(d=>{
     if (portalBrandSet.size && !portalBrandSet.has(d.brand)) return false;
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;

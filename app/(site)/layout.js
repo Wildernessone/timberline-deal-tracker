@@ -10,7 +10,7 @@ import { getAppData } from "@/lib/data";
 export const revalidate = 3600;
 
 export default async function SiteLayout({ children }) {
-  const { deals, coupons, shipping, clickCounts } = await getAppData(PORTAL.id);
+  const { deals, coupons, shipping, clickCounts, brands } = await getAppData(PORTAL.id);
   return (
     <>
       <TimberlineApp
@@ -18,6 +18,7 @@ export default async function SiteLayout({ children }) {
         initialCoupons={coupons}
         initialShipping={shipping}
         initialClickCounts={clickCounts}
+        initialBrands={brands}
       />
       {children}
     </>

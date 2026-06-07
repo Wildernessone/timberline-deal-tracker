@@ -41,7 +41,7 @@ export default async function DealPage({ params }) {
   const d = await getDeal(id);
   if (!d) notFound();
 
-  const { deals, coupons, shipping, clickCounts } = await getAppData(PORTAL.id);
+  const { deals, coupons, shipping, clickCounts, brands } = await getAppData(PORTAL.id);
   // Ensure the linked deal is present in the grid even if outside the top page.
   const seededDeals = deals.some(x => String(x.id) === String(d.id)) ? deals : [d, ...deals];
 
@@ -63,6 +63,7 @@ export default async function DealPage({ params }) {
         initialShipping={shipping}
         initialClickCounts={clickCounts}
         initialDealId={String(d.id)}
+        initialBrands={brands}
       />
     </>
   );
