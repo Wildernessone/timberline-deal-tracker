@@ -3,7 +3,6 @@
 export const metadata = {
   title: "Your profile",
   robots: { index: false, follow: false },
-  alternates: { canonical: "/profile" },
 };
 
 export default function ProfilePage() {

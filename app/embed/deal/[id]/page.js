@@ -3,6 +3,7 @@
 import { notFound } from "next/navigation";
 import { PORTAL } from "@/lib/constants";
 import { getDeal } from "@/lib/data";
+import { fmtPrice } from "@/lib/parse";
 import { discountPct } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -26,8 +27,8 @@ export default async function EmbedDealPage({ params }) {
         <div style={{ fontSize: 9, color: "#2d5a3d", letterSpacing: "0.12em", fontFamily: "'Courier New',monospace", fontWeight: 700, marginBottom: 3 }}>{(d.brand || "").toUpperCase()}</div>
         <div style={{ fontFamily: "Georgia,serif", fontWeight: 700, fontSize: 14, lineHeight: 1.2, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{d.product}</div>
         <div style={{ fontSize: 15, fontWeight: 800 }}>
-          ${d.sale}
-          {disc > 0 && <span style={{ textDecoration: "line-through", color: "#9a968c", fontWeight: 400, marginLeft: 8, fontSize: 12 }}>${d.orig}</span>}
+          ${fmtPrice(d.sale)}
+          {disc > 0 && <span style={{ textDecoration: "line-through", color: "#9a968c", fontWeight: 400, marginLeft: 8, fontSize: 12 }}>${fmtPrice(d.orig)}</span>}
           {disc > 0 && <span style={{ color: "#c4501e", fontWeight: 700, marginLeft: 8, fontSize: 12 }}>-{disc}%</span>}
         </div>
         <div style={{ fontSize: 9, color: "#9a968c", marginTop: 6, fontFamily: "'Courier New',monospace", letterSpacing: "0.08em" }}>via {PORTAL.shortName || "TIMBERLINE"}</div>

@@ -1,5 +1,6 @@
 import { PORTAL } from "@/lib/constants";
 import { getDeals } from "@/lib/data";
+import { fmtPrice } from "@/lib/parse";
 import { SITE_URL, dealUrl, discountPct } from "@/lib/seo";
 
 export const revalidate = 3600;
@@ -16,9 +17,9 @@ export async function GET() {
 
   const items = top.map(d => {
     const disc = discountPct(d);
-    const title = `${d.brand} ${d.product}${disc > 0 ? ` — ${disc}% off ($${d.sale})` : ` — $${d.sale}`}`;
+    const title = `${d.brand} ${d.product}${disc > 0 ? ` — ${disc}% off ($${fmtPrice(d.sale)})` : ` — $${fmtPrice(d.sale)}`}`;
     const pubDate = d.createdAt ? new Date(d.createdAt).toUTCString() : "";
-    const desc = d.blurb || `${d.brand} ${d.product} on sale at $${d.sale}`;
+    const desc = d.blurb || `${d.brand} ${d.product} on sale at $${fmtPrice(d.sale)}`;
     return `  <item>
     <title>${esc(title)}</title>
     <link>${dealUrl(d.id)}</link>

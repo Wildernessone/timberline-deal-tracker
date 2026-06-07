@@ -1,5 +1,5 @@
 import { PORTAL } from "@/lib/constants";
-import { getDeals, getEffectiveBrands } from "@/lib/data";
+import { getAllActiveDealIdsForSitemap, getEffectiveBrands } from "@/lib/data";
 import { brandSlug } from "@/lib/parse";
 import { SITE_URL } from "@/lib/seo";
 
@@ -7,7 +7,7 @@ export const revalidate = 3600;
 
 export default async function sitemap() {
   const [deals, brands] = await Promise.all([
-    getDeals(PORTAL.id, { limit: 1000 }),
+    getAllActiveDealIdsForSitemap({ max: 10000 }),
     getEffectiveBrands(PORTAL.id),
   ]);
 
@@ -25,7 +25,7 @@ export default async function sitemap() {
 
   const dealRoutes = deals.map(d => ({
     url: SITE_URL + "/deal/" + d.id,
-    lastModified: d.createdAt ? new Date(d.createdAt) : undefined,
+    lastModified: d.created_at ? new Date(d.created_at) : undefined,
     changeFrequency: "daily",
     priority: 0.5,
   }));

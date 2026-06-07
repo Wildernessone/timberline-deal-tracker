@@ -9,7 +9,7 @@ import {
 } from "@/lib/constants";
 import {
   parseDeal, fieldsForCat, productGender, computeTags, parseCoupon,
-  formatShipping, brandSlug, isApparel, matchDealsForItem,
+  formatShipping, brandSlug, isApparel, matchDealsForItem, fmtPrice,
 } from "@/lib/parse";
 import { supabase } from "@/lib/supabaseClient";
 import {
@@ -177,9 +177,9 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
         </div>
         <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:21,color:T.text,lineHeight:1.2,marginBottom:14,letterSpacing:"-0.01em"}}>{d.product}</div>
         <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:14}}>
-          <span style={{fontWeight:800,fontSize:30,color:d.fake?T.red:T.text,letterSpacing:"-0.02em"}}>${d.sale}</span>
-          {d.orig>d.sale&&<span style={{fontSize:15,color:T.textMuted,textDecoration:"line-through"}}>${d.orig}</span>}
-          {save>0&&<span style={{fontSize:12,fontWeight:700,color:d.fake?T.red:T.accent,marginLeft:"auto"}}>Save ${save}</span>}
+          <span style={{fontWeight:800,fontSize:30,color:d.fake?T.red:T.text,letterSpacing:"-0.02em"}}>${fmtPrice(d.sale)}</span>
+          {d.orig>d.sale&&<span style={{fontSize:15,color:T.textMuted,textDecoration:"line-through"}}>${fmtPrice(d.orig)}</span>}
+          {save>0&&<span style={{fontSize:12,fontWeight:700,color:d.fake?T.red:T.accent,marginLeft:"auto"}}>Save ${fmtPrice(save)}</span>}
         </div>
         {d.fake&&(
           <div style={{background:T.redLight,border:`1px solid ${T.redBorder}`,borderRadius:8,padding:"10px 12px",marginBottom:14}}>
@@ -276,9 +276,9 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             </div>
           )}
           <div style={{display:"flex",alignItems:"baseline",gap:14,marginBottom:20}}>
-            <span style={{fontWeight:900,fontSize:42,color:deal.fake?T.red:T.text}}>${deal.sale}</span>
-            {deal.orig>deal.sale&&<span style={{fontSize:22,color:T.textMuted,textDecoration:"line-through"}}>${deal.orig}</span>}
-            {!deal.fake&&save>0&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Save ${save} ({disc}% off)</span>}
+            <span style={{fontWeight:900,fontSize:42,color:deal.fake?T.red:T.text}}>${fmtPrice(deal.sale)}</span>
+            {deal.orig>deal.sale&&<span style={{fontSize:22,color:T.textMuted,textDecoration:"line-through"}}>${fmtPrice(deal.orig)}</span>}
+            {!deal.fake&&save>0&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Save ${fmtPrice(save)} ({disc}% off)</span>}
             {!deal.fake&&save===0&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Outlet price</span>}
           </div>
           <div style={{marginBottom:24}}>
@@ -316,7 +316,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
           <button
             onClick={async()=>{
               const url = window.location.origin + "/?deal=" + deal.id;
-              const shareData = { title: deal.brand + " " + deal.product, text: deal.brand + " " + deal.product + " - $" + deal.sale, url };
+              const shareData = { title: deal.brand + " " + deal.product, text: deal.brand + " " + deal.product + " - $" + fmtPrice(deal.sale), url };
               try {
                 if (navigator.share) await navigator.share(shareData);
                 else { await navigator.clipboard.writeText(url); window.alert("Link copied to clipboard"); }
@@ -335,7 +335,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
               {isWatched?"Watching - we'll email when it drops":"Watch this product - email me when on sale"}
             </button>
           )}
-          <details style={{marginTop:8,fontSize:12,color:"#6b6b5a",marginBottom:10}}>
+          <details style={{marginTop:8,fontSize:12,color:T.textSub,marginBottom:10}}>
             <summary style={{cursor:"pointer",padding:"6px 0",fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.06em",fontSize:11}}>Embed this deal on your site</summary>
             <input readOnly value={`<iframe src="https://${(typeof window!=="undefined"?window.location.hostname:"timberlinedeals.com")}/embed/deal/${deal.id}" width="400" height="120" frameborder="0" style="border:0;border-radius:12px;"></iframe>`} onClick={e=>e.target.select()} style={{width:"100%",fontFamily:"var(--font-jetbrains),monospace",fontSize:10,padding:"8px 10px",border:"1px solid #e6e1d4",borderRadius:6,marginTop:6,background:"#fbfaf6"}}/>
           </details>
@@ -344,7 +344,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             onClick={()=>logClick(deal)}
             style={{display:"block",width:"100%",textAlign:"center",color:"white",borderRadius:12,padding:"15px",fontSize:16,fontWeight:700,textDecoration:"none",background:deal.fake?T.red:T.accent}}
           >
-            {deal.fake?"View on "+deal.brand+" (proceed with caution)":"Shop "+deal.brand+" -- $"+deal.sale}
+            {deal.fake?"View on "+deal.brand+" (proceed with caution)":"Shop "+deal.brand+" -- $"+fmtPrice(deal.sale)}
           </a>
           <p style={{textAlign:"center",color:T.textMuted,fontSize:10,marginTop:8,fontFamily:"var(--font-jetbrains),monospace"}}>
             {PORTAL.shortName} earns a small commission -- never affects your price
@@ -416,7 +416,7 @@ function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
                               <div style={{fontSize:12,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{d.product}</div>
                             </div>
                             <div style={{textAlign:"right",flexShrink:0}}>
-                              <div style={{fontSize:14,fontWeight:800,color:T.text}}>${d.sale}</div>
+                              <div style={{fontSize:14,fontWeight:800,color:T.text}}>${fmtPrice(d.sale)}</div>
                               <div style={{fontSize:10,color:T.orange,fontWeight:700}}>−{disc}%</div>
                             </div>
                           </div>
@@ -1058,7 +1058,6 @@ export default function MainApp({
   const [compareList,setCompareList]=useState([]);
   const [showCompare,setShowCompare]=useState(false);
   const toggleCompare = d => setCompareList(p => p.find(x=>x.id===d.id) ? p.filter(x=>x.id!==d.id) : (p.length>=3 ? p : [...p, d]));
-  const [dealsLoading,setDealsLoading]=useState(false);
   const [dealsError,setDealsError]=useState(false);
   const [dbCoupons,setDbCoupons]=useState(initialCoupons);
   const [showLegal,setShowLegal]=useState(null);
@@ -1130,7 +1129,7 @@ export default function MainApp({
         if (more.length === PAGE) await loadMore(offset + PAGE);
       }
     };
-    loadMore(0).catch(()=>{});
+    loadMore(0).then(()=>setDealsError(false)).catch(()=>setDealsError(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
   const T = useMemo(() => ({
@@ -1182,6 +1181,18 @@ export default function MainApp({
   }),[sortedDeals,portalBrandSet,brandFilter,memberFilter,familyOnly,user,family.length]);
   const portalCoupons=dbCoupons;
   const BRANDS_LIST=liveBrands;
+  // Primary <h1> for the deals view, derived from the current route so each page
+  // has a topic-specific heading instead of the generic hero title:
+  //  - deal landing (/deal/[id], initialDealId set): the product name
+  //  - brand page (/brand/[slug], brandFilter active): "{Brand} Deals"
+  //  - home/search/coupons: fall back to the portal hero title
+  const landingDeal = useMemo(
+    () => (initialDealId ? deals.find(x => String(x.id) === String(initialDealId)) : null),
+    [initialDealId, deals]
+  );
+  const dealsHeading = landingDeal
+    ? `${landingDeal.brand} ${landingDeal.product}`
+    : (brandFilter !== "All" ? `${brandFilter} Deals` : (PORTAL.heroTitle || "Active Deals"));
   const watchQueryFor = d => ((d.brand||"")+" "+(d.product||"")).trim().toLowerCase();
   const isWatched = d => wishlist.some(w => (w.query||"") === watchQueryFor(d));
   const handleWatch = async (d) => {
@@ -1252,7 +1263,7 @@ export default function MainApp({
               <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
                 <div className="tl-hero-split" style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:32,flexWrap:"wrap"}}>
                   <div style={{flex:"0 1 auto"}}>
-                    <h1 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>{PORTAL.heroTitle || "Active Deals"}</h1>
+                    <h1 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>{dealsHeading}</h1>
                     <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em",margin:0}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
                   </div>
                   {PORTAL.heroTagline && <p style={{color:T.panelText,opacity:0.85,fontSize:14,lineHeight:1.5,maxWidth:620,fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:400,fontStyle:"italic",margin:0,textAlign:"right",flex:"0 1 620px",alignSelf:"center"}}>{PORTAL.heroTagline}</p>}
@@ -1266,7 +1277,7 @@ export default function MainApp({
               <div style={{display:"flex",gap:20,marginBottom:32,flexWrap:"wrap",alignItems:"center"}}>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                   <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>SORT</span>
-                  <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"5px 10px",borderRadius:999,fontSize:12,fontWeight:600,border:`1px solid ${T.border}`,background:T.bgCard,color:T.text,cursor:"pointer",fontFamily:"inherit"}}>
+                  <select aria-label="Sort deals" value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"5px 10px",borderRadius:999,fontSize:12,fontWeight:600,border:`1px solid ${T.border}`,background:T.bgCard,color:T.text,cursor:"pointer",fontFamily:"inherit"}}>
                     <option value="discount">Biggest % off</option>
                     <option value="trending">🔥 Trending</option>
                     <option value="newest">Newest</option>
@@ -1310,8 +1321,6 @@ export default function MainApp({
                   <div style={{fontSize:12,color:T.textMuted,marginBottom:14}}>Network or server hiccup. Try refreshing.</div>
                   <button onClick={()=>window.location.reload()} style={{background:T.accent,color:"white",border:"none",borderRadius:8,padding:"8px 18px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Reload</button>
                 </div>
-              ):dealsLoading&&deals.length===0?(
-                <div style={{color:T.textMuted,padding:40,fontFamily:"var(--font-jetbrains),monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>Loading deals...</div>
               ):filtered.length===0?(
                 <div style={{padding:48,textAlign:"center",gridColumn:"1 / -1"}}>
                   <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No deals match these filters</div>
@@ -1526,11 +1535,11 @@ export default function MainApp({
                 return (
                   <div key={d.id} style={{border:`1px solid ${T.border}`,borderRadius:12,padding:16,background:T.bgCard,position:"relative"}}>
                     <button onClick={()=>toggleCompare(d)} aria-label="Remove from compare" style={{position:"absolute",top:8,right:8,background:T.border,border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:T.textSub,lineHeight:1}}>×</button>
-                    {d.image && <div style={{width:"100%",paddingBottom:"66%",background:T.bgSolid,borderRadius:8,marginBottom:12,position:"relative",overflow:"hidden"}}><img src={d.image} alt={d.product} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/></div>}
+                    {d.image && <div style={{width:"100%",paddingBottom:"66%",background:T.bgSolid,borderRadius:8,marginBottom:12,position:"relative",overflow:"hidden"}}><img src={d.image} alt={d.product} onError={e=>{const p=e.currentTarget.parentElement; if(p)p.style.display="none";}} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/></div>}
                     <div style={{fontSize:10,color:T.accent,letterSpacing:"0.12em",fontFamily:"var(--font-jetbrains),monospace",fontWeight:700,marginBottom:4}}>{(d.brand||"").toUpperCase()}</div>
                     <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:10,lineHeight:1.25}}>{d.product}</div>
-                    <div style={{fontSize:22,fontWeight:800,color:T.text}}>${d.sale}</div>
-                    {disc > 0 && <div style={{fontSize:12,color:T.textMuted,marginBottom:6}}><span style={{textDecoration:"line-through"}}>${d.orig}</span> <span style={{color:"#c4501e",fontWeight:700,marginLeft:6}}>-{disc}%</span></div>}
+                    <div style={{fontSize:22,fontWeight:800,color:T.text}}>${fmtPrice(d.sale)}</div>
+                    {disc > 0 && <div style={{fontSize:12,color:T.textMuted,marginBottom:6}}><span style={{textDecoration:"line-through"}}>${fmtPrice(d.orig)}</span> <span style={{color:"#c4501e",fontWeight:700,marginLeft:6}}>-{disc}%</span></div>}
                     <div style={{fontSize:10,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em",marginTop:10,marginBottom:4}}>SIZES</div>
                     <div style={{fontSize:11,color:T.textSub,marginBottom:14,lineHeight:1.5}}>{[...(d.sizes?.mens||[]),...(d.sizes?.womens||[]),...(d.sizes?.youth||[])].join(" · ")||"—"}</div>
                     <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={()=>logClick(d)} style={{display:"block",textAlign:"center",background:T.accent,color:"white",borderRadius:8,padding:"10px 0",textDecoration:"none",fontSize:12,fontWeight:700}}>Shop {d.brand}</a>
