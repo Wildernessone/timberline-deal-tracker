@@ -1297,7 +1297,7 @@ export default function MainApp({
                       {b}
                     </Link>
                   ))}
-                  <button onClick={()=>setShowSuggest(true)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,border:`1px dashed ${T.border}`,background:"transparent",color:T.textMuted,fontStyle:"italic"}}>Don&apos;t see your brand? Suggest one →</button>
+                  <button onClick={()=>setShowSuggest(true)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:700,border:`1px dashed ${T.orange}`,background:T.orangeLight,color:T.orange,fontStyle:"italic"}}>Don&apos;t see your brand? Suggest one →</button>
                 </div>
               </div>
               <div className="tl-deal-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
