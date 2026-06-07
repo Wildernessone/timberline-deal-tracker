@@ -15,7 +15,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const brand = resolveBrandSlug(slug, PORTAL.id);
+  const brand = await resolveBrandSlug(slug, PORTAL.id);
   if (!brand) return { title: "Brand not found", robots: { index: false } };
   const title = `${brand} deals & sales`;
   const description = `Verified ${brand} sales tracked daily by ${PORTAL.shortName} — real prices, fake-sale detection, no inflated MSRPs.`;
