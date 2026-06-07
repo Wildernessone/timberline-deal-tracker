@@ -1,13 +1,19 @@
 import "./global.css";
 import Script from "next/script";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { PORTAL, PORTALS } from "@/lib/constants";
+
+// Self-hosted via next/font — automatic fallback size-adjust metrics eliminate
+// the font-swap layout shift (CLS) the external <link> caused. Exposed as CSS
+// variables consumed by the inline styles (var(--font-fraunces), etc.).
+const fraunces = Fraunces({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-fraunces", display: "swap" });
+const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-inter", display: "swap" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-jetbrains", display: "swap" });
+const fontVars = `${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`;
 
 const SITE_URL = "https://" + (PORTAL.domain || "timberlinedeals.com");
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const GSC_TOKEN = process.env.NEXT_PUBLIC_GSC_TOKEN;
-
-const FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap";
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -66,11 +72,8 @@ const orgJsonLd = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={fontVars}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href={FONTS_HREF} rel="stylesheet" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
