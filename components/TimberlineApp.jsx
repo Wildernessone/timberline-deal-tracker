@@ -1127,10 +1127,12 @@ export default function MainApp({
   // root layout + per-route generateMetadata (server-rendered into first-byte HTML).
   const liveBrands=useMemo(
     () => {
-      const portalSet = new Set(PORTAL.brands || []);
-      return [...new Set(deals.map(d=>d.brand))]
-        .filter(b => !portalSet.size || portalSet.has(b))
-        .sort();
+      // Use the portal's known brand universe so the brand-filter chip row is
+      // stable between SSR and after client lazy-loading — prevents the row from
+      // growing several lines and shoving the grid down (a big CLS source).
+      // Fall back to deriving from loaded deals only if the portal has no list.
+      if (PORTAL.brands && PORTAL.brands.length) return [...PORTAL.brands].sort();
+      return [...new Set(deals.map(d=>d.brand))].sort();
     },
     [deals]
   );
