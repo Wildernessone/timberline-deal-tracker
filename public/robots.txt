@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://timberlinedeals.com/sitemap.xml

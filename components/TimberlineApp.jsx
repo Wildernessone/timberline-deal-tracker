@@ -1,65 +1,27 @@
+"use client";
 import { useState, useEffect, useMemo } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import {
+  SB_URL, SB_KEY, SB_H, BRAND_DOMAINS, MC, HUNT_TYPES, GEAR_CATS, ALL_BRANDS,
+  STORES, PORTALS, ACTIVE_PORTAL_ID, PORTAL, PORTAL_TO_PRODUCT, PALETTE,
+  INIT_FAMILY, SIZE_OPTIONS,
+} from "@/lib/constants";
+import {
+  parseDeal, fieldsForCat, productGender, computeTags, parseCoupon,
+  formatShipping, brandSlug, isApparel, matchDealsForItem,
+} from "@/lib/parse";
+import { supabase } from "@/lib/supabaseClient";
+import {
+  sbGet, getSessionId, logClick, track, setTrackUser, trackSessionStart,
+  trackLogin, loadFamily, loadWishlist, saveWishlistItem, deleteWishlistItem, saveFamily,
+} from "@/lib/analytics";
 
-const SB_URL = "https://jcmkoooivghwrgezxode.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjbWtvb29pdmdod3JnZXp4b2RlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDk4NjUsImV4cCI6MjA5NDA4NTg2NX0.mQJjh11x9nGen8KLYYwLLuHcm8Oyc89Nat9kwBxe3kA";
-const timberlineStorage = {
-  getItem: (key) => { try { return localStorage.getItem(key); } catch { return null; } },
-  setItem: (key, value) => { try { localStorage.setItem(key, value); } catch { /* ignore */ } },
-  removeItem: (key) => { try { localStorage.removeItem(key); } catch { /* ignore */ } },
-};
-const supabase = createClient(SB_URL, SB_KEY, {
-  auth: {
-    persistSession: true,
-    storageKey: "timberline-auth",
-    storage: timberlineStorage,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,
-    flowType: "implicit",
-  }
-});
-const SB_H = {"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY};
-
-const BRAND_DOMAINS = {
-  "Sitka":"sitkagear.com","First Lite":"firstlite.com","Kuiu":"kuiu.com",
-  "Stone Glacier":"stoneglacier.com","Eberlestock":"eberlestock.com",
-  "Exo Mtn Gear":"exomtngear.com","Kings Camo":"kingscamo.com",
-  "Kifaru":"kifaru.net","Mystery Ranch":"mysteryranch.com",
-  "Vortex":"vortexoptics.com","Leupold":"leupold.com","Swarovski":"swarovskioptik.com",
-  "Garmin":"garmin.com","onX":"onxmaps.com","GoHunt":"gohunt.com",
-  "Bridger Watch":"bridgerwatch.com","Aziak":"aziak.com",
-  "Wiser Precision":"wiserprecision.com","Kapture":"kapturegear.com",
-  "Grakksaw":"grakksaw.com","OBI":"obigear.com","Bridger Boiler":"bridgerboiler.com",
-  "Javelin Bipod":"javelinbipod.com","Sneek Tec":"sneektec.com",
-  "Keen":"keenfootwear.com","Katabatic Gear":"katabaticgear.com",
-  "Zpacks":"zpacks.com","Flextail":"flextail.com","Ollin":"ollin.co",
-  "Magview":"magview.com","Mtn Tough":"mtntough.com","Mtn Ops":"mtnops.com",
-  "Sig Sauer":"sigsauer.com","Crispi":"crispiusa.com","Yeti":"yeti.com",
-  "Drake Waterfowl":"drakewaterfowl.com","Outdoor Research":"outdoorresearch.com",
-  "Marsupial Gear":"marsupialgear.com","Outdoorsmans":"outdoorsmans.com",
-  "GSI Outdoors":"gsioutdoors.com","Blue Coolers":"bluecoolers.com",
-  "Hoyt":"hoyt.com","Mathews":"mathewsinc.com","Maven":"mavenbuilt.com",
-  "Forloh":"forloh.com","Kryptek":"kryptek.com",
-  "Montana Knife Company":"montanaknifecompany.com","Kenetrek":"kenetrek.com",
-  "Primos":"primos.com","Canvas Cutter":"canvascutter.com",
-  "Outdoor Edge":"outdooredge.com","Nemo Equipment":"nemoequipment.com",
-  "Badlands":"badlandspacks.com","Wilderness Athlete":"wildernessathlete.com",
-  "Mountain House":"mountainhouse.com","Beyond Clothing":"beyondclothing.com",
-  "Outdoor Vitals":"outdoorvitals.com","Tricer":"tricer.com",
-  "Initial Ascent":"initialascent.com","Peak Refuel":"peakrefuel.com",
-  "Sheep Feet":"sheepfeetoutdoors.com","Pnuma Outdoors":"pnumaoutdoors.com",
-  "Wildtech Gear":"wildtechgear.com","Thermarest":"thermarest.com",
-  "Helinox":"helinox.com","Duckworth":"duckworthco.com",
-  "Chota Outdoor":"chotaoutdoorgear.com","Goat Knives":"goatknives.com",
-  "Darn Tough":"darntough.com","FHF Gear":"fhfgear.com",
-  "Peax Equipment":"peaxequipment.com","On Glass":"onglassadapter.com",
-  "Schnees":"schnees.com","Benchmade":"benchmade.com","Phelps Game Calls":"phelpsgamecalls.com","Filson":"filson.com","Latitude Outdoors":"latitudeoutdoors.com","Sillosocks":"sillosocks.com","Smartwool":"smartwool.com","Leatherman":"leatherman.com","Spyderco":"spyderco.com","SKRE Gear":"skregear.com","Lone Wolf Custom Gear":"lonewolfcustomgear.com","Trophyline":"trophyline.com","Higdon Outdoors":"higdonoutdoors.com","Tanglefree":"tanglefree.com","Rig Em Right":"rigemright.com","MotionDucks":"motionducks.com","Buck Gardner":"buckgardner.com","Duck Creek Decoys":"duckcreekdecoys.com","Chenegear":"chenegear.com","Quickcoys":"quickcoys.com",
-};
 
 function BrandLogo({brand, T, size=14}) {
   const dom = BRAND_DOMAINS[brand];
   const [fail, setFail] = useState(false);
-  const txt = <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"'JetBrains Mono',monospace"}}>{(brand||"").toUpperCase()}</span>;
+  const txt = <span style={{fontSize:10,fontWeight:700,color:T.accent,letterSpacing:"0.16em",fontFamily:"var(--font-jetbrains),monospace"}}>{(brand||"").toUpperCase()}</span>;
   if (!dom || fail) return txt;
   return (
     <span style={{display:"inline-flex",alignItems:"center",gap:6,verticalAlign:"middle"}}>
@@ -69,382 +31,6 @@ function BrandLogo({brand, T, size=14}) {
   );
 }
 
-
-
-function sbGet(table,params){
-  const url=new URL(SB_URL+"/rest/v1/"+table);
-  if(params)Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
-  return fetch(url,{headers:SB_H}).then(r=>r.json());
-}
-
-function getSessionId() {
-  try {
-    let s = localStorage.getItem("timberline-sid");
-    if (!s) { s = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("timberline-sid", s); }
-    return s;
-  } catch { return null; }
-}
-
-function logClick(d) {
-  try {
-    fetch(SB_URL+"/rest/v1/clicks", {
-      method: "POST",
-      headers: { ...SB_H, "Content-Type": "application/json", "Prefer": "return=minimal" },
-      body: JSON.stringify({
-        deal_id: d.id, brand: d.brand, product: d.product, url: d.url,
-        session_id: getSessionId(),
-      }),
-      keepalive: true,
-    }).catch(()=>{});
-    track("click", { brand: d.brand, deal_product: d.product });
-  } catch { /* never block the click */ }
-}
-
-async function loadFamily(userId, token) {
-  const r = await fetch(SB_URL+"/rest/v1/family_members?user_id=eq."+userId+"&order=sort_order.asc", {
-    headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
-  });
-  return r.json();
-}
-
-
-async function loadWishlist(token) {
-  try {
-    const r = await fetch(SB_URL+"/rest/v1/wishlist_searches?select=id,query,created_at&muted=eq.false&order=created_at.desc", {
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token}
-    });
-    if (!r.ok) return [];
-    const rows = await r.json();
-    return rows.map(r => ({ id:r.id, query:r.query, addedAt:r.created_at }));
-  } catch { return []; }
-}
-
-async function saveWishlistItem(query, token, portal) {
-  try {
-    const r = await fetch(SB_URL+"/rest/v1/wishlist_searches", {
-      method:"POST",
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token, "Content-Type":"application/json", Prefer:"return=representation"},
-      body: JSON.stringify({ query, portal: portal || "timberline" }),
-    });
-    if (!r.ok) return null;
-    const rows = await r.json();
-    return rows[0]?.id || null;
-  } catch { return null; }
-}
-
-async function deleteWishlistItem(id, token) {
-  try {
-    await fetch(SB_URL+"/rest/v1/wishlist_searches?id=eq."+id, {
-      method:"DELETE",
-      headers:{apikey:SB_KEY, Authorization:"Bearer "+token},
-    });
-  } catch { /* ignore */ }
-}
-
-async function saveFamily(members, userId) {
-  if (!members.length) return;
-  const rows = members.map((m,i) => ({
-    user_id:userId, name:m.name, gender:m.gender||"mens",
-    jacket:m.jacket||"L", shirt:m.shirt||"L", base:m.base||"L", pants:m.pants||"34x32",
-    boots:m.boots||"10",
-    looking_for: m.lookingFor || [],
-    sort_order:i,
-  }));
-  await supabase.from("family_members").upsert(rows, {onConflict:"user_id,name"});
-}
-function parseDeal(row){
-  const orig=Math.round(parseFloat(row.orig_price)*100)/100;
-  const sale=Math.round(parseFloat(row.sale_price)*100)/100;
-  return {
-    id:row.id,brand:row.brand,product:row.product,portal:row.portal,
-    cat:row.cat,orig:orig,sale:sale,
-    coupon:row.coupon,fake:row.fake_sale,fakeNote:row.fake_note,
-    url:row.url,blurb:row.blurb,tags:[],
-    image:row.image_url,
-    sizes:{mens:row.sizes_mens||[],womens:row.sizes_womens||[],youth:row.sizes_youth||[]},
-    history:[orig,sale],
-    createdAt:row.created_at,
-  };
-}
-const CAT_TO_FIELDS = {
-  insulation:["jacket"], jacket:["jacket"], windlayer:["jacket"],
-  clothing:["jacket","shirt"], shirt:["shirt"],
-  baselayer:["base"], base:["base"],
-  pants:["pants"], bibs:["pants"], waders:["pants"],
-  boots:["boots"],
-};
-function fieldsForCat(cat){
-  const c=(cat||"").toLowerCase().replace(/[^a-z]/g,"");
-  for(const k in CAT_TO_FIELDS){if(c===k||c.includes(k))return CAT_TO_FIELDS[k];}
-  return null;
-}
-function productGender(deal){
-  const n=(deal.product||"").toLowerCase();
-  if(/\b(kids?|kid'?s|youth|toddler|junior|jr|infant|baby|boys?|girls?)\b/.test(n)) return "youth";
-  if(/\bwomen|woman'?s|womens|ladies|female|wmn/.test(n)) return "womens";
-  if(/\bmen'?s\b|\bmens\b|\bmale\b/.test(n)) return "mens";
-  return null;
-}
-function computeTags(deal, family){
-  // A product whose name explicitly states a gender/age (women's, youth, men's) is only
-  // ever relevant to family members of that gender -- regardless of whether size data parsed.
-  const pg=productGender(deal);
-  const elig=pg?family.filter(m=>m.gender===pg):family;
-  if(!elig.length) return [];
-  const fields=fieldsForCat(deal.cat);
-  if(!fields) return elig.map(m=>m.name);
-  const noSizeData = !deal.sizes.mens.length && !deal.sizes.womens.length && !deal.sizes.youth.length;
-  if(noSizeData) return elig.map(m=>m.name);
-  return elig.filter(m=>{
-    const ds=deal.sizes[m.gender]||[];
-    if(!ds.length) return false;
-    return fields.some(f=>m[f]&&ds.includes(m[f]));
-  }).map(m=>m.name);
-}
-function parseCoupon(row){
-  return {
-    id:row.id,brand:row.brand,code:row.code,discount:row.discount,
-    portal:row.portal,url:row.url,verified:row.verified,
-    expires:row.expires_at?new Date(row.expires_at).toLocaleDateString("en-US",{month:"short",day:"numeric"}):"Soon",
-  };
-}
-
-const MC = ["#cc5500"];
-
-const HUNT_TYPES = [
-  {id:"whitetail",label:"Whitetail",icon:"🌳"},
-  {id:"elk",label:"Elk",icon:"🦌"},
-  {id:"muledeer",label:"Mule Deer",icon:"🏔"},
-  {id:"waterfowl",label:"Waterfowl",icon:"🦆"},
-  {id:"turkey",label:"Turkey",icon:"🦃"},
-  {id:"archery",label:"Archery",icon:"🏹"},
-  {id:"predator",label:"Predator",icon:"🐺"},
-  {id:"upland",label:"Upland",icon:"🐦"},
-];
-
-const GEAR_CATS = [
-  {id:"clothing",label:"Clothing",icon:"🧥"},
-  {id:"optics",label:"Optics",icon:"🔭"},
-  {id:"trailcams",label:"Trail Cams",icon:"📷"},
-  {id:"boots",label:"Boots",icon:"🥾"},
-  {id:"packs",label:"Packs",icon:"🎒"},
-  {id:"electronics",label:"Electronics",icon:"📡"},
-  {id:"knives",label:"Knives",icon:"🔪"},
-];
-
-const ALL_BRANDS = [
-  "Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock",
-  "Kings Camo","Drake","Avery","Banded","Browning",
-  "Vortex","Leupold","Bushnell",
-  "Stealth Cam","Reconyx","Tactacam",
-  "Hoyt","Mathews",
-  "Danner","LaCrosse","Muck",
-  "Kifaru","Mystery Ranch",
-  "Garmin","onX","GoHunt",
-];
-
-const STORES = [
-  {id:"sitka",name:"Sitka",brand:"Sitka",loyalty:null,cat:"boutique"},
-  {id:"firstlite",name:"First Lite",brand:"First Lite",loyalty:null,cat:"boutique"},
-  {id:"kuiu",name:"Kuiu",brand:"Kuiu",loyalty:null,cat:"boutique"},
-  {id:"stoneglacier",name:"Stone Glacier",brand:"Stone Glacier",cat:"boutique",loyalty:null},
-  {id:"eberlestock",name:"Eberlestock",brand:"Eberlestock",loyalty:null,cat:"boutique"},
-  {id:"exomtn",name:"Exo Mtn Gear",brand:"Exo Mtn Gear",loyalty:null,cat:"boutique"},
-  {id:"bridgerwatch",name:"Bridger Watch",brand:"Bridger Watch",loyalty:null,cat:"boutique"},
-  {id:"aziak",name:"Aziak Equipment",brand:"Aziak",loyalty:null,cat:"boutique"},
-  {id:"wiserprecision",name:"Wiser Precision",brand:"Wiser Precision",loyalty:null,cat:"boutique"},
-  {id:"kapturegear",name:"Kapture Gear",brand:"Kapture",loyalty:null,cat:"boutique"},
-  {id:"grakksaw",name:"Grakksaw",brand:"Grakksaw",loyalty:null,cat:"boutique"},
-  {id:"obigear",name:"OBI Gear",brand:"OBI",loyalty:null,cat:"boutique"},
-  {id:"bridgerboiler",name:"Bridger Boiler",brand:"Bridger Boiler",loyalty:null,cat:"boutique"},
-  {id:"javelinbipod",name:"Javelin Bipod",brand:"Javelin Bipod",loyalty:null,cat:"boutique"},
-  {id:"sneektec",name:"Sneek Tec",brand:"Sneek Tec",loyalty:null,cat:"boutique"},
-  {id:"keen",name:"Keen",brand:"Keen",loyalty:null,cat:"boutique"},
-  {id:"katabatic",name:"Katabatic Gear",brand:"Katabatic Gear",loyalty:null,cat:"boutique"},
-  {id:"zpacks",name:"Zpacks",brand:"Zpacks",loyalty:null,cat:"boutique"},
-  {id:"flextail",name:"Flextail",brand:"Flextail",loyalty:null,cat:"boutique"},
-  {id:"ollin",name:"Ollin",brand:"Ollin",loyalty:null,cat:"boutique"},
-  {id:"magview",name:"Magview",brand:"Magview",loyalty:null,cat:"boutique"},
-  {id:"mtntough",name:"Mtn Tough",brand:"Mtn Tough",loyalty:null,cat:"boutique"},
-  {id:"mtnops",name:"Mtn Ops",brand:"Mtn Ops",loyalty:null,cat:"boutique"},
-  {id:"crispi",name:"Crispi",brand:"Crispi",loyalty:null,cat:"boutique"},
-  {id:"yeti",name:"Yeti",brand:"Yeti",loyalty:null,cat:"boutique"},
-  {id:"drake",name:"Drake Waterfowl",brand:"Drake Waterfowl",loyalty:null,cat:"boutique"},
-  {id:"outdoorresearch",name:"Outdoor Research",brand:"Outdoor Research",loyalty:null,cat:"boutique"},
-  {id:"kingscamo",name:"Kings Camo",brand:"Kings Camo",loyalty:null,cat:"boutique"},
-  {id:"marsupialgear",name:"Marsupial Gear",brand:"Marsupial Gear",loyalty:null,cat:"boutique"},
-  {id:"outdoorsmans",name:"Outdoorsmans",brand:"Outdoorsmans",loyalty:null,cat:"specialty"},
-  {id:"gsioutdoors",name:"GSI Outdoors",brand:"GSI Outdoors",loyalty:null,cat:"boutique"},
-  {id:"bluecoolers",name:"Blue Coolers",brand:"Blue Coolers",loyalty:null,cat:"boutique"},
-  {id:"hoyt",name:"Hoyt",brand:"Hoyt",loyalty:null,cat:"boutique"},
-  {id:"maven",name:"Maven",brand:"Maven",loyalty:null,cat:"boutique"},
-  {id:"mathews",name:"Mathews",brand:"Mathews",loyalty:null,cat:"boutique"},
-  {id:"forloh",name:"Forloh",brand:"Forloh",loyalty:null,cat:"boutique"},
-  {id:"kryptek",name:"Kryptek",brand:"Kryptek",loyalty:null,cat:"boutique"},
-  {id:"mkc",name:"Montana Knife Company",brand:"Montana Knife Company",loyalty:null,cat:"boutique"},
-  {id:"kenetrek",name:"Kenetrek",brand:"Kenetrek",loyalty:null,cat:"boutique"},
-  {id:"primos",name:"Primos",brand:"Primos",loyalty:null,cat:"boutique"},
-  {id:"canvascutter",name:"Canvas Cutter",brand:"Canvas Cutter",loyalty:null,cat:"boutique"},
-  {id:"outdooredge",name:"Outdoor Edge",brand:"Outdoor Edge",loyalty:null,cat:"boutique"},
-  {id:"nemo",name:"Nemo Equipment",brand:"Nemo Equipment",loyalty:null,cat:"boutique"},
-  {id:"kifaru",name:"Kifaru",brand:"Kifaru",loyalty:null,cat:"boutique"},
-  {id:"badlands",name:"Badlands",brand:"Badlands",loyalty:null,cat:"boutique"},
-  {id:"wildernessathlete",name:"Wilderness Athlete",brand:"Wilderness Athlete",loyalty:null,cat:"boutique"},
-  {id:"mountainhouse",name:"Mountain House",brand:"Mountain House",loyalty:null,cat:"boutique"},
-  {id:"beyondclothing",name:"Beyond Clothing",brand:"Beyond Clothing",loyalty:null,cat:"boutique"},
-  {id:"outdoorvitals",name:"Outdoor Vitals",brand:"Outdoor Vitals",loyalty:null,cat:"boutique"},
-  {id:"tricer",name:"Tricer",brand:"Tricer",loyalty:null,cat:"boutique"},
-  {id:"initialascent",name:"Initial Ascent",brand:"Initial Ascent",loyalty:null,cat:"boutique"},
-  {id:"peakrefuel",name:"Peak Refuel",brand:"Peak Refuel",loyalty:null,cat:"boutique"},
-  {id:"sheepfeet",name:"Sheep Feet",brand:"Sheep Feet",loyalty:null,cat:"boutique"},
-  {id:"pnuma",name:"Pnuma Outdoors",brand:"Pnuma Outdoors",loyalty:null,cat:"boutique"},
-  {id:"wildtech",name:"Wildtech Gear",brand:"Wildtech Gear",loyalty:null,cat:"boutique"},
-  {id:"thermarest",name:"Thermarest",brand:"Thermarest",loyalty:null,cat:"boutique"},
-  {id:"helinox",name:"Helinox",brand:"Helinox",loyalty:null,cat:"boutique"},
-  {id:"duckworth",name:"Duckworth",brand:"Duckworth",loyalty:null,cat:"boutique"},
-  {id:"chota",name:"Chota Outdoor",brand:"Chota Outdoor",loyalty:null,cat:"boutique"},
-  {id:"goatknives",name:"Goat Knives",brand:"Goat Knives",loyalty:null,cat:"boutique"},
-  {id:"darntough",name:"Darn Tough",brand:"Darn Tough",loyalty:null,cat:"boutique"},
-  {id:"fhfgear",name:"FHF Gear",brand:"FHF Gear",loyalty:null,cat:"boutique"},
-  {id:"peax",name:"Peax Equipment",brand:"Peax Equipment",loyalty:null,cat:"boutique"},
-  {id:"onglass",name:"On Glass Adapter",brand:"On Glass",loyalty:null,cat:"boutique"},
-  {id:"lonewolfcustomgear",name:"Lone Wolf Custom Gear",brand:"Lone Wolf Custom Gear",loyalty:null,cat:"boutique"},
-  {id:"trophyline",name:"Trophyline",brand:"Trophyline",loyalty:null,cat:"boutique"},
-  {id:"higdon",name:"Higdon Outdoors",brand:"Higdon Outdoors",loyalty:null,cat:"boutique"},
-  {id:"tanglefree",name:"Tanglefree",brand:"Tanglefree",loyalty:null,cat:"boutique"},
-  {id:"rigemright",name:"Rig Em Right",brand:"Rig Em Right",loyalty:null,cat:"boutique"},
-  {id:"motionducks",name:"MotionDucks",brand:"MotionDucks",loyalty:null,cat:"boutique"},
-  {id:"buckgardner",name:"Buck Gardner",brand:"Buck Gardner",loyalty:null,cat:"boutique"},
-  {id:"duckcreekdecoys",name:"Duck Creek Decoys",brand:"Duck Creek Decoys",loyalty:null,cat:"boutique"},
-  {id:"chenegear",name:"Chenegear",brand:"Chenegear",loyalty:null,cat:"boutique"},
-  {id:"quickcoys",name:"Quickcoys",brand:"Quickcoys",loyalty:null,cat:"boutique"},
-  {
-    id:"gohunt",name:"GoHunt Gear",brand:"GoHunt",cat:"specialty",
-    loyalty:{name:"GoHunt Points",desc:"5% back in GoHunt points"},
-  },
-];
-
-function formatShipping(s, shippingMap){
-  const row = s.brand && shippingMap ? shippingMap[s.brand] : null;
-  if (!row) return "Shipping: unknown";
-  const { free_at, flat_rate } = row;
-  if (free_at === 0 && flat_rate === 0) return "Free shipping on all orders";
-  if (free_at != null && flat_rate != null) return "Free over $" + free_at + " · $" + flat_rate + " flat";
-  if (free_at != null) return "Free shipping over $" + free_at;
-  if (flat_rate != null) return "$" + flat_rate + " flat shipping";
-  return "Shipping varies — see policy";
-}
-
-const brandSlug = b => (b||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-const PORTALS = {
-  timberline: {
-    id:"timberline",name:"Timberline Deal Tracker",shortName:"Timberline",tagline:"Western · Elk · Backcountry",
-    accent:"#2d6a4f",accentLight:"#eef3ee",accentBorder:"#b8cdbc",panelAccent:"#a8d4b0",heroTitle:"Active Deals",heroBg:"#1f2a1f",heroTagline:"Real Western hunting sales — tracked fresh every morning from 70+ backcountry brands. No fake markdowns, no inflated MSRPs, no padded discounts. Just the actual cheapest price online, right now.",domain:"timberlinedeals.com",ogImage:"https://timberlinedeals.com/og-timberline.png",description:"Real Western hunting deals updated every morning. Sitka, Kuiu, Stone Glacier, First Lite, Mystery Ranch, and 60+ backcountry brands — no fake markdowns, just the actual cheapest price online.",huntTypes:["elk","muledeer","archery","predator","upland"],gearCats:["clothing","optics","boots","packs","electronics","knives"],favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%232d5a3d"/><path d="M6 52 L22 22 L32 36 L44 16 L58 52 Z" fill="%23fffdf7"/></svg>`,
-    brands:["Sitka","First Lite","Kuiu","Stone Glacier","Eberlestock","Exo Mtn Gear","Kings Camo","Kifaru","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","GoHunt","Outdoorsmans","Bridger Watch","Aziak","Wiser Precision","Kapture","Grakksaw","OBI","Bridger Boiler","Javelin Bipod","Sneek Tec","Keen","Katabatic Gear","Zpacks","Flextail","Ollin","Magview","Mtn Tough","Mtn Ops","Sig Sauer","Crispi","Schnees","Kenetrek","Outdoor Research","Initial Ascent","Forloh","Kryptek","Montana Knife Company","Wilderness Athlete","Hoyt","Marsupial Gear","Maven","FHF Gear","Tricer","Pnuma Outdoors","Yeti","Thermarest","Helinox","Nemo Equipment","Sheep Feet","Goat Knives","Darn Tough","Duckworth","Mountain House","Peak Refuel","Wildtech Gear","Blue Coolers","GSI Outdoors","Peax Equipment","Filson","SKRE Gear","Mathews","Badlands","Outdoor Edge","Outdoor Vitals","Beyond Clothing","Canvas Cutter","Smartwool","Leatherman","Spyderco"],
-    searchHint:'Try "Sitka Kelvin Down" or "Kuiu Attack pant"...',
-    searchContext:"western hunting, elk, mule deer, backcountry, high country, pack-in, high altitude",
-  },
-  whitetail: {
-    id:"whitetail",name:"Treestand Saver",shortName:"Treestand Saver",domain:"treestandsaver.com",ogImage:"https://treestandsaver.com/og-treestand-saver.png",description:"Real whitetail hunting deals — treestand, saddle, scent control, and rut gear from every brand we trust. Updated every morning. No fake markdowns.",tagline:"Whitetail · Treestand · Rut",
-    accent:"#7a4a2a",accentLight:"#f5ede4",accentBorder:"#d4b89a",panelAccent:"#c9a578",heroTitle:"Active Deals",heroBg:"#262420",heroTagline:"Real whitetail gear sales — tracked fresh every morning across treestand, saddle, scent control, and rut hunting brands. No fake markdowns. No inflated MSRPs. Just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%237a4a2a"/><g stroke="%23fffdf7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M32 54 L32 34"/><path d="M32 34 L20 22 L18 12"/><path d="M32 34 L44 22 L46 12"/><path d="M22 24 L14 18"/><path d="M22 28 L13 28"/><path d="M26 20 L22 12"/><path d="M42 24 L50 18"/><path d="M42 28 L51 28"/><path d="M38 20 L42 12"/></g></svg>`,
-    brands:["Sitka","First Lite","Keen","Katabatic Gear","Zpacks","Mtn Ops","Crispi","Yeti","Outdoor Research","Kings Camo","Marsupial Gear","Blue Coolers","Hoyt","Maven","Mathews","Forloh","Kryptek","Montana Knife Company","Kenetrek","Primos","Canvas Cutter","Outdoor Edge","Badlands","Wilderness Athlete","Pnuma Outdoors","Thermarest","Helinox","Duckworth","Chota Outdoor","Goat Knives","Darn Tough","FHF Gear","On Glass","GoHunt","Mystery Ranch","Vortex","Leupold","Swarovski","Garmin","onX","Sig Sauer","Schnees","SKRE Gear","TideWe","Mossy Oak","Bone Collector","Nomad Outdoor","XOP Outdoors","Novix Outdoors","Hunting Beast Gear","Lone Wolf Custom Gear","Trophyline","Filson","Drake Waterfowl","Buck Gardner","Latitude Outdoors","Smartwool","Leatherman","Spyderco"],
-    searchHint:'Try "Sitka Stratus" or "Hoyt Carbon"...',
-    searchContext:"whitetail deer, treestand, rut, eastern woods, midwest, climbing stand, scent control",
-  },
-  turkey: {
-    id:"turkey",name:"Gobbler Deals",shortName:"Gobbler Deals",ogImage:"/og-gobbler-deals.png",description:"Real spring turkey gear deals — calls, decoys, vests, and gobbler gear. Updated every morning. No fake markdowns.",tagline:"Calls · Decoys · Spring Gobbler",
-    accent:"#8a6a2e",accentLight:"#f7f0e0",accentBorder:"#d8c28a",panelAccent:"#cbb275",heroTitle:"Active Deals",heroBg:"#211a10",heroTagline:"Real turkey hunting sales — tracked fresh every morning across calls, decoys, and spring gobbler gear. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%238a6a2e"/><g fill="%23fffdf7"><circle cx="32" cy="22" r="6"/><path d="M32 28 Q22 32 22 42 Q22 52 32 52 Q42 52 42 42 Q42 32 32 28 Z"/><path d="M14 38 Q8 40 10 46" stroke="%23fffdf7" stroke-width="2" fill="none"/><path d="M50 38 Q56 40 54 46" stroke="%23fffdf7" stroke-width="2" fill="none"/></g></svg>`,
-    brands:["Sitka","First Lite","Kings Camo","Hoyt","Mathews","Phelps Game Calls","Primos","Mountain House","Peak Refuel","Vortex","Leupold","Maven","Sig Sauer","Garmin","onX","Crispi","Schnees","Benchmade","Outdoor Edge","Montana Knife Company","Kryptek","Forloh","Marsupial Gear","Wildtech Gear","Darn Tough","Duckworth","Yeti","Mtn Ops"],
-    searchHint:'Try "Phelps mouth call" or "Primos jake decoy"...',
-    searchContext:"turkey hunting, spring gobbler, calls, decoys, run and gun, vest",
-  },
-  waterfowl: {
-    id:"waterfowl",name:"Duck Blind Deals",shortName:"Duck Blind Deals",domain:"duckblinddeals.com",ogImage:"https://duckblinddeals.com/og-duck-blind-deals.png",description:"Real waterfowl gear deals — waders, blinds, decoys, and layout gear from Drake, Sitka Waterfowl, Banded and more. Updated every morning. No fake markdowns.",tagline:"Waterfowl · Waders · Blinds",
-    accent:"#3a5a78",accentLight:"#e8eef4",accentBorder:"#a8bccd",panelAccent:"#8aa8bf",heroTitle:"Active Deals",heroBg:"#241a10",heroTagline:"Real waterfowl gear sales — tracked fresh every morning from every blind, wader, and decoy brand we trust. No fake markdowns, no inflated MSRPs, just the actual cheapest price online, right now.",favicon:`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="12" fill="%233a5a78"/><g fill="%23fffdf7"><path d="M18 36 Q18 26 28 26 Q34 26 36 30 L46 30 Q44 36 36 38 L36 44 Q30 44 28 40 L20 40 Q18 38 18 36 Z"/><circle cx="30" cy="30" r="1.5" fill="%233a5a78"/></g></svg>`,
-    brands:["Drake Waterfowl","Sitka","Yeti","Garmin","onX","Vortex","Leupold","Sig Sauer","Chota Outdoor","Helinox","Mtn Ops","Benchmade","Outdoor Edge","Wilderness Athlete","Darn Tough","Higdon Outdoors","Tanglefree","Rig Em Right","MotionDucks","Buck Gardner","Duck Creek Decoys","Chenegear","Quickcoys","Mossy Oak","Filson","Sillosocks","Smartwool","Leatherman","Spyderco"],
-    searchHint:'Try "Drake LST" or "Chota waders"...',
-    searchContext:"waterfowl, duck hunting, goose hunting, blinds, decoys, waders, layout",
-  },
-};
-
-function detectPortalId() {
-  try {
-    const env = import.meta.env?.VITE_PORTAL;
-    if (env && PORTALS[env]) return env;
-    const host = (typeof window !== "undefined" ? window.location.hostname : "").toLowerCase();
-    if (host.includes("whitetail") || host.includes("treestandsaver")) return "whitetail";
-    if (host.includes("turkey")) return "turkey";
-    if (host.includes("waterfowl") || host.includes("duckblind")) return "waterfowl";
-  } catch { /* ignore */ }
-  return "timberline";
-}
-
-const ACTIVE_PORTAL_ID = detectPortalId();
-const PORTAL = PORTALS[ACTIVE_PORTAL_ID];
-
-// ── Command Center analytics beacon → hub analytics_events ──
-// Fire-and-forget product-level signals so the standalone Command Center can
-// show per-portal traffic / logins / clicks. Each portal reports as its own
-// product. Uses the hub anon key (public by design); writes only, RLS-gated.
-const PORTAL_TO_PRODUCT = { timberline:"timberline", whitetail:"treesaddle", turkey:"gobbler", waterfowl:"duckblind" };
-let TRACK_USER_ID = null;
-function setTrackUser(id){ TRACK_USER_ID = id || null; }
-function track(eventType, props={}) {
-  try {
-    const body = {
-      product: PORTAL_TO_PRODUCT[ACTIVE_PORTAL_ID] || "timberline",
-      event_type: eventType,
-      anon_id: getSessionId(),
-      session_id: getSessionId(),
-      path: (typeof location!=="undefined" ? location.pathname : null),
-      props,
-      ua: (typeof navigator!=="undefined" ? navigator.userAgent : null),
-    };
-    if (TRACK_USER_ID) body.user_id = TRACK_USER_ID;
-    fetch(SB_URL+"/rest/v1/analytics_events", {
-      method:"POST",
-      headers:{ ...SB_H, "Content-Type":"application/json", "Prefer":"return=minimal" },
-      body: JSON.stringify(body),
-      keepalive: true,
-    }).catch(()=>{});
-  } catch { /* analytics must never break the app */ }
-}
-function trackSessionStart(){ try{ if(sessionStorage.getItem("cc_session_started"))return; sessionStorage.setItem("cc_session_started","1"); }catch{ /* ignore */ } track("session_start"); }
-function trackLogin(){ try{ if(sessionStorage.getItem("cc_logged_in"))return; sessionStorage.setItem("cc_logged_in","1"); }catch{ /* ignore */ } track("login"); }
-
-// Single brand palette — Sitka cinematic black panels + First Lite cream content + Kuiu orange CTA
-const PALETTE = {
-  bg:"#fbfaf6",bgCard:"#ffffff",bgSolid:"#ffffff",
-  bgHeader:"#15140f",border:"#e6e1d4",borderHov:"#1a1815",
-  text:"#1a1815",textSub:"#57544c",textMuted:"#9a968c",
-  accent:"#2d5a3d",accentLight:"#eef3ee",accentBorder:"#b8cdbc",
-  orange:"#c4501e",orangeLight:"#fdf3e8",orangeBorder:"#e8b890",
-  red:"#a83a2a",redLight:"#fdf0ee",redBorder:"#e8b0a0",
-  navActive:"#eef3ee",
-  shadow:"rgba(20,18,12,0.05)",shadowHov:"rgba(20,18,12,0.14)",
-  // Cinematic dark panels for header + page hero
-  panelBg:"#15140f",panelText:"#f5f1e9",panelSub:"#b8b3a8",panelMuted:"#6a665c",panelBorder:"#2a2823",panelAccent:"#a8d4b0",
-};
-
-const INIT_FAMILY = [];
-
-const SIZE_OPTIONS = {
-  jacket: ["XS","S","M","L","XL","2XL","3XL","YXS","YS","YM","YL","YXL"],
-  shirt:  ["XS","S","M","L","XL","2XL","3XL","YXS","YS","YM","YL","YXL"],
-  base:   ["XS","S","M","L","XL","2XL","3XL","YXS","YS","YM","YL","YXL"],
-  pants: [
-    "28x28","28x30","28x32",
-    "30x28","30x30","30x32","30x34",
-    "32x28","32x30","32x32","32x34","32x36",
-    "34x28","34x30","34x32","34x34","34x36",
-    "36x30","36x32","36x34","36x36",
-    "38x30","38x32","38x34","38x36",
-    "40x30","40x32","40x34","40x36",
-    "0","2","4","6","8","10","12","14","16","18",
-    "YXS","YS","YM","YL","YXL",
-  ],
-  boots: ["4","4.5","5","5.5","6","6.5","7","7.5","8","8.5","9","9.5","10","10.5","11","11.5","12","12.5","13","14","15"],
-};
 
 
 function Spark({history,fake,T}) {
@@ -477,8 +63,6 @@ function Spark({history,fake,T}) {
   );
 }
 
-const APPAREL_RX=/\b(t-?shirt|tee|hoodie|sweatshirt|long\s*sleeve|crew|pullover|hat|cap|beanie|trucker|sticker|decal|patch|koozie|mug|tumbler|lanyard|keychain|flag|poster|logo)\b/i;
-const isApparel=(...parts)=>APPAREL_RX.test(parts.filter(Boolean).join(" "));
 
 function VideoPanel({deal,T}) {
   if(!deal)return null;
@@ -570,7 +154,7 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
     >
       {d.image&&(
         <div style={{position:"relative",width:"100%",paddingBottom:"66%",background:T.bgSolid,overflow:"hidden"}}>
-          <img src={d.image} alt={d.product} loading="lazy" decoding="async" fetchpriority="low"
+          <img src={d.image} alt={d.product} loading="lazy" decoding="async" fetchPriority="low"
             style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",transition:"transform 0.4s",transform:hov?"scale(1.04)":"none"}}
             onError={e=>{const p=e.currentTarget.parentElement; if(p)p.style.display="none";}}
           />
@@ -581,17 +165,17 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <BrandLogo brand={d.brand} T={T} size={16}/>
             <span style={{width:3,height:3,borderRadius:"50%",background:T.borderHov}}/>
-            <span style={{fontSize:10,color:T.textMuted,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace"}}>{d.cat.toUpperCase()}</span>
+            <span style={{fontSize:10,color:T.textMuted,letterSpacing:"0.12em",fontFamily:"var(--font-jetbrains),monospace"}}>{d.cat.toUpperCase()}</span>
           </div>
           {d.fake?(
-            <span style={{background:T.redLight,color:T.red,border:`1px solid ${T.redBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>FAKE SALE</span>
+            <span style={{background:T.redLight,color:T.red,border:`1px solid ${T.redBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"var(--font-jetbrains),monospace"}}>FAKE SALE</span>
           ):disc>0?(
             <span style={{background:T.orange,color:"white",borderRadius:6,fontSize:11,fontWeight:800,padding:"4px 10px",letterSpacing:"0.04em"}}>−{disc}%</span>
           ):(
-            <span style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>OUTLET</span>
+            <span style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:6,fontSize:9,fontWeight:800,padding:"4px 9px",letterSpacing:"0.08em",fontFamily:"var(--font-jetbrains),monospace"}}>OUTLET</span>
           )}
         </div>
-        <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:21,color:T.text,lineHeight:1.2,marginBottom:14,letterSpacing:"-0.01em"}}>{d.product}</div>
+        <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:21,color:T.text,lineHeight:1.2,marginBottom:14,letterSpacing:"-0.01em"}}>{d.product}</div>
         <div style={{display:"flex",alignItems:"baseline",gap:12,marginBottom:14}}>
           <span style={{fontWeight:800,fontSize:30,color:d.fake?T.red:T.text,letterSpacing:"-0.02em"}}>${d.sale}</span>
           {d.orig>d.sale&&<span style={{fontSize:15,color:T.textMuted,textDecoration:"line-through"}}>${d.orig}</span>}
@@ -604,7 +188,7 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
         )}
         <p style={{fontSize:13,color:T.textSub,margin:"0 0 16px",lineHeight:1.6}}>{d.blurb}</p>
         <div style={{marginBottom:14}}>
-          <div style={{fontSize:9,color:T.textMuted,letterSpacing:"0.18em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>PRICE HISTORY</div>
+          <div style={{fontSize:9,color:T.textMuted,letterSpacing:"0.18em",marginBottom:6,fontFamily:"var(--font-jetbrains),monospace",fontWeight:600}}>PRICE HISTORY</div>
           <Spark history={d.history} fake={d.fake} T={T}/>
         </div>
         {tags.length>0&&(
@@ -624,7 +208,7 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
       <div style={{marginTop:6,padding:"14px 22px",borderTop:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
         <div style={{display:"flex",gap:5,flexWrap:"wrap",flex:1}}>
           {[...d.sizes.mens,...d.sizes.womens,...d.sizes.youth].slice(0,5).map(sz=>(
-            <span key={sz} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:6,padding:"3px 9px",fontSize:10,color:T.textSub,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{sz}</span>
+            <span key={sz} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:6,padding:"3px 9px",fontSize:10,color:T.textSub,fontWeight:700,fontFamily:"var(--font-jetbrains),monospace"}}>{sz}</span>
           ))}
         </div>
         {onWatch && (
@@ -652,8 +236,8 @@ function DealCard({d,family,memberFilter,onOpen,T,onWatch,isWatched,onCompare,in
       </div>
       {d.coupon&&(
         <div style={{padding:"10px 22px 14px",borderTop:`1px dashed ${T.border}`,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:10,color:T.orange,fontFamily:"'JetBrains Mono',monospace",fontWeight:600,letterSpacing:"0.12em"}}>COUPON</span>
-          <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:6,padding:"3px 11px",fontSize:12,fontWeight:700,letterSpacing:"0.14em",fontFamily:"'JetBrains Mono',monospace"}}>{d.coupon}</code>
+          <span style={{fontSize:10,color:T.orange,fontFamily:"var(--font-jetbrains),monospace",fontWeight:600,letterSpacing:"0.12em"}}>COUPON</span>
+          <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:6,padding:"3px 11px",fontSize:12,fontWeight:700,letterSpacing:"0.14em",fontFamily:"var(--font-jetbrains),monospace"}}>{d.coupon}</code>
         </div>
       )}
     </div>
@@ -679,9 +263,9 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             <div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
                 <BrandLogo brand={deal.brand} T={T} size={20}/>
-                <span style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em"}}>| {deal.cat.toUpperCase()}</span>
+                <span style={{fontSize:10,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.1em"}}>| {deal.cat.toUpperCase()}</span>
               </div>
-              <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:26,color:T.text,lineHeight:1.2}}>{deal.product}</div>
+              <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:26,color:T.text,lineHeight:1.2}}>{deal.product}</div>
             </div>
             <button onClick={onClose} aria-label="Close" style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub,flexShrink:0}}>×</button>
           </div>
@@ -698,15 +282,15 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             {!deal.fake&&save===0&&<span style={{fontSize:14,color:T.accent,fontWeight:700}}>Outlet price</span>}
           </div>
           <div style={{marginBottom:24}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>PRICE HISTORY</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"var(--font-jetbrains),monospace"}}>PRICE HISTORY</div>
             <Spark history={deal.history} fake={deal.fake} T={T}/>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textMuted,marginTop:4,fontFamily:"'JetBrains Mono',monospace"}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:T.textMuted,marginTop:4,fontFamily:"var(--font-jetbrains),monospace"}}>
               <span>FIRST TRACKED</span><span>TODAY</span>
             </div>
           </div>
           <VideoPanel deal={deal} T={T}/>
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>SIZES IN STOCK</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"var(--font-jetbrains),monospace"}}>SIZES IN STOCK</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {[...deal.sizes.mens,...deal.sizes.womens,...deal.sizes.youth].map(sz=>(
                 <span key={sz} style={{background:T.border,borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,color:T.textSub}}>{sz}</span>
@@ -714,7 +298,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             </div>
           </div>
           <div style={{marginBottom:20}}>
-            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>FOR YOUR FAMILY</div>
+            <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:8,fontFamily:"var(--font-jetbrains),monospace"}}>FOR YOUR FAMILY</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {deal.tags.map(tag=>{
                 const idx=family.findIndex(f=>f.name===tag);
@@ -725,7 +309,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
           </div>
           {deal.coupon&&(
             <div style={{background:T.orangeLight,border:`1px dashed ${T.orangeBorder}`,borderRadius:10,padding:"12px 16px",marginBottom:20,display:"flex",alignItems:"center",gap:12}}>
-              <span style={{color:T.orange,fontSize:11,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>COUPON</span>
+              <span style={{color:T.orange,fontSize:11,fontWeight:600,fontFamily:"var(--font-jetbrains),monospace"}}>COUPON</span>
               <code style={{color:T.orange,fontSize:20,fontWeight:800,letterSpacing:"0.15em"}}>{deal.coupon}</code>
             </div>
           )}
@@ -752,8 +336,8 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
             </button>
           )}
           <details style={{marginTop:8,fontSize:12,color:"#6b6b5a",marginBottom:10}}>
-            <summary style={{cursor:"pointer",padding:"6px 0",fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em",fontSize:11}}>Embed this deal on your site</summary>
-            <input readOnly value={`<iframe src="https://${(typeof window!=="undefined"?window.location.hostname:"timberlinedeals.com")}/embed/deal/${deal.id}" width="400" height="120" frameborder="0" style="border:0;border-radius:12px;"></iframe>`} onClick={e=>e.target.select()} style={{width:"100%",fontFamily:"'JetBrains Mono',monospace",fontSize:10,padding:"8px 10px",border:"1px solid #e6e1d4",borderRadius:6,marginTop:6,background:"#fbfaf6"}}/>
+            <summary style={{cursor:"pointer",padding:"6px 0",fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.06em",fontSize:11}}>Embed this deal on your site</summary>
+            <input readOnly value={`<iframe src="https://${(typeof window!=="undefined"?window.location.hostname:"timberlinedeals.com")}/embed/deal/${deal.id}" width="400" height="120" frameborder="0" style="border:0;border-radius:12px;"></iframe>`} onClick={e=>e.target.select()} style={{width:"100%",fontFamily:"var(--font-jetbrains),monospace",fontSize:10,padding:"8px 10px",border:"1px solid #e6e1d4",borderRadius:6,marginTop:6,background:"#fbfaf6"}}/>
           </details>
           <a
             href={deal.url} target="_blank" rel="noopener noreferrer"
@@ -762,7 +346,7 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
           >
             {deal.fake?"View on "+deal.brand+" (proceed with caution)":"Shop "+deal.brand+" -- $"+deal.sale}
           </a>
-          <p style={{textAlign:"center",color:T.textMuted,fontSize:10,marginTop:8,fontFamily:"'JetBrains Mono',monospace"}}>
+          <p style={{textAlign:"center",color:T.textMuted,fontSize:10,marginTop:8,fontFamily:"var(--font-jetbrains),monospace"}}>
             {PORTAL.shortName} earns a small commission -- never affects your price
           </p>
         </div>
@@ -771,21 +355,6 @@ function DealModal({deal,family,T,onClose,onWatch,isWatched}) {
   );
 }
 
-function matchDealsForItem(item, deals, member) {
-  const words = item.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-  if (!words.length) return [];
-  return deals
-    .map(d => {
-      const text = (d.product+" "+d.cat+" "+d.brand).toLowerCase();
-      const wordScore = words.reduce((s, w) => s + (text.includes(w) ? 1 : 0), 0);
-      const memberMatch = d.tags.includes(member.name) ? 0.5 : 0;
-      return { deal: d, score: wordScore + memberMatch };
-    })
-    .filter(x => x.score >= 1)
-    .sort((a, b) => b.score - a.score || a.deal.sale - b.deal.sale)
-    .slice(0, 3)
-    .map(x => x.deal);
-}
 
 function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
   const [input, setInput] = useState("");
@@ -807,7 +376,7 @@ function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
   });
   return (
     <div style={{marginTop:16,borderTop:`1px solid ${T.border}`,paddingTop:16}}>
-      <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",marginBottom:8}}>LOOKING FOR</div>
+      <div style={{fontSize:10,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.1em",marginBottom:8}}>LOOKING FOR</div>
       <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
         {items.map(it => (
           <span key={it} style={{background:T.accentLight,color:T.accent,border:`1px solid ${T.accentBorder}`,borderRadius:999,padding:"4px 8px 4px 12px",fontSize:12,fontWeight:600,display:"inline-flex",alignItems:"center",gap:6}}>
@@ -843,7 +412,7 @@ function GearAdvisor({member,memberIdx,deals,setFamily,T}) {
                         <a key={d.id} href={d.url} target="_blank" rel="noopener noreferrer" onClick={()=>logClick(d)} style={{textDecoration:"none"}}>
                           <div style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,cursor:"pointer"}}>
                             <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:10,color:T.accent,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>{d.brand.toUpperCase()}</div>
+                              <div style={{fontSize:10,color:T.accent,fontWeight:700,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>{d.brand.toUpperCase()}</div>
                               <div style={{fontSize:12,fontWeight:600,color:T.text,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{d.product}</div>
                             </div>
                             <div style={{textAlign:"right",flexShrink:0}}>
@@ -884,7 +453,7 @@ function Newsletter({T}) {
   };
   return (
     <div style={{maxWidth:340}}>
-      <div style={{fontSize:12,fontWeight:700,color:T.panelText,marginBottom:6,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>NEW SALES TO YOUR INBOX</div>
+      <div style={{fontSize:12,fontWeight:700,color:T.panelText,marginBottom:6,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>NEW SALES TO YOUR INBOX</div>
       <div style={{fontSize:11,color:T.panelMuted,lineHeight:1.5,marginBottom:10}}>Occasional roundup when something good drops. No spam, unsubscribe anytime.</div>
       {state==="done"?(
         <div style={{fontSize:12,color:T.panelAccent,fontWeight:600}}>✓ You're on the list.</div>
@@ -954,7 +523,7 @@ function Footer({T,onOpenLegal}) {
     <footer style={{background:T.panelBg,borderTop:`1px solid ${T.panelBorder}`,padding:"32px 24px 24px",marginTop:48}}>
       <div style={{maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"flex-start",gap:32}}>
         <div style={{maxWidth:340}}>
-          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>{PORTAL.name}</div>
+          <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:18,color:T.panelText,marginBottom:6}}>{PORTAL.name}</div>
           <div style={{fontSize:12,color:T.panelSub,lineHeight:1.6}}>Verified hunting gear sales from 70+ Western backcountry brands, refreshed daily. No fake prices, no fake savings.</div>
         </div>
         <Newsletter T={T}/>
@@ -965,7 +534,7 @@ function Footer({T,onOpenLegal}) {
           <button onClick={()=>onOpenLegal("privacy")} style={{background:"none",border:"none",color:T.panelSub,fontSize:12,cursor:"pointer",padding:0,fontFamily:"inherit"}}>Privacy</button>
         </div>
       </div>
-      <div style={{maxWidth:1200,margin:"24px auto 0",paddingTop:16,borderTop:`1px solid ${T.panelBorder}`,fontSize:11,color:T.panelMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em"}}>
+      <div style={{maxWidth:1200,margin:"24px auto 0",paddingTop:16,borderTop:`1px solid ${T.panelBorder}`,fontSize:11,color:T.panelMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.04em"}}>
         © {new Date().getFullYear()} {PORTAL.name} · We may earn a commission when you buy through links on this site — your price never changes.
       </div>
     </footer>
@@ -999,11 +568,11 @@ function LegalModal({which,T,onClose}) {
     <div style={{position:"fixed",inset:0,zIndex:2500,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,backdropFilter:"blur(6px)"}} onClick={onClose}>
       <div style={{background:T.bgSolid,borderRadius:16,maxWidth:560,width:"100%",maxHeight:"86vh",overflowY:"auto",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`}} onClick={e=>e.stopPropagation()}>
         <div style={{padding:"22px 26px",borderBottom:`1px solid ${T.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{content.title}</div>
+          <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{content.title}</div>
           <button onClick={onClose} aria-label="Close" style={{background:T.border,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:14,color:T.textSub}}>×</button>
         </div>
         <div style={{padding:"22px 26px",fontSize:14,color:T.textSub,lineHeight:1.7,whiteSpace:"pre-wrap"}}>{content.body}</div>
-        <div style={{padding:"0 26px 22px",fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>Last updated: {new Date().toISOString().slice(0,10)}</div>
+        <div style={{padding:"0 26px 22px",fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace"}}>Last updated: {new Date().toISOString().slice(0,10)}</div>
       </div>
     </div>
   );
@@ -1045,7 +614,7 @@ function AuthModal({mode,setMode,T,P,onSuccess,onClose}) {
         <div style={{height:4,background:`linear-gradient(90deg,${T.accent},#52b788)`}}/>
         <div style={{padding:"28px 32px"}}>
           <div style={{textAlign:"center",marginBottom:24}}>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{P.name}</div>
+            <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>{P.name}</div>
             <div style={{fontSize:12,color:T.textMuted,marginTop:4}}>{mode==="login"?"Welcome back":"Create your free account"}</div>
           </div>
           <div style={{display:"flex",background:T.border,borderRadius:10,padding:3,marginBottom:24}}>
@@ -1095,7 +664,7 @@ function PrefsInline({T,prefs,setPrefs,stores,setStores,shippingMap}) {
   return (
     <div style={{marginTop:48,background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:16,overflow:"hidden"}}>
         <div style={{padding:"20px 24px",borderBottom:`1px solid ${T.border}`}}>
-          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>Preferences</div>
+          <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:T.text}}>Preferences</div>
           <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>Filter your feed to match how you hunt</div>
         </div>
         <div style={{display:"flex",borderBottom:`1px solid ${T.border}`}}>
@@ -1147,7 +716,7 @@ function PrefsInline({T,prefs,setPrefs,stores,setStores,shippingMap}) {
               <p style={{fontSize:12,color:T.textMuted,marginBottom:20,lineHeight:1.6}}>Uncheck stores you do not want to see.</p>
               {SGRPS.map(g=>(
                 <div key={g.key} style={{marginBottom:20}}>
-                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.1em",marginBottom:8}}>{g.label.toUpperCase()}</div>
+                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.1em",marginBottom:8}}>{g.label.toUpperCase()}</div>
                   <div style={{display:"flex",flexDirection:"column",gap:6}}>
                     {bycat[g.key].map(s=>{
                       const on=stores.includes(s.id);
@@ -1160,7 +729,7 @@ function PrefsInline({T,prefs,setPrefs,stores,setStores,shippingMap}) {
                             <div style={{fontWeight:700,fontSize:13,color:on?T.text:T.textMuted}}>{s.name}</div>
                             <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{formatShipping(s, shippingMap)}{s.loyalty?" | "+s.loyalty.desc:""}</div>
                           </div>
-                          {!on&&<span style={{fontSize:11,color:T.red,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>HIDDEN</span>}
+                          {!on&&<span style={{fontSize:11,color:T.red,fontWeight:600,fontFamily:"var(--font-jetbrains),monospace"}}>HIDDEN</span>}
                         </div>
                       );
                     })}
@@ -1244,7 +813,7 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user,onWa
 
       {!trimmed && wishlist.length > 0 && (
         <div style={{marginBottom:28}}>
-          <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>SAVED SEARCHES</div>
+          <div style={{fontSize:10,color:T.textMuted,letterSpacing:"0.1em",marginBottom:12,fontFamily:"var(--font-jetbrains),monospace"}}>SAVED SEARCHES</div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             {wishlist.map((w,i)=>(
               <button key={i} onClick={()=>setQuery(w.query||w.productName||"")} style={{background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:999,padding:"6px 16px",cursor:"pointer",color:T.textSub,fontSize:12,fontWeight:600}}>
@@ -1257,14 +826,14 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user,onWa
 
       {!trimmed && (
         <div style={{padding:"32px 24px",background:T.bgCard,border:`1px solid ${T.border}`,borderRadius:12,textAlign:"center"}}>
-          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:8}}>Search active deals</div>
+          <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:8}}>Search active deals</div>
           <p style={{fontSize:13,color:T.textSub,lineHeight:1.6,maxWidth:520,margin:"0 auto"}}>Type a brand or product (e.g. "kuiu attack pant", "exo k4 pack", "sitka kelvin"). Only shows items currently on sale across our {deals.length}+ tracked deals — no fake prices.</p>
         </div>
       )}
 
       {trimmed && (
         <>
-          <div style={{marginBottom:16,color:T.textMuted,fontSize:12,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.06em"}}>
+          <div style={{marginBottom:16,color:T.textMuted,fontSize:12,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.06em"}}>
             {results.length} MATCH{results.length===1?"":"ES"} IN ACTIVE DEALS
           </div>
           {results.length > 0 ? (
@@ -1307,7 +876,7 @@ function AddMemberCard({setFamily, T}) {
   if (adding) {
     return (
       <div style={{background:T.bgCard,border:`1.5px solid ${T.accent}`,borderRadius:16,padding:"24px 20px",backdropFilter:"blur(12px)"}}>
-        <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:6}}>
+        <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:6}}>
           Add a family member
         </div>
         <div style={{fontSize:12,color:T.textMuted,lineHeight:1.6,marginBottom:16}}>
@@ -1365,29 +934,7 @@ function AddMemberCard({setFamily, T}) {
 
 
 
-function EmbedCard({dealId}) {
-  const [d, setD] = useState(null);
-  useEffect(() => {
-    fetch(SB_URL + "/rest/v1/deals?id=eq." + dealId + "&select=id,brand,product,sale_price,orig_price,url,image_url&limit=1", { headers: SB_H })
-      .then(r => r.ok ? r.json() : [])
-      .then(rows => setD(rows[0] || null))
-      .catch(()=>{});
-  }, [dealId]);
-  if (!d) return <div style={{padding:20,fontFamily:"Inter,system-ui,sans-serif",fontSize:13,color:"#666"}}>Loading...</div>;
-  const orig = parseFloat(d.orig_price), sale = parseFloat(d.sale_price);
-  const disc = orig > sale ? Math.round((1-sale/orig)*100) : 0;
-  return (
-    <a href={d.url + "?ref=embed"} target="_top" style={{display:"flex",gap:12,padding:14,background:"#fbfaf6",border:"1px solid #e6e1d4",borderRadius:12,textDecoration:"none",color:"#1a1815",fontFamily:"Inter,system-ui,sans-serif",maxWidth:380,margin:0,boxSizing:"border-box"}}>
-      {d.image_url && <img src={d.image_url} alt={d.product} style={{width:80,height:80,objectFit:"cover",borderRadius:8,flexShrink:0}}/>}
-      <div style={{flex:1,minWidth:0}}>
-        <div style={{fontSize:9,color:"#2d5a3d",letterSpacing:"0.12em",fontFamily:"'Courier New',monospace",fontWeight:700,marginBottom:3}}>{(d.brand||"").toUpperCase()}</div>
-        <div style={{fontFamily:"Georgia,serif",fontWeight:700,fontSize:14,lineHeight:1.2,marginBottom:6,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{d.product}</div>
-        <div style={{fontSize:15,fontWeight:800}}>${sale}{disc > 0 && <span style={{textDecoration:"line-through",color:"#9a968c",fontWeight:400,marginLeft:8,fontSize:12}}>${orig}</span>}{disc > 0 && <span style={{color:"#c4501e",fontWeight:700,marginLeft:8,fontSize:12}}>-{disc}%</span>}</div>
-        <div style={{fontSize:9,color:"#9a968c",marginTop:6,fontFamily:"'Courier New',monospace",letterSpacing:"0.08em"}}>via {PORTAL.shortName||"TIMBERLINE"}</div>
-      </div>
-    </a>
-  );
-}
+// EmbedCard moved to the server-rendered route app/embed/deal/[id]/page.js.
 
 function SuggestBrandModal({T,user,onClose}) {
   const [brand,setBrand]=useState("");
@@ -1434,13 +981,13 @@ function SuggestBrandModal({T,user,onClose}) {
         <button onClick={onClose} aria-label="Close" style={{position:"absolute",top:14,right:14,background:T.border,border:"none",borderRadius:"50%",width:30,height:30,cursor:"pointer",fontSize:14,color:T.textSub}}>×</button>
         {done?(
           <div>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text,marginBottom:10}}>Thanks for the tip</div>
+            <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:T.text,marginBottom:10}}>Thanks for the tip</div>
             <div style={{fontSize:13,color:T.textSub,lineHeight:1.6,marginBottom:20}}>Got it. We&apos;ll look into it. Note: not all brands can be tracked, but we&apos;ll try.</div>
             <button onClick={onClose} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"11px 24px",fontWeight:700,fontSize:14,cursor:"pointer"}}>Done</button>
           </div>
         ):(
           <>
-            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:T.text,marginBottom:4}}>Suggest a brand</div>
+            <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:T.text,marginBottom:4}}>Suggest a brand</div>
             <div style={{fontSize:12,color:T.textMuted,marginBottom:18}}>Tell us which brand you&apos;d like us to track on {PORTAL.shortName}</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               <input value={brand} onChange={e=>setBrand(e.target.value)} placeholder="Brand name (required)" style={inp}/>
@@ -1461,26 +1008,37 @@ function SuggestBrandModal({T,user,onClose}) {
   );
 }
 
-export default function App() {
-  const embedMatch = (typeof window !== "undefined") ? window.location.pathname.match(/^\/embed\/deal\/([0-9a-f-]+)/i) : null;
-  if (embedMatch) return <EmbedCard dealId={embedMatch[1]}/>;
-  return <MainApp/>;
+// Derive the active view from the URL so routed <Link> navigation drives the app
+// (the shell stays mounted via the (site) layout — state is preserved across nav).
+function tabForPath(p) {
+  return p === "/search" ? "search" : p === "/coupons" ? "coupons" : p === "/profile" ? "family" : "deals";
+}
+function brandForPath(p) {
+  const m = (p || "").match(/^\/brand\/([^/]+)/);
+  if (!m) return "All";
+  const slug = decodeURIComponent(m[1]);
+  return (PORTAL.brands || []).find(b => brandSlug(b) === slug) || "All";
 }
 
-function MainApp() {
-  const [tab,setTab]=useState("deals");
+export default function MainApp({
+  initialDeals = [],
+  initialCoupons = [],
+  initialShipping = {},
+  initialClickCounts = {},
+  initialDealId = null,
+}) {
+  const pathname = usePathname() || "/";
+  const [tab,setTab]=useState(() => tabForPath(pathname));
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
-  const [brandFilter,setBrandFilter]=useState(()=>{
-    try {
-      const m = window.location.pathname.match(/^\/brand\/([^/]+)/);
-      return m ? "PENDING:" + decodeURIComponent(m[1]) : "All";
-    } catch { return "All"; }
-  });
+  const [brandFilter,setBrandFilter]=useState(() => brandForPath(pathname));
+  // Keep tab + brand in sync with the URL on client-side navigation.
+  useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname)); }, [pathname]);
   const [sortBy,setSortBy]=useState("discount");
-  const [familyOnly,setFamilyOnly]=useState(()=>{
-    try { const v = localStorage.getItem("tl_family_only"); return v === null ? true : v === "true"; } catch { return true; }
-  });
+  // Constant default on server and client; the real preference is hydrated from
+  // localStorage in the mount effect below to avoid a hydration mismatch.
+  const [familyOnly,setFamilyOnly]=useState(true);
+  useEffect(()=>{ try { const v = localStorage.getItem("tl_family_only"); if (v !== null) setFamilyOnly(v === "true"); } catch { /* ignore */ } }, []);
   useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch { /* ignore */ } }, [familyOnly]);
 
   const [modalDeal,setModalDeal]=useState(null);
@@ -1491,27 +1049,17 @@ function MainApp() {
   const [authMode,setAuthMode]=useState("login");
   const [prefs,setPrefs]=useState({hunts:HUNT_TYPES.map(h=>h.id),cats:GEAR_CATS.map(c=>c.id),brands:[...ALL_BRANDS]});
   const [user,setUser]=useState(null);
-  const [deals,setDeals]=useState([]);
-  const [clickCounts,setClickCounts]=useState({});
-  useEffect(() => {
-    fetch(SB_URL + "/rest/v1/deal_click_counts?select=deal_id,clicks_7d", { headers: SB_H })
-      .then(r => r.ok ? r.json() : [])
-      .then(rows => {
-        const m = {};
-        for (const r of rows) m[r.deal_id] = r.clicks_7d;
-        setClickCounts(m);
-      })
-      .catch(()=>{});
-  }, []);
+  const [deals,setDeals]=useState(initialDeals);
+  const [clickCounts,setClickCounts]=useState(initialClickCounts);
   const [compareList,setCompareList]=useState([]);
   const [showCompare,setShowCompare]=useState(false);
   const toggleCompare = d => setCompareList(p => p.find(x=>x.id===d.id) ? p.filter(x=>x.id!==d.id) : (p.length>=3 ? p : [...p, d]));
-  const [dealsLoading,setDealsLoading]=useState(true);
+  const [dealsLoading,setDealsLoading]=useState(false);
   const [dealsError,setDealsError]=useState(false);
-  const [dbCoupons,setDbCoupons]=useState([]);
+  const [dbCoupons,setDbCoupons]=useState(initialCoupons);
   const [showLegal,setShowLegal]=useState(null);
   const [showSuggest,setShowSuggest]=useState(false);
-  const [shippingMap,setShippingMap]=useState({});
+  const [shippingMap,setShippingMap]=useState(initialShipping);
 
   useEffect(()=>{
     if(user && user.id && family.length){
@@ -1556,54 +1104,30 @@ function MainApp() {
     return ()=>subscription.unsubscribe();
   },[]);
 
+  // Deals/coupons/shipping/clicks are seeded from server props (in first-byte HTML).
+  // On mount: open any shared deal, then lazy-load the remaining deals client-side.
   useEffect(()=>{
-    // Initial fast fetch (100 for snappy first paint), then page through the rest in 1000-row chunks
+    try {
+      const sharedId = initialDealId || new URLSearchParams(window.location.search).get("deal");
+      if (sharedId) {
+        const m = deals.find(x => String(x.id) === String(sharedId));
+        if (m) setModalDeal(m);
+      }
+    } catch { /* ignore */ }
     const PAGE = 1000;
-    sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:"100",offset:"0"})
-      .then(rows=>{
-        if(rows&&rows.length) {
-          const mapped = rows.map(parseDeal);
-          setDeals(mapped);
-          try {
-            const params = new URLSearchParams(window.location.search);
-            const sharedId = params.get("deal");
-            if (sharedId) {
-              const m = mapped.find(x => String(x.id) === sharedId);
-              if (m) setModalDeal(m);
-            }
-          } catch { /* ignore */ }
-        }
-        setDealsLoading(false);
-        const loadMore = async (offset) => {
-          const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:String(PAGE),offset:String(offset)});
-          if (more && more.length) {
-            setDeals(prev => {
-              const seen = new Set(prev.map(d => d.id));
-              const fresh = more.map(parseDeal).filter(d => !seen.has(d.id));
-              return [...prev, ...fresh];
-            });
-            if (more.length === PAGE) await loadMore(offset + PAGE);
-          }
-        };
-        return loadMore(100);
-      })
-      .catch(()=>{setDealsError(true);setDealsLoading(false);});
-    sbGet("coupons",{select:"*",active:"eq.true",order:"verified.desc",limit:"50"})
-      .then(rows=>{
-        if(!rows||!rows.length)return;
-        const now=Date.now();
-        const valid=rows.filter(r=>!r.expires_at||new Date(r.expires_at).getTime()>now);
-        setDbCoupons(valid.map(parseCoupon));
-      })
-      .catch(()=>{});
-    sbGet("brand_shipping",{select:"brand,free_at,flat_rate,scraped_at,policy_url"})
-      .then(rows=>{
-        if(!rows||!rows.length)return;
-        const m={};
-        rows.forEach(r=>{m[r.brand]={free_at:r.free_at,flat_rate:r.flat_rate,scraped_at:r.scraped_at,policy_url:r.policy_url};});
-        setShippingMap(m);
-      })
-      .catch(()=>{});
+    const loadMore = async (offset) => {
+      const more = await sbGet("deals",{select:"*",active:"eq.true",order:"fake_sale.asc,id.asc",limit:String(PAGE),offset:String(offset)});
+      if (more && more.length) {
+        setDeals(prev => {
+          const seen = new Set(prev.map(d => d.id));
+          const fresh = more.map(parseDeal).filter(d => !seen.has(d.id));
+          return [...prev, ...fresh];
+        });
+        if (more.length === PAGE) await loadMore(offset + PAGE);
+      }
+    };
+    loadMore(0).catch(()=>{});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
   const T = useMemo(() => ({
     ...PALETTE,
@@ -1613,88 +1137,19 @@ function MainApp() {
     panelAccent: PORTAL.panelAccent || PALETTE.panelAccent,
   }), []);
   const P=PORTAL;
-  useEffect(() => {
-    try {
-      document.title = PORTAL.name;
-      if (PORTAL.favicon) {
-        let link = document.querySelector("link[rel~='icon']");
-        if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
-        link.type = "image/svg+xml";
-        link.href = PORTAL.favicon;
-      }
-      const setMeta = (sel, attr, val) => {
-        if (!val) return;
-        let el = document.querySelector(sel);
-        if (!el) {
-          el = document.createElement("meta");
-          const [type, name] = sel.replace(/[[\]"=]/g, " ").trim().split(/\s+/);
-          el.setAttribute(type, name);
-          document.head.appendChild(el);
-        }
-        el.setAttribute(attr, val);
-      };
-      const desc = PORTAL.description || PORTAL.heroTagline || PORTAL.tagline;
-      const url = "https://" + (PORTAL.domain || "timberlinedeals.com");
-      setMeta('meta[name="description"]', "content", desc);
-      setMeta('meta[property="og:title"]', "content", PORTAL.name);
-      setMeta('meta[property="og:description"]', "content", desc);
-      setMeta('meta[property="og:url"]', "content", url);
-      setMeta('meta[property="og:type"]', "content", "website");
-      setMeta('meta[property="og:image"]', "content", PORTAL.ogImage || "");
-      setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
-      setMeta('meta[name="twitter:title"]', "content", PORTAL.name);
-      setMeta('meta[name="twitter:description"]', "content", desc);
-      setMeta('meta[name="twitter:image"]', "content", PORTAL.ogImage || "");
-      let canonical = document.querySelector("link[rel='canonical']");
-      if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
-      canonical.href = url;
-      const gsc = import.meta.env.VITE_GSC_TOKEN;
-      if (gsc) {
-        let v = document.querySelector('meta[name="google-site-verification"]');
-        if (!v) { v = document.createElement("meta"); v.setAttribute("name","google-site-verification"); document.head.appendChild(v); }
-        v.setAttribute("content", gsc);
-      }
-      const gaId = import.meta.env.VITE_GA_ID;
-      if (gaId && !window.__gaLoaded) {
-        window.__gaLoaded = true;
-        const s = document.createElement("script");
-        s.async = true;
-        s.src = "https://www.googletagmanager.com/gtag/js?id=" + gaId;
-        document.head.appendChild(s);
-        const inline = document.createElement("script");
-        inline.text = "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','" + gaId + "');";
-        document.head.appendChild(inline);
-      }
-    } catch { /* ignore */ }
-  }, []);
+  // Title / meta / canonical / OG / favicon / GA are handled by the Next.js
+  // root layout + per-route generateMetadata (server-rendered into first-byte HTML).
   const liveBrands=useMemo(
     () => {
-      const portalSet = new Set(PORTAL.brands || []);
-      return [...new Set(deals.map(d=>d.brand))]
-        .filter(b => !portalSet.size || portalSet.has(b))
-        .sort();
+      // Use the portal's known brand universe so the brand-filter chip row is
+      // stable between SSR and after client lazy-loading — prevents the row from
+      // growing several lines and shoving the grid down (a big CLS source).
+      // Fall back to deriving from loaded deals only if the portal has no list.
+      if (PORTAL.brands && PORTAL.brands.length) return [...PORTAL.brands].sort();
+      return [...new Set(deals.map(d=>d.brand))].sort();
     },
     [deals]
   );
-
-  
-  useEffect(() => {
-    if (!brandFilter.startsWith("PENDING:")) return;
-    const targetSlug = brandFilter.slice(8);
-    if (!liveBrands.length) return;
-    const hit = liveBrands.find(b => brandSlug(b) === targetSlug);
-    setBrandFilter(hit || "All");
-  }, [brandFilter, liveBrands]);
-
-  useEffect(() => {
-    if (brandFilter.startsWith("PENDING:")) return;
-    try {
-      const desired = brandFilter === "All" ? "/" : "/brand/" + brandSlug(brandFilter);
-      if (window.location.pathname !== desired) {
-        window.history.replaceState(null, "", desired);
-      }
-    } catch { /* ignore */ }
-  }, [brandFilter]);
 
   const taggedDeals=useMemo(
     ()=>deals.map(d=>({...d,tags:computeTags(d,family),clicks7d:clickCounts[d.id]||0})),
@@ -1742,43 +1197,12 @@ function MainApp() {
     }
   };
 
-  const TABS=[{id:"deals",label:"Deals"},{id:"search",label:"Price Search"},{id:"coupons",label:"Coupon Codes"},...(user?[{id:"family",label:"Profile"}]:[])];
+  const TABS=[{id:"deals",label:"Deals",href:"/"},{id:"search",label:"Price Search",href:"/search"},{id:"coupons",label:"Coupon Codes",href:"/coupons"},...(user?[{id:"family",label:"Profile",href:"/profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
-    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"'Inter',system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0;}
-        body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-        ::-webkit-scrollbar{width:6px;height:6px;}
-        ::-webkit-scrollbar-track{background:transparent;}
-        ::-webkit-scrollbar-thumb{background:${T.border};border-radius:3px;}
-        ::-webkit-scrollbar-thumb:hover{background:${T.borderHov};}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-        a{color:inherit;text-decoration:none;}
-        button{font-family:inherit;}
-        input,select,textarea{font-family:inherit;}
-        @media (max-width:768px){
-          .tl-header-inner{padding:10px 14px !important;height:auto !important;flex-wrap:wrap !important;gap:10px !important;}
-          .tl-header-brand-sub{display:none !important;}
-          .tl-sister-sites{display:none !important;}
-          .tl-header-nav{order:3 !important;width:100% !important;justify-content:center !important;overflow-x:auto !important;flex-wrap:wrap !important;}
-          .tl-header-pref{display:none !important;}
-          .tl-sister-sites{display:none !important;}
-          .tl-page-hero{padding:28px 16px 24px !important;}
-          .tl-page-hero h1{font-size:32px !important;line-height:1.1 !important;}
-          .tl-hero-split{flex-direction:column !important;gap:12px !important;}
-          .tl-hero-split p{text-align:left !important;max-width:none !important;flex:none !important;}
-          .tl-page-hero p{font-size:14px !important;line-height:1.5 !important;}
-          .tl-page-body{padding:18px 14px 32px !important;}
-          .tl-deal-grid{grid-template-columns:1fr !important;gap:14px !important;}
-          .tl-deal-grid > *{content-visibility:auto;contain-intrinsic-size:auto 380px;}
-        }
-        @media (max-width:480px){
-          .tl-page-hero h1{font-size:28px !important;}
-        }
-      `}</style>
+    <div style={{minHeight:"100vh",background:T.bg,fontFamily:"var(--font-inter),system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
+      {/* Global resets, scrollbar, keyframes, and responsive rules live in app/global.css.
+          Fonts are loaded in the root layout. */}
       <svg style={{position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.025,mixBlendMode:"multiply"}} aria-hidden="true">
         <filter id="paperNoise"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter>
         <rect width="100%" height="100%" filter="url(#paperNoise)"/>
@@ -1786,19 +1210,19 @@ function MainApp() {
       <div style={{background:T.panelBg,borderBottom:`1px solid ${T.panelBorder}`,position:"sticky",top:0,zIndex:100}}>
         <div className="tl-header-inner" style={{maxWidth:1200,margin:"0 auto",padding:"0 32px",display:"flex",alignItems:"center",justifyContent:"space-between",height:72}}>
           <div style={{display:"flex",alignItems:"baseline",gap:12}}>
-            <div onClick={()=>{setTab("deals");setBrandFilter("All");setMemberFilter("All");window.scrollTo(0,0);}} style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em",cursor:"pointer"}}>{PORTAL.shortName || "Timberline"}</div>
-            <div className="tl-header-brand-sub" style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
+            <Link href="/" onClick={()=>setMemberFilter("All")} style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:24,color:T.panelText,letterSpacing:"-0.02em",cursor:"pointer",textDecoration:"none"}}>{PORTAL.shortName || "Timberline"}</Link>
+            <div className="tl-header-brand-sub" style={{fontFamily:"var(--font-jetbrains),monospace",fontWeight:600,fontSize:10,color:T.panelAccent,letterSpacing:"0.28em",textTransform:"uppercase"}}>Deal Tracker</div>
             <div className="tl-sister-sites" style={{display:"flex",gap:8,marginLeft:14,paddingLeft:14,borderLeft:`1px solid ${T.panelBorder}`,alignItems:"center"}}>
               {Object.values(PORTALS).filter(x=>x.id!==PORTAL.id&&x.domain).map(x=>(
-                <a key={x.id} href={"https://"+x.domain} title={x.name} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:T.panelSub,letterSpacing:"0.1em",textTransform:"uppercase",textDecoration:"none",fontWeight:600,padding:"4px 8px",borderRadius:6,border:`1px solid ${T.panelBorder}`,transition:"all 0.15s"}} onMouseOver={e=>{e.currentTarget.style.borderColor=T.panelAccent;e.currentTarget.style.color=T.panelText;}} onMouseOut={e=>{e.currentTarget.style.borderColor=T.panelBorder;e.currentTarget.style.color=T.panelSub;}}>{x.shortName}</a>
+                <a key={x.id} href={"https://"+x.domain} title={x.name} style={{fontFamily:"var(--font-jetbrains),monospace",fontSize:10,color:T.panelSub,letterSpacing:"0.1em",textTransform:"uppercase",textDecoration:"none",fontWeight:600,padding:"4px 8px",borderRadius:6,border:`1px solid ${T.panelBorder}`,transition:"all 0.15s"}} onMouseOver={e=>{e.currentTarget.style.borderColor=T.panelAccent;e.currentTarget.style.color=T.panelText;}} onMouseOut={e=>{e.currentTarget.style.borderColor=T.panelBorder;e.currentTarget.style.color=T.panelSub;}}>{x.shortName}</a>
               ))}
             </div>
           </div>
           <nav className="tl-header-nav" style={{display:"flex",gap:2}}>
             {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:"7px 14px",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500,transition:"color 0.18s",background:"transparent",color:tab===t.id?T.panelText:T.panelMuted}}>
+              <Link key={t.id} href={t.href} style={{padding:"7px 14px",border:"none",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500,transition:"color 0.18s",background:"transparent",textDecoration:"none",color:tab===t.id?T.panelText:T.panelMuted}}>
                 {t.label}
-              </button>
+              </Link>
             ))}
           </nav>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -1825,20 +1249,20 @@ function MainApp() {
               <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
                 <div className="tl-hero-split" style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:32,flexWrap:"wrap"}}>
                   <div style={{flex:"0 1 auto"}}>
-                    <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>{PORTAL.heroTitle || "Active Deals"}</h1>
+                    <h1 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:10,letterSpacing:"-0.02em",lineHeight:1.05}}>{PORTAL.heroTitle || "Active Deals"}</h1>
                     <p style={{color:T.panelSub,fontSize:14,letterSpacing:"0.01em",margin:0}}><strong style={{color:T.panelText}}>{filtered.filter(d=>!d.fake).length}</strong> verified deals · <span style={{color:T.red}}>{filtered.filter(d=>d.fake).length}</span> fake sales flagged</p>
                   </div>
-                  {PORTAL.heroTagline && <p style={{color:T.panelText,opacity:0.85,fontSize:14,lineHeight:1.5,maxWidth:620,fontFamily:"'Fraunces',Georgia,serif",fontWeight:400,fontStyle:"italic",margin:0,textAlign:"right",flex:"0 1 620px",alignSelf:"center"}}>{PORTAL.heroTagline}</p>}
+                  {PORTAL.heroTagline && <p style={{color:T.panelText,opacity:0.85,fontSize:14,lineHeight:1.5,maxWidth:620,fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:400,fontStyle:"italic",margin:0,textAlign:"right",flex:"0 1 620px",alignSelf:"center"}}>{PORTAL.heroTagline}</p>}
                 </div>
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px"}}>
-              <div style={{fontSize:11,color:T.textMuted,marginBottom:18,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em"}}>
+              <div style={{fontSize:11,color:T.textMuted,marginBottom:18,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.04em"}}>
                 We may earn a commission when you buy through these links — your price never changes. <button onClick={()=>setShowLegal("affiliate")} style={{background:"none",border:"none",color:T.accent,cursor:"pointer",padding:0,fontFamily:"inherit",fontSize:11,textDecoration:"underline"}}>Disclosure</button>
               </div>
               <div style={{display:"flex",gap:20,marginBottom:32,flexWrap:"wrap",alignItems:"center"}}>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>SORT</span>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>SORT</span>
                   <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{padding:"5px 10px",borderRadius:999,fontSize:12,fontWeight:600,border:`1px solid ${T.border}`,background:T.bgCard,color:T.text,cursor:"pointer",fontFamily:"inherit"}}>
                     <option value="discount">Biggest % off</option>
                     <option value="trending">🔥 Trending</option>
@@ -1855,7 +1279,7 @@ function MainApp() {
                   )}
                 </div>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>MEMBER</span>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>MEMBER</span>
                   {memberNames.map((m,i)=>{
                     const col=i===0?T.accent:MC[(i-1)%MC.length];
                     const active=memberFilter===m;
@@ -1867,11 +1291,11 @@ function MainApp() {
                   })}
                 </div>
                 <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>BRAND</span>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>BRAND</span>
                   {["All",...BRANDS_LIST].map(b=>(
-                    <button key={b} onClick={()=>setBrandFilter(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
+                    <Link key={b} href={b==="All"?"/":"/brand/"+brandSlug(b)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",textDecoration:"none",border:`1px solid ${brandFilter===b?T.accent:T.border}`,background:brandFilter===b?T.accentLight:T.bgCard,color:brandFilter===b?T.accent:T.textMuted}}>
                       {b}
-                    </button>
+                    </Link>
                   ))}
                   <button onClick={()=>setShowSuggest(true)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,border:`1px dashed ${T.border}`,background:"transparent",color:T.textMuted,fontStyle:"italic"}}>Don&apos;t see your brand? Suggest one →</button>
                 </div>
@@ -1884,13 +1308,13 @@ function MainApp() {
                   <button onClick={()=>window.location.reload()} style={{background:T.accent,color:"white",border:"none",borderRadius:8,padding:"8px 18px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Reload</button>
                 </div>
               ):dealsLoading&&deals.length===0?(
-                <div style={{color:T.textMuted,padding:40,fontFamily:"'JetBrains Mono',monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>Loading deals...</div>
+                <div style={{color:T.textMuted,padding:40,fontFamily:"var(--font-jetbrains),monospace",fontSize:12,textAlign:"center",gridColumn:"1 / -1"}}>Loading deals...</div>
               ):filtered.length===0?(
                 <div style={{padding:48,textAlign:"center",gridColumn:"1 / -1"}}>
-                  <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No deals match these filters</div>
-                  <div style={{fontSize:12,color:T.textMuted,marginBottom:18,fontFamily:"'JetBrains Mono',monospace"}}>Try clearing the brand or member filter to see more.</div>
+                  <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No deals match these filters</div>
+                  <div style={{fontSize:12,color:T.textMuted,marginBottom:18,fontFamily:"var(--font-jetbrains),monospace"}}>Try clearing the brand or member filter to see more.</div>
                   {(brandFilter!=="All"||memberFilter!=="All")&&(
-                    <button onClick={()=>{setBrandFilter("All");setMemberFilter("All");}} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Clear filters</button>
+                    <Link href="/" onClick={()=>setMemberFilter("All")} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer",textDecoration:"none",display:"inline-block"}}>Clear filters</Link>
                   )}
                 </div>
               ):filtered.map(d=>(
@@ -1904,7 +1328,7 @@ function MainApp() {
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
               <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
-                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
+                <h1 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Price Search</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Find the cheapest place to buy any hunting gear, anywhere.</p>
               </div>
             </div>
@@ -1917,14 +1341,14 @@ function MainApp() {
           <div style={{animation:"fadeUp 0.3s ease"}}>
             <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
               <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
-                <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
+                <h1 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Active Codes</h1>
                 <p style={{color:T.panelSub,fontSize:14}}>Verified today. Click any card to visit the brand.</p>
               </div>
             </div>
             <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"grid",gap:14}}>
               {portalCoupons.length===0&&(
                 <div style={{textAlign:"center",padding:"48px 0"}}>
-                  <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No active codes right now</div>
+                  <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No active codes right now</div>
                   <div style={{color:T.textMuted,fontSize:14}}>Check back soon — we verify new codes daily.</div>
                 </div>
               )}
@@ -1932,8 +1356,8 @@ function MainApp() {
                 <a key={c.code||c.url} href={c.url} target="_blank" rel="noopener noreferrer" style={{textDecoration:"none"}}>
                   <div style={{background:T.bgCard,backdropFilter:"blur(12px)",borderRadius:14,padding:"20px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:20,cursor:"pointer",boxShadow:`0 2px 12px ${T.shadow}`,border:`1px solid ${c.verified?T.border:T.redBorder}`}}>
                     <div>
-                      <div style={{fontSize:11,fontWeight:700,color:T.accent,letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace",marginBottom:5}}>{c.brand.toUpperCase()}</div>
-                      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:5,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden",lineHeight:1.25}}>{c.discount}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:T.accent,letterSpacing:"0.1em",fontFamily:"var(--font-jetbrains),monospace",marginBottom:5}}>{c.brand.toUpperCase()}</div>
+                      <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:20,color:T.text,marginBottom:5,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden",lineHeight:1.25}}>{c.discount}</div>
                       <div style={{fontSize:12,color:T.textMuted}}>Expires {c.expires} | {c.verified?"Verified today":"Unverified"}</div>
                     </div>
                     <code style={{background:T.orangeLight,color:T.orange,border:`1px dashed ${T.orangeBorder}`,borderRadius:10,padding:"10px 22px",fontSize:22,fontWeight:800,letterSpacing:"0.15em"}}>{c.code}</code>
@@ -1948,7 +1372,7 @@ function MainApp() {
             {!user?(
               <div className="tl-page-body" style={{maxWidth:1200,margin:"0 auto",padding:"36px 32px 64px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
                 <div style={{marginTop:80}}/>
-                <h2 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Profile</h2>
+                <h2 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:28,color:T.text,marginBottom:12}}>Profile</h2>
                 <p style={{fontSize:15,color:T.textSub,maxWidth:440,lineHeight:1.7,marginBottom:32}}>Add everyone in your family with their sizes. Deals get automatically tagged to whoever they fit.</p>
                 <div style={{display:"flex",gap:10}}>
                   <button onClick={()=>{setAuthMode("signup");setShowAuth(true);}} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"13px 32px",fontWeight:700,fontSize:15,cursor:"pointer"}}>Create Free Account</button>
@@ -1959,7 +1383,7 @@ function MainApp() {
               <>
                 <div style={{background:PORTAL.heroBg||T.panelBg,borderBottom:`1px solid ${T.panelBorder}`}}>
                   <div className="tl-page-hero" style={{maxWidth:1200,margin:"0 auto",padding:"28px 32px 24px"}}>
-                    <h1 style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Profile</h1>
+                    <h1 style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:52,color:T.panelText,marginBottom:8,letterSpacing:"-0.02em",lineHeight:1.05}}>Profile</h1>
                     <p style={{color:T.panelSub,fontSize:14}}>Deals auto-tagged by size · AI gear advisor per member</p>
                   </div>
                 </div>
@@ -1974,7 +1398,7 @@ function MainApp() {
                         <div style={{height:4,background:col}}/>
                         <div style={{padding:"18px 18px 16px"}}>
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                            <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{m.name}</div>
+                            <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{m.name}</div>
                             <div style={{display:"flex",gap:6}}>
                               <button onClick={()=>setEditIdx(editIdx===idx?null:idx)} style={{background:T.border,border:"none",borderRadius:7,padding:"4px 12px",cursor:"pointer",fontSize:11,color:T.textSub,fontWeight:600}}>{editIdx===idx?"Done":"Edit"}</button>
                               <button onClick={async()=>{ if(!window.confirm("Remove "+m.name+" from family?"))return; const nm=m.name; setFamily(prev=>prev.filter((_,i)=>i!==idx)); if(user){ try{ await supabase.from("family_members").delete().eq("user_id",user.id).eq("name",nm); }catch{ /* ignore */ } } if(editIdx===idx)setEditIdx(null); }} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:7,padding:"4px 10px",cursor:"pointer",fontSize:11,color:T.red||"#cc4444",fontWeight:600}} title={"Remove "+m.name}>Remove</button>
@@ -1984,7 +1408,7 @@ function MainApp() {
                             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
                               {["jacket","shirt","base","pants","boots"].map(field=>(
                                 <div key={field} style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em"}}>{field.toUpperCase()}</span>
+                                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>{field.toUpperCase()}</span>
                                   <SizePicker
                                     field={field}
                                     value={m[field]}
@@ -1999,15 +1423,15 @@ function MainApp() {
                             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
                               {SIZE_FIELDS.map(([label,val])=>(
                                 <div key={label} style={{background:T.bgSolid,border:`1px solid ${T.border}`,borderRadius:9,padding:"14px 8px",textAlign:"center"}}>
-                                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:6}}>{label}</div>
+                                  <div style={{fontSize:10,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.12em",marginBottom:6}}>{label}</div>
                                   <div style={{fontSize:22,fontWeight:800,color:T.text,letterSpacing:"-0.01em"}}>{val}</div>
                                 </div>
                               ))}
                             </div>
                           )}
                           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",paddingTop:12,borderTop:`1px solid ${T.border}`}}>
-                            <span style={{fontSize:11,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>ACTIVE DEALS</span>
-                            <span style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{mDeals.length}</span>
+                            <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace"}}>ACTIVE DEALS</span>
+                            <span style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:22,color:col}}>{mDeals.length}</span>
                           </div>
                           <GearAdvisor member={m} memberIdx={idx} deals={taggedDeals} setFamily={setFamily} T={T}/>
                         </div>
@@ -2018,7 +1442,7 @@ function MainApp() {
                 </div>
                 <PrefsInline T={T} prefs={prefs} setPrefs={setPrefs} stores={stores} setStores={setStores} shippingMap={shippingMap}/>
                 <div style={{marginTop:48,padding:"24px",border:`1px solid ${T.border}`,borderRadius:12,background:T.bgCard}}>
-                  <div style={{fontSize:11,color:T.textMuted,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:12}}>WATCHING & SAVED SEARCHES</div>
+                  <div style={{fontSize:11,color:T.textMuted,fontWeight:700,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.12em",marginBottom:12}}>WATCHING & SAVED SEARCHES</div>
                   <div style={{fontSize:12,color:T.textSub,marginBottom:14,lineHeight:1.6}}>We email you when matching deals appear. Click the X to stop watching.</div>
                   {wishlist.length === 0 ? (
                     <div style={{fontSize:13,color:T.textMuted,fontStyle:"italic"}}>Nothing watched yet. Click the ☆ on any deal to start.</div>
@@ -2038,7 +1462,7 @@ function MainApp() {
                   )}
                 </div>
                 <div style={{marginTop:32,padding:"24px",border:`1px solid ${T.redBorder}`,borderRadius:12,background:T.redLight}}>
-                  <div style={{fontSize:11,color:T.red,fontWeight:700,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.12em",marginBottom:8}}>DANGER ZONE</div>
+                  <div style={{fontSize:11,color:T.red,fontWeight:700,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.12em",marginBottom:8}}>DANGER ZONE</div>
                   <div style={{fontSize:14,color:T.text,fontWeight:600,marginBottom:6}}>Delete your account</div>
                   <div style={{fontSize:12,color:T.textSub,marginBottom:14,lineHeight:1.6}}>Removes your login, family profiles, saved searches, and wishlist alerts. Cannot be undone.</div>
                   <button onClick={async()=>{
@@ -2087,7 +1511,7 @@ function MainApp() {
         <div onClick={()=>setShowCompare(false)} style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,0.6)",display:"flex",alignItems:"center",justifyContent:"center",padding:24,backdropFilter:"blur(6px)"}}>
           <div onClick={e=>e.stopPropagation()} style={{background:T.bgSolid,borderRadius:20,maxWidth:1100,width:"100%",maxHeight:"92vh",overflow:"auto",border:`1px solid ${T.border}`,boxShadow:`0 32px 80px ${T.shadowHov}`,padding:"24px 28px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-              <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:800,fontSize:24,color:T.text}}>Compare ({compareList.length})</div>
+              <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:800,fontSize:24,color:T.text}}>Compare ({compareList.length})</div>
               <div style={{display:"flex",gap:10}}>
                 <button onClick={()=>setCompareList([])} style={{background:"transparent",border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 14px",cursor:"pointer",fontSize:12,color:T.textSub,fontWeight:600}}>Clear all</button>
                 <button onClick={()=>setShowCompare(false)} aria-label="Close" style={{background:T.border,border:"none",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:16,color:T.textSub}}>×</button>
@@ -2100,11 +1524,11 @@ function MainApp() {
                   <div key={d.id} style={{border:`1px solid ${T.border}`,borderRadius:12,padding:16,background:T.bgCard,position:"relative"}}>
                     <button onClick={()=>toggleCompare(d)} aria-label="Remove from compare" style={{position:"absolute",top:8,right:8,background:T.border,border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:14,color:T.textSub,lineHeight:1}}>×</button>
                     {d.image && <div style={{width:"100%",paddingBottom:"66%",background:T.bgSolid,borderRadius:8,marginBottom:12,position:"relative",overflow:"hidden"}}><img src={d.image} alt={d.product} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/></div>}
-                    <div style={{fontSize:10,color:T.accent,letterSpacing:"0.12em",fontFamily:"'JetBrains Mono',monospace",fontWeight:700,marginBottom:4}}>{(d.brand||"").toUpperCase()}</div>
-                    <div style={{fontFamily:"'Fraunces',Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:10,lineHeight:1.25}}>{d.product}</div>
+                    <div style={{fontSize:10,color:T.accent,letterSpacing:"0.12em",fontFamily:"var(--font-jetbrains),monospace",fontWeight:700,marginBottom:4}}>{(d.brand||"").toUpperCase()}</div>
+                    <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:700,fontSize:16,color:T.text,marginBottom:10,lineHeight:1.25}}>{d.product}</div>
                     <div style={{fontSize:22,fontWeight:800,color:T.text}}>${d.sale}</div>
                     {disc > 0 && <div style={{fontSize:12,color:T.textMuted,marginBottom:6}}><span style={{textDecoration:"line-through"}}>${d.orig}</span> <span style={{color:"#c4501e",fontWeight:700,marginLeft:6}}>-{disc}%</span></div>}
-                    <div style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.08em",marginTop:10,marginBottom:4}}>SIZES</div>
+                    <div style={{fontSize:10,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em",marginTop:10,marginBottom:4}}>SIZES</div>
                     <div style={{fontSize:11,color:T.textSub,marginBottom:14,lineHeight:1.5}}>{[...(d.sizes?.mens||[]),...(d.sizes?.womens||[]),...(d.sizes?.youth||[])].join(" · ")||"—"}</div>
                     <a href={d.url} target="_blank" rel="noopener noreferrer" onClick={()=>logClick(d)} style={{display:"block",textAlign:"center",background:T.accent,color:"white",borderRadius:8,padding:"10px 0",textDecoration:"none",fontSize:12,fontWeight:700}}>Shop {d.brand}</a>
                   </div>
