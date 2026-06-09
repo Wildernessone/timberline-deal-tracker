@@ -17,6 +17,11 @@ import {
   trackLogin, loadFamily, loadWishlist, saveWishlistItem, deleteWishlistItem, saveFamily,
 } from "@/lib/analytics";
 
+// On phones the deal grid renders a capped slice of the (full) deal list and reveals
+// more on demand. Keeping the DOM small (~one step's worth of cards instead of the
+// whole ~2,800-deal catalog) stops iOS from evicting + reloading the heavy tab on
+// cellular. Desktop is unaffected and still renders the full grid.
+const MOBILE_DEAL_STEP = 100;
 
 function BrandLogo({brand, T, size=14}) {
   const dom = BRAND_DOMAINS[brand];
@@ -1039,11 +1044,26 @@ export default function MainApp({
   // Keep tab + brand in sync with the URL on client-side navigation.
   useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname, brandUniverse)); }, [pathname, brandUniverse]);
   const [sortBy,setSortBy]=useState("discount");
+  // Render-cap for phones (see MOBILE_DEAL_STEP). isMobile defaults false so SSR and the
+  // first client render match (full grid); it flips true after mount on small screens,
+  // which caps the rendered cards. mobileLimit grows when the user taps "Load more" and
+  // resets whenever the filter/sort changes so a new view starts from the top.
+  const [isMobile,setIsMobile]=useState(false);
+  const [mobileLimit,setMobileLimit]=useState(MOBILE_DEAL_STEP);
+  useEffect(()=>{
+    const mq = window.matchMedia("(max-width: 768px)");
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  },[]);
   // Constant default on server and client; the real preference is hydrated from
   // localStorage in the mount effect below to avoid a hydration mismatch.
   const [familyOnly,setFamilyOnly]=useState(true);
   useEffect(()=>{ try { const v = localStorage.getItem("tl_family_only"); if (v !== null) setFamilyOnly(v === "true"); } catch { /* ignore */ } }, []);
   useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch { /* ignore */ } }, [familyOnly]);
+  // Restart the mobile render-cap at the top whenever the visible set changes.
+  useEffect(()=>{ setMobileLimit(MOBILE_DEAL_STEP); },[brandFilter,memberFilter,sortBy,familyOnly,tab]);
 
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
@@ -1179,6 +1199,9 @@ export default function MainApp({
     if(familyOnly && user && family.length && memberFilter==="All" && d.tags.length===0) return false;
     return true;
   }),[sortedDeals,portalBrandSet,brandFilter,memberFilter,familyOnly,user,family.length]);
+  // On phones, render only the first `mobileLimit` cards (rest via "Load more"); desktop
+  // renders the whole list. Keeps the mobile DOM light enough to avoid iOS tab reloads.
+  const visibleDeals = (isMobile && filtered.length > mobileLimit) ? filtered.slice(0, mobileLimit) : filtered;
   const portalCoupons=dbCoupons;
   const BRANDS_LIST=liveBrands;
   // Primary <h1> for the deals view, derived from the current route so each page
@@ -1329,10 +1352,20 @@ export default function MainApp({
                     <Link href="/" onClick={()=>setMemberFilter("All")} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer",textDecoration:"none",display:"inline-block"}}>Clear filters</Link>
                   )}
                 </div>
-              ):filtered.map(d=>(
+              ):visibleDeals.map(d=>(
                 <DealCard key={d.id} d={d} family={family} memberFilter={memberFilter} onOpen={setModalDeal} T={T} onWatch={handleWatch} isWatched={isWatched(d)} onCompare={toggleCompare} inCompare={compareList.some(x=>x.id===d.id)}/>
               ))}
               </div>
+              {isMobile && filtered.length > visibleDeals.length && (
+                <div style={{textAlign:"center",padding:"22px 0 4px"}}>
+                  <button onClick={()=>setMobileLimit(n=>n+MOBILE_DEAL_STEP)} style={{background:T.accent,color:"white",border:"none",borderRadius:10,padding:"12px 28px",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+                    Load more deals
+                  </button>
+                  <div style={{fontSize:12,color:T.textMuted,marginTop:10,fontFamily:"var(--font-jetbrains),monospace"}}>
+                    Showing {visibleDeals.length} of {filtered.length}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
