@@ -1,7 +1,7 @@
 import "./global.css";
 import Script from "next/script";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
-import { PORTAL, ACTIVE_PORTAL_ID } from "@/lib/constants";
+import { PORTAL } from "@/lib/constants";
 
 // Self-hosted via next/font — automatic fallback size-adjust metrics eliminate
 // the font-swap layout shift (CLS) the external <link> caused. Exposed as CSS
@@ -78,31 +78,8 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
-        {/* AvantLink affiliate-application confirmation tag — placed in <head> so
-            AvantLink's verifier finds it near the top of the document. The homepage
-            body is ~590KB and a body-placed tag sits ~84% down, almost certainly
-            past where the verifier reads. timberline portal only. */}
-        {ACTIVE_PORTAL_ID === "timberline" && (
-          <script
-            async
-            type="text/javascript"
-            src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"
-          />
-        )}
       </head>
       <body>
-        {/* AvantLink confirmation snippet, byte-for-byte exactly as AvantLink
-            issued it (http:// + literal &), placed as the FIRST element of <body>
-            (≈byte 7K, top of the document) for a source-parsing verifier. The
-            <head> copy above is https so it also loads in a real browser. */}
-        {ACTIVE_PORTAL_ID === "timberline" && (
-          <div
-            dangerouslySetInnerHTML={{
-              __html:
-                '<script type="text/javascript" src="http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"></script>',
-            }}
-          />
-        )}
         {children}
         {GA_ID && (
           <>
