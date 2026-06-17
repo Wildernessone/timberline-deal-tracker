@@ -1,21 +1,30 @@
 import { PORTAL } from "@/lib/constants";
-import { getAllActiveDealIdsForSitemap, getEffectiveBrands } from "@/lib/data";
+import { getAllActiveDealIdsForSitemap, getEffectiveBrands, getArticlesForSitemap } from "@/lib/data";
 import { brandSlug } from "@/lib/parse";
 import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 3600;
 
 export default async function sitemap() {
-  const [deals, brands] = await Promise.all([
+  const [deals, brands, articles] = await Promise.all([
     getAllActiveDealIdsForSitemap({ max: 10000 }),
     getEffectiveBrands(PORTAL.id),
+    getArticlesForSitemap(PORTAL.id),
   ]);
 
   const staticRoutes = [
     { url: SITE_URL + "/", changeFrequency: "daily", priority: 1.0 },
     { url: SITE_URL + "/coupons", changeFrequency: "weekly", priority: 0.7 },
     { url: SITE_URL + "/search", changeFrequency: "weekly", priority: 0.6 },
+    ...(articles.length ? [{ url: SITE_URL + "/guides", changeFrequency: "daily", priority: 0.8 }] : []),
   ];
+
+  const guideRoutes = articles.map(a => ({
+    url: SITE_URL + "/guides/" + a.slug,
+    lastModified: a.updated_at || a.published_at ? new Date(a.updated_at || a.published_at) : undefined,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
 
   const brandRoutes = brands.map(b => ({
     url: SITE_URL + "/brand/" + brandSlug(b),
@@ -30,5 +39,5 @@ export default async function sitemap() {
     priority: 0.5,
   }));
 
-  return [...staticRoutes, ...brandRoutes, ...dealRoutes];
+  return [...staticRoutes, ...guideRoutes, ...brandRoutes, ...dealRoutes];
 }

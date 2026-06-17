@@ -27,6 +27,20 @@ input, select, textarea { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: #e6e1d4; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #1a1815; }
 
+/* Editorial article body (rendered from Markdown by lib/markdown.js). */
+.article-body { font-size: 17px; line-height: 1.7; color: #2a2823; }
+.article-body h2 { font-family: var(--font-fraunces), Georgia, serif; font-size: 25px; font-weight: 600; letter-spacing: -0.01em; margin: 36px 0 12px; line-height: 1.25; }
+.article-body h3 { font-family: var(--font-fraunces), Georgia, serif; font-size: 20px; font-weight: 600; margin: 28px 0 10px; }
+.article-body h4 { font-size: 16px; font-weight: 700; margin: 22px 0 8px; }
+.article-body p { margin: 0 0 18px; }
+.article-body ul, .article-body ol { margin: 0 0 18px; padding-left: 24px; }
+.article-body li { margin: 0 0 8px; }
+.article-body a { color: #2d5a3d; text-decoration: underline; text-underline-offset: 2px; }
+.article-body strong { font-weight: 700; color: #1a1815; }
+.article-body blockquote { margin: 0 0 18px; padding: 4px 0 4px 18px; border-left: 3px solid #b8cdbc; color: #57544c; font-style: italic; }
+.article-body code { font-family: var(--font-jetbrains), monospace; font-size: 0.88em; background: #f0ede4; padding: 1px 5px; border-radius: 4px; }
+.article-body img { max-width: 100%; border-radius: 10px; margin: 8px 0 20px; }
+
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
