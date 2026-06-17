@@ -11,6 +11,35 @@ Content is the fix for **both** problems at once.
 
 ---
 
+## STATUS — LIVE & AUTONOMOUS (2026-06-17)
+
+The engine is built, deployed, and running. End-to-end loop:
+
+1. **Scheduled cloud routine** `timberline-content-engine` (RemoteTrigger id `trig_01T88xybzg9MNAQCtPBgv43j`,
+   cron `0 16 * * 2,5` = Tue+Fri 9am PT; Higgsfield + Supabase MCP connectors + WebSearch) runs the
+   self-contained playbook: dedupe → pick topic → web research → pull live deals for internal links →
+   write with the two bundled writing skills + anti-AI audit → Higgsfield hero image → insert a **DRAFT**.
+2. **Writing skills** vendored into `.claude/skills/`: `content-research-writer` (research/citations/hooks)
+   and `content-writer` (frameworks + SEO/platform conventions + `references/anti-ai-checklist.md`, run
+   against every draft before save). The routine Reads + applies both.
+3. **Hero images** are made permanent automatically: the routine stores the Higgsfield CDN URL (the cloud
+   sandbox blocks outbound HTTP, so it can't rehost inline); edge function `store-guide-image` (sweep mode)
+   + pg_cron job `rehost-guide-images` (jobid 4, every 10 min) copy CDN → Supabase Storage bucket
+   `guide-images` and update the row.
+4. **Approval:** James reviews drafts in **Command Center → Guides tab** (`admin_articles` /
+   `set_article_status` RPCs) and 1-tap publishes. Published articles render at `/guides` + enter the sitemap.
+5. **RAMP:** draft-only for now; graduate to gated auto-publish once quality is proven across ~8-10 approvals.
+
+First 4 articles written + published 2026-06-17 (wash-clothes, elk gear audit, saddle-hunting, wader care).
+
+**SideWRK content engine (planned, not built):** replicate this for SideWRK with FOCUS = operator
+success/business-growth content (find more customers, upsell honestly, deliver better value, win repeat &
+referral business) across the 23 trades. SideWRK is a single-`index.html` SPA but already ships static
+per-trade pages + sitemap, so guides should generate static `public/guides/*.html`. Uses SideWRK's own
+Supabase + manual wrangler deploy. Social distribution wanted but no accounts exist yet.
+
+---
+
 ## What's built (Phase 1 — the publishing substrate) ✅
 
 DB-driven, renders with **no code deploy per article** (same model as `portal_brands`).
