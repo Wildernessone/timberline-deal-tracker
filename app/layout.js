@@ -81,13 +81,11 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
-        {/* AvantLink affiliate-application confirmation. Single-domain token, so it
-            only loads on timberlinedeals.com (the timberline portal). Emitted via
-            dangerouslySetInnerHTML so the snippet appears in the page source
-            byte-for-byte with a LITERAL "&" (a JSX <script> attribute serializes "&"
-            as "&amp;", which AvantLink's source-parsing verifier didn't accept).
-            Kept on https — the original http snippet would be blocked as mixed
-            content. Remove once AvantLink confirms the application. */}
+        {/* AvantLink affiliate-application confirmation JS tag (timberline portal
+            only). Kept as a secondary signal; the primary verification is the
+            file-based method served at /avantlink_confirmation.txt (see
+            app/avantlink_confirmation.txt/route.js). Emitted via
+            dangerouslySetInnerHTML so the snippet keeps a literal "&" in source. */}
         {ACTIVE_PORTAL_ID === "timberline" && (
           <div
             dangerouslySetInnerHTML={{
