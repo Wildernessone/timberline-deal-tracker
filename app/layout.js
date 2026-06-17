@@ -78,22 +78,20 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
+        {/* AvantLink affiliate-application confirmation tag — placed in <head> so
+            AvantLink's verifier finds it near the top of the document. The homepage
+            body is ~590KB and a body-placed tag sits ~84% down, almost certainly
+            past where the verifier reads. timberline portal only. */}
+        {ACTIVE_PORTAL_ID === "timberline" && (
+          <script
+            async
+            type="text/javascript"
+            src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"
+          />
+        )}
       </head>
       <body>
         {children}
-        {/* AvantLink affiliate-application confirmation JS tag (timberline portal
-            only). Kept as a secondary signal; the primary verification is the
-            file-based method served at /avantlink_confirmation.txt (see
-            app/avantlink_confirmation.txt/route.js). Emitted via
-            dangerouslySetInnerHTML so the snippet keeps a literal "&" in source. */}
-        {ACTIVE_PORTAL_ID === "timberline" && (
-          <div
-            dangerouslySetInnerHTML={{
-              __html:
-                '<script type="text/javascript" src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"></script>',
-            }}
-          />
-        )}
         {GA_ID && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
