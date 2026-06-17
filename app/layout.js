@@ -82,17 +82,18 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         {/* AvantLink affiliate-application confirmation. Single-domain token, so it
-            only loads on timberlinedeals.com (the timberline portal). Served over
-            https — the original AvantLink snippet was http, which an HTTPS page
-            blocks as mixed content. MUST be a plain server-rendered <script> tag
-            (not next/script): AvantLink's verifier parses the static HTML and does
-            NOT execute JS, so an afterInteractive/client-injected script is invisible
-            to it. React 19 emits this as a real tag in the SSR HTML. */}
+            only loads on timberlinedeals.com (the timberline portal). Emitted via
+            dangerouslySetInnerHTML so the snippet appears in the page source
+            byte-for-byte with a LITERAL "&" (a JSX <script> attribute serializes "&"
+            as "&amp;", which AvantLink's source-parsing verifier didn't accept).
+            Kept on https — the original http snippet would be blocked as mixed
+            content. Remove once AvantLink confirms the application. */}
         {ACTIVE_PORTAL_ID === "timberline" && (
-          <script
-            async
-            type="text/javascript"
-            src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"
+          <div
+            dangerouslySetInnerHTML={{
+              __html:
+                '<script type="text/javascript" src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"></script>',
+            }}
           />
         )}
         {GA_ID && (
