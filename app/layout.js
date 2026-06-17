@@ -1,7 +1,7 @@
 import "./global.css";
 import Script from "next/script";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
-import { PORTAL } from "@/lib/constants";
+import { PORTAL, ACTIVE_PORTAL_ID } from "@/lib/constants";
 
 // Self-hosted via next/font — automatic fallback size-adjust metrics eliminate
 // the font-swap layout shift (CLS) the external <link> caused. Exposed as CSS
@@ -81,6 +81,17 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
+        {/* AvantLink affiliate-application confirmation. Single-domain token, so it
+            only loads on timberlinedeals.com (the timberline portal). Served over
+            https — the original AvantLink snippet was http, which an HTTPS page
+            blocks as mixed content (so it would never fire). */}
+        {ACTIVE_PORTAL_ID === "timberline" && (
+          <Script
+            id="avantlink-confirm"
+            src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"
+            strategy="afterInteractive"
+          />
+        )}
         {GA_ID && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
