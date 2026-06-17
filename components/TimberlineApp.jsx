@@ -1234,7 +1234,7 @@ export default function MainApp({
     }
   };
 
-  const TABS=[{id:"deals",label:"Deals",href:"/"},{id:"search",label:"Price Search",href:"/search"},{id:"coupons",label:"Coupon Codes",href:"/coupons"},...(user?[{id:"family",label:"Profile",href:"/profile"}]:[])];
+  const TABS=[{id:"deals",label:"Deals",href:"/"},{id:"search",label:"Price Search",href:"/search"},{id:"coupons",label:"Coupon Codes",href:"/coupons"},{id:"guides",label:"Guides",href:"/guides"},...(user?[{id:"family",label:"Profile",href:"/profile"}]:[])];
   const memberNames=["All",...family.map(f=>f.name)];
   return (
     <div style={{minHeight:"100vh",background:T.bg,fontFamily:"var(--font-inter),system-ui,sans-serif",position:"relative",transition:"background 0.3s",color:T.text}}>
