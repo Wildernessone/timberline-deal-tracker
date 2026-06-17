@@ -91,6 +91,18 @@ export default function RootLayout({ children }) {
         )}
       </head>
       <body>
+        {/* AvantLink confirmation snippet, byte-for-byte exactly as AvantLink
+            issued it (http:// + literal &), placed as the FIRST element of <body>
+            (≈byte 7K, top of the document) for a source-parsing verifier. The
+            <head> copy above is https so it also loads in a real browser. */}
+        {ACTIVE_PORTAL_ID === "timberline" && (
+          <div
+            dangerouslySetInnerHTML={{
+              __html:
+                '<script type="text/javascript" src="http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=31a011aed9ef24a6bdfcc8ee45cd14f9ce3b2ab9"></script>',
+            }}
+          />
+        )}
         {children}
         {GA_ID && (
           <>
