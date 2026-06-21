@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import TimberlineApp from "@/components/TimberlineApp";
-import { PORTAL } from "@/lib/constants";
+import { PORTAL, categoryGroupForCat } from "@/lib/constants";
+import { brandSlug as toBrandSlug } from "@/lib/parse";
 import { getDeal, getDeals, getCoupons, getBrandShipping, getClickCounts, getEffectiveBrands } from "@/lib/data";
 import { productJsonLd, breadcrumbJsonLd, JsonLd, SITE_URL, dealUrl, brandUrl, discountPct } from "@/lib/seo";
 import { brandSlug, fmtPrice } from "@/lib/parse";
@@ -36,10 +37,22 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// An expired deal must never dead-end on a 404 (guides/articles deep-linked these for
+// years). Soft-land it on the still-live listing it belongs to — its category if we can
+// recover it, else its brand — with a permanent (308) redirect so any ranking equity
+// carries over. A row that's been fully purged falls back to the home deal grid.
+function landingForExpired(d) {
+  const g = categoryGroupForCat(d.cat);
+  if (g) return "/category/" + g.slug;
+  if (d.brand) return "/brand/" + toBrandSlug(d.brand);
+  return "/";
+}
+
 export default async function DealPage({ params }) {
   const { id } = await params;
   const d = await getDeal(id);
-  if (!d) notFound();
+  if (!d) permanentRedirect("/");
+  if (!d.active) permanentRedirect(landingForExpired(d));
 
   // The deal page only needs a small background grid for first paint — the client
   // app lazy-loads the full deal set on mount. Seeding ~24 (vs the home page's 100)

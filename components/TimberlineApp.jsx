@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   SB_URL, SB_KEY, SB_H, BRAND_DOMAINS, MC, HUNT_TYPES, GEAR_CATS, ALL_BRANDS,
   STORES, PORTALS, ACTIVE_PORTAL_ID, PORTAL, PORTAL_TO_PRODUCT, PALETTE,
-  INIT_FAMILY, SIZE_OPTIONS,
+  INIT_FAMILY, SIZE_OPTIONS, CATEGORY_GROUPS, categoryGroupBySlug, dealInCategory,
 } from "@/lib/constants";
 import {
   parseDeal, fieldsForCat, productGender, computeTags, parseCoupon,
@@ -752,6 +752,9 @@ function PriceSearch({T,P,wishlist,setWishlist,deals,family,onOpenDeal,user,onWa
   const [query,setQuery]=useState("");
   const trimmed = query.trim().toLowerCase();
   const [historyMap, setHistoryMap] = useState({});
+  // Durable search URL: /search?q=vortex+viper pre-fills the box. Read after mount
+  // (not via useSearchParams) so the shared shell stays statically prerendered.
+  useEffect(()=>{ try { const q=new URLSearchParams(window.location.search).get("q"); if(q) setQuery(q); } catch { /* ignore */ } },[]);
   
   const results = useMemo(()=>{
     const t = query.trim().toLowerCase();
@@ -1024,6 +1027,11 @@ function brandForPath(p, brands) {
   const slug = decodeURIComponent(m[1]);
   return (brands || []).find(b => brandSlug(b) === slug) || "All";
 }
+// /category/<slug> → the durable category group (or null for the home/other views).
+function catForPath(p) {
+  const m = (p || "").match(/^\/category\/([^/]+)/);
+  return m ? categoryGroupBySlug(decodeURIComponent(m[1])) : null;
+}
 
 export default function MainApp({
   initialDeals = [],
@@ -1041,8 +1049,9 @@ export default function MainApp({
   const [family,setFamily]=useState(INIT_FAMILY);
   const [memberFilter,setMemberFilter]=useState("All");
   const [brandFilter,setBrandFilter]=useState(() => brandForPath(pathname, brandUniverse));
-  // Keep tab + brand in sync with the URL on client-side navigation.
-  useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname, brandUniverse)); }, [pathname, brandUniverse]);
+  const [catFilter,setCatFilter]=useState(() => catForPath(pathname));
+  // Keep tab + brand + category in sync with the URL on client-side navigation.
+  useEffect(() => { setTab(tabForPath(pathname)); setBrandFilter(brandForPath(pathname, brandUniverse)); setCatFilter(catForPath(pathname)); }, [pathname, brandUniverse]);
   const [sortBy,setSortBy]=useState("discount");
   // Render-cap for phones (see MOBILE_DEAL_STEP). isMobile defaults false so SSR and the
   // first client render match (full grid); it flips true after mount on small screens,
@@ -1063,7 +1072,7 @@ export default function MainApp({
   useEffect(()=>{ try { const v = localStorage.getItem("tl_family_only"); if (v !== null) setFamilyOnly(v === "true"); } catch { /* ignore */ } }, []);
   useEffect(()=>{ try { localStorage.setItem("tl_family_only", String(familyOnly)); } catch { /* ignore */ } }, [familyOnly]);
   // Restart the mobile render-cap at the top whenever the visible set changes.
-  useEffect(()=>{ setMobileLimit(MOBILE_DEAL_STEP); },[brandFilter,memberFilter,sortBy,familyOnly,tab]);
+  useEffect(()=>{ setMobileLimit(MOBILE_DEAL_STEP); },[brandFilter,catFilter,memberFilter,sortBy,familyOnly,tab]);
 
   const [modalDeal,setModalDeal]=useState(null);
   const [editIdx,setEditIdx]=useState(null);
@@ -1195,10 +1204,11 @@ export default function MainApp({
   const filtered=useMemo(()=>sortedDeals.filter(d=>{
     if (portalBrandSet.size && !portalBrandSet.has(d.brand)) return false;
     if(brandFilter!=="All"&&d.brand!==brandFilter)return false;
+    if(catFilter && !dealInCategory(catFilter,d.cat))return false;
     if(memberFilter!=="All"&&!d.tags.includes(memberFilter))return false;
     if(familyOnly && user && family.length && memberFilter==="All" && d.tags.length===0) return false;
     return true;
-  }),[sortedDeals,portalBrandSet,brandFilter,memberFilter,familyOnly,user,family.length]);
+  }),[sortedDeals,portalBrandSet,brandFilter,catFilter,memberFilter,familyOnly,user,family.length]);
   // On phones, render only the first `mobileLimit` cards (rest via "Load more"); desktop
   // renders the whole list. Keeps the mobile DOM light enough to avoid iOS tab reloads.
   const visibleDeals = (isMobile && filtered.length > mobileLimit) ? filtered.slice(0, mobileLimit) : filtered;
@@ -1215,7 +1225,8 @@ export default function MainApp({
   );
   const dealsHeading = landingDeal
     ? `${landingDeal.brand} ${landingDeal.product}`
-    : (brandFilter !== "All" ? `${brandFilter} Deals` : (PORTAL.heroTitle || "Active Deals"));
+    : (catFilter ? `${catFilter.label} Deals`
+      : (brandFilter !== "All" ? `${brandFilter} Deals` : (PORTAL.heroTitle || "Active Deals")));
   const watchQueryFor = d => ((d.brand||"")+" "+(d.product||"")).trim().toLowerCase();
   const isWatched = d => wishlist.some(w => (w.query||"") === watchQueryFor(d));
   const handleWatch = async (d) => {
@@ -1336,6 +1347,15 @@ export default function MainApp({
                   ))}
                   <button onClick={()=>setShowSuggest(true)} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:700,border:`1px dashed ${T.orange}`,background:T.orangeLight,color:T.orange,fontStyle:"italic"}}>Don&apos;t see your brand? Suggest one →</button>
                 </div>
+                <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,color:T.textMuted,fontFamily:"var(--font-jetbrains),monospace",letterSpacing:"0.08em"}}>CATEGORY</span>
+                  <Link href="/" style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",textDecoration:"none",border:`1px solid ${!catFilter?T.accent:T.border}`,background:!catFilter?T.accentLight:T.bgCard,color:!catFilter?T.accent:T.textMuted}}>All</Link>
+                  {CATEGORY_GROUPS.filter(g=>g.slug!=="clothing").map(g=>(
+                    <Link key={g.slug} href={"/category/"+g.slug} style={{padding:"5px 14px",borderRadius:999,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",textDecoration:"none",border:`1px solid ${catFilter&&catFilter.slug===g.slug?T.accent:T.border}`,background:catFilter&&catFilter.slug===g.slug?T.accentLight:T.bgCard,color:catFilter&&catFilter.slug===g.slug?T.accent:T.textMuted}}>
+                      {g.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
               <div className="tl-deal-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:18}}>
               {dealsError?(
@@ -1346,10 +1366,10 @@ export default function MainApp({
                 </div>
               ):filtered.length===0?(
                 <div style={{padding:48,textAlign:"center",gridColumn:"1 / -1"}}>
-                  <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>No deals match these filters</div>
-                  <div style={{fontSize:12,color:T.textMuted,marginBottom:18,fontFamily:"var(--font-jetbrains),monospace"}}>Try clearing the brand or member filter to see more.</div>
-                  {(brandFilter!=="All"||memberFilter!=="All")&&(
-                    <Link href="/" onClick={()=>setMemberFilter("All")} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer",textDecoration:"none",display:"inline-block"}}>Clear filters</Link>
+                  <div style={{fontFamily:"var(--font-fraunces),Georgia,serif",fontWeight:600,fontSize:20,color:T.text,marginBottom:6}}>{catFilter?`No live ${catFilter.label.toLowerCase()} deals right now`:"No deals match these filters"}</div>
+                  <div style={{fontSize:12,color:T.textMuted,marginBottom:18,fontFamily:"var(--font-jetbrains),monospace"}}>{catFilter?"These rotate fast — check back soon, or browse everything on sale today.":"Try clearing the brand or member filter to see more."}</div>
+                  {(brandFilter!=="All"||catFilter||memberFilter!=="All")&&(
+                    <Link href="/" onClick={()=>setMemberFilter("All")} style={{background:T.accent,color:"white",border:"none",borderRadius:9,padding:"9px 22px",fontWeight:700,fontSize:13,cursor:"pointer",textDecoration:"none",display:"inline-block"}}>{catFilter?"Browse all deals":"Clear filters"}</Link>
                   )}
                 </div>
               ):visibleDeals.map(d=>(
