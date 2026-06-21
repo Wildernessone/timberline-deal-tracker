@@ -1,4 +1,4 @@
-import { PORTAL } from "@/lib/constants";
+import { PORTAL, CATEGORY_GROUPS } from "@/lib/constants";
 import { getAllActiveDealIdsForSitemap, getEffectiveBrands, getArticlesForSitemap } from "@/lib/data";
 import { brandSlug } from "@/lib/parse";
 import { SITE_URL } from "@/lib/seo";
@@ -32,6 +32,13 @@ export default async function sitemap() {
     priority: 0.6,
   }));
 
+  // Durable category landing pages (always-current deal listings).
+  const categoryRoutes = CATEGORY_GROUPS.map(g => ({
+    url: SITE_URL + "/category/" + g.slug,
+    changeFrequency: "daily",
+    priority: 0.6,
+  }));
+
   const dealRoutes = deals.map(d => ({
     url: SITE_URL + "/deal/" + d.id,
     lastModified: d.created_at ? new Date(d.created_at) : undefined,
@@ -39,5 +46,5 @@ export default async function sitemap() {
     priority: 0.5,
   }));
 
-  return [...staticRoutes, ...guideRoutes, ...brandRoutes, ...dealRoutes];
+  return [...staticRoutes, ...guideRoutes, ...categoryRoutes, ...brandRoutes, ...dealRoutes];
 }

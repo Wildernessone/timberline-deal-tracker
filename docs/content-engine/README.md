@@ -72,9 +72,23 @@ generation + judgment, which a plain API call can't do. Each run:
    YouTube. Extract: what subtopics they cover, what they *miss*, real specifics
    (temperatures, techniques, product names, wash instructions). The article must be
    *more useful and more specific* than what ranks — that's the only way a new domain wins.
-3. **Ground it in live inventory.** Query the hub for current active deals for the portal
-   (`deals?active=eq.true`) so the article can cite real products and **internally link**
-   to `/deal/<id>` and `/brand/<slug>`. Internal links = SEO juice + funnel to outbound.
+3. **Ground it in live inventory — but link to *listings*, never to a single deal.**
+   Query the hub for current active deals (`deals?active=eq.true`) to see what's real and
+   name actual products in the prose. **Internal links MUST point at durable listing pages
+   that re-query the live deal set on every render — NEVER `/deal/<id>`.** A `/deal/<id>`
+   link 404s the day that sale ends, so an evergreen guide slowly fills with dead links
+   (this is the bug we're fixing). Durable targets:
+   - **`/category/<slug>`** — the gear-type listing. Always shows whatever is on sale in
+     that category *right now*. Slugs (matched to live `deals.cat`): `optics`, `jackets`,
+     `base-layers`, `pants`, `boots`, `packs`, `knives`, `calls`, `blinds`, `accessories`,
+     `clothing`. So "good binoculars for glassing" links to `/category/optics`, "merino
+     base layers" → `/category/base-layers`, etc.
+   - **`/brand/<slug>`** — a brand's live deals (e.g. `/brand/sitka`, `/brand/vortex`).
+     Use when you name a specific brand. Slug = lowercased, hyphenated brand name.
+   You MAY *mention* a specific product by name (good for specificity/E-E-A-T), but the
+   hyperlink underneath it goes to its `/category/<slug>` or `/brand/<slug>`, not its deal
+   page — so the link still lands on a live, relevant, on-sale set six months later.
+   (Defined in `lib/constants.js` → `CATEGORY_GROUPS`; same slugs on all portals.)
 4. **Write it** to the quality bar below. Markdown. 1,200–2,200 words for guides.
 5. **Generate a hero image** via Higgsfield (`generate_image`) — on-theme, no text, no
    fake logos; landscape. Store the URL in `hero_image`. (Optionally 1–2 inline images.)
@@ -92,8 +106,9 @@ generation + judgment, which a plain API call can't do. Each run:
 - Original angle vs. what ranks — fills a gap, goes deeper, or is more current.
 - Honest: no fake reviews, no invented testing, no "we tested" if we didn't. Frame as
   research-backed buying advice, not first-person field tests we didn't do.
-- Natural internal links to 3–8 real live deals/brands. Affiliate disclosure inherited
-  from the guides layout footer.
+- Natural internal links to 3–8 **durable listing pages** (`/category/<slug>` and
+  `/brand/<slug>` — see step 3). Zero `/deal/<id>` links: those rot. Affiliate disclosure
+  inherited from the guides layout footer.
 
 ### Publish policy (reconcile: "draft+approve" vs "auto-publish")
 **Ramp, don't flip a switch.** A brand-new domain that suddenly dumps auto-generated
