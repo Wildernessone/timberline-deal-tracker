@@ -6,7 +6,9 @@ import { resolveBrandSlug, getDealsByBrand } from "@/lib/data";
 import { brandSlug } from "@/lib/parse";
 import { itemListJsonLd, breadcrumbJsonLd, JsonLd, SITE_URL, brandUrl } from "@/lib/seo";
 
-export const revalidate = 3600;
+// 6h ISR backstop; the scraper purges on demand (revalidateTag('deals')) so brand
+// listings stay current the moment a deal changes (see /deal/[id]).
+export const revalidate = 21600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

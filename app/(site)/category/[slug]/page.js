@@ -7,7 +7,9 @@ import { PORTAL, CATEGORY_GROUPS, categoryGroupBySlug } from "@/lib/constants";
 import { getDealsByCategory } from "@/lib/data";
 import { itemListJsonLd, breadcrumbJsonLd, JsonLd, SITE_URL, categoryUrl } from "@/lib/seo";
 
-export const revalidate = 3600;
+// 6h ISR backstop; the scraper purges on demand (revalidateTag('deals')) so the live
+// active-deals set stays accurate the moment anything changes (see /deal/[id]).
+export const revalidate = 21600;
 export const dynamicParams = false;
 
 export function generateStaticParams() {

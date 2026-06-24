@@ -6,7 +6,11 @@ import { getDeal, getDeals, getCoupons, getBrandShipping, getClickCounts, getEff
 import { productJsonLd, breadcrumbJsonLd, JsonLd, SITE_URL, dealUrl, brandUrl, discountPct } from "@/lib/seo";
 import { brandSlug, fmtPrice } from "@/lib/parse";
 
-export const revalidate = 3600;
+// 6h time-based ISR. This is only a backstop: the scraper purges these pages on
+// demand (revalidateTag('deals') via /api/revalidate) the moment a price/deal changes,
+// so real updates are still instant. The longer window just keeps the long tail warm so
+// crawlers re-hitting cold deal URLs serve from cache instead of forcing a fresh render.
+export const revalidate = 21600;
 export const dynamicParams = true;
 
 // Pre-render the top deals; the long tail renders on-demand via ISR.

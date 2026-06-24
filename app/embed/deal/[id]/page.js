@@ -6,7 +6,8 @@ import { getDeal } from "@/lib/data";
 import { fmtPrice } from "@/lib/parse";
 import { discountPct } from "@/lib/seo";
 
-export const revalidate = 3600;
+// 6h ISR backstop; the scraper still purges on demand so prices stay live (see /deal/[id]).
+export const revalidate = 21600;
 export const dynamicParams = true;
 
 export const metadata = { robots: { index: false, follow: false } };
