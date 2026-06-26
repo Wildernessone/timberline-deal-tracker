@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PORTAL, PALETTE as T } from "@/lib/constants";
-import { getArticle } from "@/lib/data";
+import { getArticle, getHubHeroPool, getTTHeroPool } from "@/lib/data";
+import { pickMatchedHero } from "@/lib/parse";
 import { mdToHtml } from "@/lib/markdown";
 import { JsonLd, articleJsonLd, breadcrumbJsonLd, SITE_URL } from "@/lib/seo";
 
@@ -37,6 +38,14 @@ export default async function GuidePage({ params }) {
 
   const html = mdToHtml(a.body_md);
 
+  // No generated hero → borrow the best topic-matched hero (own portal first, then
+  // Timber & Tackle). Display-only; schema/OG/sitemap still use only the real hero.
+  let heroUrl = a.hero_image;
+  if (!heroUrl) {
+    const [ownPool, sibPool] = await Promise.all([getHubHeroPool(), getTTHeroPool()]);
+    heroUrl = pickMatchedHero(a, ownPool, sibPool);
+  }
+
   return (
     <>
       <JsonLd data={[
@@ -62,9 +71,9 @@ export default async function GuidePage({ params }) {
           {a.published_at && " · " + new Date(a.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
         </div>
 
-        {a.hero_image && (
+        {heroUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={a.hero_image} alt="" style={{ width: "100%", borderRadius: 12, marginBottom: 28 }} />
+          <img src={heroUrl} alt={a.title} style={{ width: "100%", borderRadius: 12, marginBottom: 28 }} />
         )}
 
         <div className="article-body" dangerouslySetInnerHTML={{ __html: html }} />

@@ -24,6 +24,8 @@ export default async function sitemap() {
     lastModified: a.updated_at || a.published_at ? new Date(a.updated_at || a.published_at) : undefined,
     changeFrequency: "weekly",
     priority: 0.7,
+    // Declare the hero so the guide is eligible for image search (click image → article).
+    ...(a.hero_image ? { images: [a.hero_image] } : {}),
   }));
 
   const brandRoutes = brands.map(b => ({
