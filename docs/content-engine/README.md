@@ -92,6 +92,14 @@ generation + judgment, which a plain API call can't do. Each run:
 4. **Write it** to the quality bar below. Markdown. 1,200–2,200 words for guides.
 5. **Generate a hero image** via Higgsfield (`generate_image`) — on-theme, no text, no
    fake logos; landscape. Store the URL in `hero_image`. (Optionally 1–2 inline images.)
+   **AUTO-RETRY:** the image step is the flakiest part (transient 5xx, or the workspace
+   running out of credits). If `generate_image`/`job_status` errors or returns no image,
+   **retry up to 2 more times** (wait a few seconds between tries) before giving up. Only
+   insert with `hero_image = null` if all attempts fail — and when that happens, record the
+   exact reason in `quality_note` (e.g. "Hero image NULL: Higgsfield workspace out of
+   credits") so it's diagnosable and can be backfilled later. (A null hero is no longer a
+   blank guide — the site falls back to a topic-matched/portal image — but a real hero is
+   always preferred, so the retry matters.)
 6. **Self-score against the rubric.** Write the score + notes into `quality_note`.
 7. **Publish or queue** per the publish policy below.
 8. **Revalidate** — POST `/api/revalidate?secret=…` `{"tag":["articles"]}` to the portal
@@ -156,6 +164,16 @@ Auto-generate the recurring "**Best <category> deals — <Month Year>**" page pe
 each month from live inventory; refresh (not duplicate) the prior month's evergreen pages.
 
 ---
+
+## Regenerate / backfill a hero (when James says "this image doesn't work")
+
+No Command Center button — James just asks, and any session does this in one shot:
+1. Find the row: `select id, slug, portal, hero_image, quality_note from articles where slug ilike '%<topic>%'` (hub Supabase `jcmkoooivghwrgezxode`).
+2. Generate via Higgsfield MCP: `generate_image` (model `nano_banana_pro`, 16:9, 1k–2k, on-theme, no text/logos) → poll `job_status` for the cloudfront `rawUrl`.
+3. Permanentize: POST the cloudfront URL to edge fn `store-guide-image` `{url, slug}` → returns a `guide-images` Storage URL.
+4. `update articles set hero_image=<storage url>, updated_at=now() where id=<id>`.
+5. It shows on the live page within ~1h (ISR), or unpublish→republish in Command Center to revalidate now.
+(Same recipe for SideWRK `sw_articles` / T&T `articles`, each on its own Supabase + `store-guide-image`.)
 
 ## Cost
 Anthropic API (already on the droplet) ~pennies/article. Higgsfield images = existing
