@@ -64,7 +64,7 @@ export default async function GuidePage({ params }) {
 
         {a.hero_image && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={a.hero_image} alt="" style={{ width: "100%", borderRadius: 12, marginBottom: 28 }} />
+          <img src={a.hero_image} alt={a.title} style={{ width: "100%", borderRadius: 12, marginBottom: 28 }} />
         )}
 
         <div className="article-body" dangerouslySetInnerHTML={{ __html: html }} />
